@@ -150,17 +150,11 @@ body {
   left: 0;
   top: 0;
   border-radius: 7px;
-  border: 2px solid var(--block-border);
-  box-shadow:
-    inset 0 -2px 0 rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 3px 6px rgba(0, 0, 0, 0.45);
   cursor: grab;
   transition: transform 140ms ease-out;
   will-change: transform;
   background-repeat: no-repeat;
   background-size: 100% 100%;
-  background-blend-mode: multiply;
 }
 .block.dragging {
   cursor: grabbing;
@@ -170,6 +164,33 @@ body {
 }
 .block.target {
   z-index: 2;
+}
+
+/* Wood theme — solid wooden tile look */
+.block.theme-wood {
+  border: 2px solid var(--block-border);
+  box-shadow:
+    inset 0 -2px 0 rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 3px 6px rgba(0, 0, 0, 0.45);
+}
+
+/* Cars theme — thin dark outline, ground-shadow so the car looks
+   like it's sitting on the asphalt */
+.block.theme-cars {
+  border: none;
+  border-radius: 9px;
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Fruit theme — no border at all, just a soft drop shadow so the
+   fruit looks like it's resting on the board */
+.block.theme-fruit {
+  border: none;
+  border-radius: 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.55);
 }
 
 /* Status bar */

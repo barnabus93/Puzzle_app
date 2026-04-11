@@ -31,8 +31,11 @@
     count: "puzzle.completedCount",
     difficulty: "puzzle.difficulty",
     tutorial: "puzzle.tutorialSeen",
+    blockStyle: "puzzle.blockStyle",
     version: "puzzle.version",
   };
+
+  const BLOCK_STYLES = { wood: true, cars: true, fruit: true };
   const STORAGE_VERSION = 1;
 
   // ------------------------------------------------------------------
@@ -81,6 +84,22 @@
     setTutorialSeen(v) {
       try {
         localStorage.setItem(STORAGE_KEYS.tutorial, v ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+    },
+    getBlockStyle() {
+      try {
+        const v = localStorage.getItem(STORAGE_KEYS.blockStyle);
+        if (v && BLOCK_STYLES[v]) return v;
+      } catch {
+        /* ignore */
+      }
+      return "wood";
+    },
+    setBlockStyle(s) {
+      try {
+        localStorage.setItem(STORAGE_KEYS.blockStyle, s);
       } catch {
         /* ignore */
       }
@@ -194,6 +213,7 @@
     moves: 0,
     completed: 0,
     difficulty: "moderate",
+    blockStyle: "wood",
     winLocked: false,
   };
 
@@ -227,6 +247,12 @@
     return `translate(calc(var(--cell) * ${col} + 2px), calc(var(--cell) * ${row} + 2px))`;
   }
 
+  // ------------------------------------------------------------------
+  // Block style themes (wood / cars / fruit)
+  // ------------------------------------------------------------------
+  // Each theme provides a function that sets a block element's
+  // background. The dispatch is in applyBlockStyle() below.
+
   // Rich, saturated base colors applied under the wood-grain overlay.
   const WOOD_COLORS = {
     target: "#c8302b",
@@ -246,34 +272,63 @@
     ],
   };
 
+  // Vivid car body colours. Target is always the classic Rush Hour red.
+  const CAR_COLORS = {
+    target: "#d0281c",
+    palette: [
+      "#e8801a",
+      "#f2c930",
+      "#4bae55",
+      "#30a3b5",
+      "#3a6dbf",
+      "#8b4fc5",
+      "#c94b9a",
+      "#7a4a1e",
+      "#dcdcdc",
+      "#9a9a9a",
+      "#4a4a4a",
+      "#b8862a",
+    ],
+  };
+
+  // Assigned by block id; target gets a watermelon wedge.
+  const FRUIT_ROTATION = ["apple", "orange", "kiwi", "banana"];
+
   function woodBaseColor(block) {
     if (block.isTarget) return WOOD_COLORS.target;
-    const p = WOOD_COLORS.palette;
-    return p[block.id % p.length];
+    return WOOD_COLORS.palette[block.id % WOOD_COLORS.palette.length];
+  }
+  function carBaseColor(block) {
+    if (block.isTarget) return CAR_COLORS.target;
+    return CAR_COLORS.palette[block.id % CAR_COLORS.palette.length];
+  }
+  function fruitTypeFor(block) {
+    if (block.isTarget) return "watermelon";
+    return FRUIT_ROTATION[block.id % FRUIT_ROTATION.length];
   }
 
-  // Apply a wood-grain background to a block element. The grain is drawn
-  // with an SVG feTurbulence filter — one SVG per block, with a unique
-  // seed so every block has its own natural-looking grain. The grain
-  // runs along the block's length (horizontal streaks for horizontal
-  // blocks, vertical for vertical). Multiplied over the solid base
-  // colour via `background-blend-mode: multiply` so you get rich
-  // coloured wood rather than a flat gradient.
+  function encodeSvg(svg) {
+    return (
+      'url("data:image/svg+xml;charset=utf-8,' +
+      encodeURIComponent(svg) +
+      '")'
+    );
+  }
+
+  // Apply a wood-grain background. SVG feTurbulence filter with a
+  // per-block seed, multiplied over the solid base colour via
+  // background-blend-mode so every block has unique, natural grain.
+  //
+  // NOTE: write `#` literally in the filter reference. encodeURIComponent
+  // turns it into `%23` in the URL; browsers URL-decode back to `#`
+  // before parsing the SVG. Hard-coding `%23` here would double-encode.
+  // The rect also has `fill='white'` — a no-op under multiply blend, so
+  // if the filter ever fails to resolve the block still shows its solid
+  // base colour rather than black (SVG rect default is `fill='black'`).
   function applyWoodGrain(el, baseColor, orient, seedSource) {
     const seed = ((seedSource * 37 + 11) % 97) + 1;
     const bf = orient === "h" ? "0.013 0.32" : "0.32 0.013";
     const filterId = "wg" + seed;
-    // NOTE: write `#` here (not `%23`). encodeURIComponent turns `#`
-    // into `%23` in the data URI, and the browser URL-decodes it back
-    // to `#` before handing the SVG to the renderer. If you hard-code
-    // `%23` here, it gets double-encoded and the filter lookup breaks
-    // — the rect then falls back to `fill="black"` (SVG default) and
-    // the multiply blend paints every block solid black.
-    //
-    // The rect also gets `fill="white"` as a safety net: white × any
-    // base colour in multiply blend = the base colour unchanged, so
-    // if the filter ever fails to resolve we still see a plain solid
-    // block rather than a black one.
     const svg =
       "<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 240 80'>" +
       "<filter id='" + filterId + "' x='0' y='0' width='100%' height='100%'>" +
@@ -287,27 +342,228 @@
       "</filter>" +
       "<rect width='100%' height='100%' fill='white' filter='url(#" + filterId + ")'/>" +
       "</svg>";
-    const encoded = encodeURIComponent(svg);
     el.style.backgroundColor = baseColor;
-    el.style.backgroundImage =
-      'url("data:image/svg+xml;charset=utf-8,' + encoded + '")';
+    el.style.backgroundImage = encodeSvg(svg);
     el.style.backgroundSize = "100% 100%";
     el.style.backgroundRepeat = "no-repeat";
     el.style.backgroundBlendMode = "multiply";
   }
 
+  // -----------------------------------------------------------------
+  // Car theme — top-down vehicles
+  // -----------------------------------------------------------------
+  // Each block gets an SVG whose viewBox matches the block's aspect
+  // ratio (so `background-size: 100% 100%` stretches 1:1, no distortion).
+  // Length-2 blocks → sedan. Length-3 blocks → truck/bus. Vertical
+  // blocks use the same sprite drawn rotated inside the SVG.
+
+  // Horizontal sedan, 200x100 viewBox (width:height = 2:1).
+  function sedanH(color) {
+    return (
+      "<rect x='10' y='14' width='180' height='72' rx='22' ry='22' fill='" + color + "' stroke='rgba(0,0,0,0.35)' stroke-width='2'/>" +
+      "<line x1='55' y1='24' x2='55' y2='76' stroke='rgba(0,0,0,0.45)' stroke-width='2'/>" +
+      "<line x1='145' y1='24' x2='145' y2='76' stroke='rgba(0,0,0,0.45)' stroke-width='2'/>" +
+      "<path d='M58 30 Q61 50 58 70 L142 70 Q139 50 142 30 Z' fill='rgba(10,20,35,0.72)'/>" +
+      "<rect x='26' y='4' width='24' height='10' rx='3' fill='#151515'/>" +
+      "<rect x='26' y='86' width='24' height='10' rx='3' fill='#151515'/>" +
+      "<rect x='150' y='4' width='24' height='10' rx='3' fill='#151515'/>" +
+      "<rect x='150' y='86' width='24' height='10' rx='3' fill='#151515'/>" +
+      "<rect x='186' y='24' width='5' height='10' rx='2' fill='#fff2b0'/>" +
+      "<rect x='186' y='66' width='5' height='10' rx='2' fill='#fff2b0'/>" +
+      "<rect x='9' y='26' width='4' height='10' rx='2' fill='#c02020'/>" +
+      "<rect x='9' y='64' width='4' height='10' rx='2' fill='#c02020'/>"
+    );
+  }
+
+  // Vertical sedan, 100x200 viewBox. Front faces up.
+  function sedanV(color) {
+    return (
+      "<rect x='14' y='10' width='72' height='180' rx='22' ry='22' fill='" + color + "' stroke='rgba(0,0,0,0.35)' stroke-width='2'/>" +
+      "<line x1='24' y1='55' x2='76' y2='55' stroke='rgba(0,0,0,0.45)' stroke-width='2'/>" +
+      "<line x1='24' y1='145' x2='76' y2='145' stroke='rgba(0,0,0,0.45)' stroke-width='2'/>" +
+      "<path d='M30 58 Q50 61 70 58 L70 142 Q50 139 30 142 Z' fill='rgba(10,20,35,0.72)'/>" +
+      "<rect x='4' y='26' width='10' height='24' rx='3' fill='#151515'/>" +
+      "<rect x='86' y='26' width='10' height='24' rx='3' fill='#151515'/>" +
+      "<rect x='4' y='150' width='10' height='24' rx='3' fill='#151515'/>" +
+      "<rect x='86' y='150' width='10' height='24' rx='3' fill='#151515'/>" +
+      "<rect x='24' y='9' width='10' height='5' rx='2' fill='#fff2b0'/>" +
+      "<rect x='66' y='9' width='10' height='5' rx='2' fill='#fff2b0'/>" +
+      "<rect x='26' y='187' width='10' height='4' rx='2' fill='#c02020'/>" +
+      "<rect x='64' y='187' width='10' height='4' rx='2' fill='#c02020'/>"
+    );
+  }
+
+  // Horizontal truck, 300x100 viewBox.
+  function truckH(color) {
+    return (
+      "<rect x='8' y='14' width='100' height='72' rx='8' fill='" + color + "' stroke='rgba(0,0,0,0.4)' stroke-width='2'/>" +
+      "<rect x='112' y='18' width='180' height='64' rx='6' fill='" + color + "' stroke='rgba(0,0,0,0.55)' stroke-width='2.5'/>" +
+      "<line x1='20' y1='30' x2='100' y2='30' stroke='rgba(0,0,0,0.3)' stroke-width='2'/>" +
+      "<line x1='20' y1='50' x2='100' y2='50' stroke='rgba(0,0,0,0.3)' stroke-width='2'/>" +
+      "<line x1='20' y1='70' x2='100' y2='70' stroke='rgba(0,0,0,0.3)' stroke-width='2'/>" +
+      "<path d='M258 28 Q261 50 258 72 L225 72 Q222 50 225 28 Z' fill='rgba(10,20,35,0.72)'/>" +
+      "<rect x='30' y='4' width='24' height='10' rx='3' fill='#151515'/>" +
+      "<rect x='30' y='86' width='24' height='10' rx='3' fill='#151515'/>" +
+      "<rect x='70' y='4' width='24' height='10' rx='3' fill='#151515'/>" +
+      "<rect x='70' y='86' width='24' height='10' rx='3' fill='#151515'/>" +
+      "<rect x='228' y='4' width='24' height='10' rx='3' fill='#151515'/>" +
+      "<rect x='228' y='86' width='24' height='10' rx='3' fill='#151515'/>" +
+      "<rect x='286' y='26' width='5' height='10' rx='2' fill='#fff2b0'/>" +
+      "<rect x='286' y='64' width='5' height='10' rx='2' fill='#fff2b0'/>" +
+      "<rect x='9' y='26' width='4' height='10' rx='2' fill='#c02020'/>" +
+      "<rect x='9' y='64' width='4' height='10' rx='2' fill='#c02020'/>"
+    );
+  }
+
+  // Vertical truck, 100x300 viewBox. Front faces up.
+  function truckV(color) {
+    return (
+      "<rect x='14' y='192' width='72' height='100' rx='8' fill='" + color + "' stroke='rgba(0,0,0,0.4)' stroke-width='2'/>" +
+      "<rect x='18' y='8' width='64' height='180' rx='6' fill='" + color + "' stroke='rgba(0,0,0,0.55)' stroke-width='2.5'/>" +
+      "<line x1='30' y1='200' x2='30' y2='280' stroke='rgba(0,0,0,0.3)' stroke-width='2'/>" +
+      "<line x1='50' y1='200' x2='50' y2='280' stroke='rgba(0,0,0,0.3)' stroke-width='2'/>" +
+      "<line x1='70' y1='200' x2='70' y2='280' stroke='rgba(0,0,0,0.3)' stroke-width='2'/>" +
+      "<path d='M28 42 Q50 45 72 42 L72 75 Q50 72 28 75 Z' fill='rgba(10,20,35,0.72)'/>" +
+      "<rect x='4' y='30' width='10' height='24' rx='3' fill='#151515'/>" +
+      "<rect x='86' y='30' width='10' height='24' rx='3' fill='#151515'/>" +
+      "<rect x='4' y='70' width='10' height='24' rx='3' fill='#151515'/>" +
+      "<rect x='86' y='70' width='10' height='24' rx='3' fill='#151515'/>" +
+      "<rect x='4' y='228' width='10' height='24' rx='3' fill='#151515'/>" +
+      "<rect x='86' y='228' width='10' height='24' rx='3' fill='#151515'/>" +
+      "<rect x='26' y='9' width='10' height='5' rx='2' fill='#fff2b0'/>" +
+      "<rect x='64' y='9' width='10' height='5' rx='2' fill='#fff2b0'/>" +
+      "<rect x='26' y='286' width='10' height='4' rx='2' fill='#c02020'/>" +
+      "<rect x='64' y='286' width='10' height='4' rx='2' fill='#c02020'/>"
+    );
+  }
+
+  function applyCarSprite(el, block) {
+    const color = carBaseColor(block);
+    const isH = block.orient === "h";
+    const vbW = isH ? 100 * block.len : 100;
+    const vbH = isH ? 100 : 100 * block.len;
+    let inner;
+    if (block.len === 3) inner = isH ? truckH(color) : truckV(color);
+    else inner = isH ? sedanH(color) : sedanV(color);
+    const svg =
+      "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 " +
+      vbW + " " + vbH + "'>" + inner + "</svg>";
+    el.style.backgroundColor = "transparent";
+    el.style.backgroundImage = encodeSvg(svg);
+    el.style.backgroundSize = "100% 100%";
+    el.style.backgroundRepeat = "no-repeat";
+    el.style.backgroundBlendMode = "normal";
+  }
+
+  // -----------------------------------------------------------------
+  // Fruit theme — row-of-N round fruits
+  // -----------------------------------------------------------------
+  // A block of length N shows N copies of its assigned fruit side by
+  // side (or stacked, for vertical blocks). Each fruit is drawn inside
+  // a 100×100 cell slot; the SVG viewBox scales with block length so
+  // `background-size: 100% 100%` stretches 1:1 without distortion.
+
+  const FRUIT_DRAWERS = {
+    apple: (cx, cy) =>
+      "<circle cx='" + cx + "' cy='" + (cy + 4) + "' r='32' fill='#d63a28' stroke='#6e1510' stroke-width='2'/>" +
+      "<path d='M" + (cx - 4) + " " + (cy - 28) + " Q" + cx + " " + (cy - 34) + " " + (cx + 4) + " " + (cy - 30) + "' stroke='#4a2a10' stroke-width='3' fill='none' stroke-linecap='round'/>" +
+      "<ellipse cx='" + (cx + 10) + "' cy='" + (cy - 30) + "' rx='8' ry='4' fill='#4b932c' transform='rotate(28 " + (cx + 10) + " " + (cy - 30) + ")'/>" +
+      "<ellipse cx='" + (cx - 10) + "' cy='" + (cy - 5) + "' rx='6' ry='3' fill='rgba(255,255,255,0.35)'/>",
+    orange: (cx, cy) =>
+      "<circle cx='" + cx + "' cy='" + (cy + 3) + "' r='32' fill='#ee812a' stroke='#813410' stroke-width='2'/>" +
+      "<circle cx='" + (cx - 8) + "' cy='" + (cy - 3) + "' r='1.4' fill='rgba(90,30,5,0.55)'/>" +
+      "<circle cx='" + (cx + 7) + "' cy='" + (cy + 1) + "' r='1.4' fill='rgba(90,30,5,0.55)'/>" +
+      "<circle cx='" + (cx - 3) + "' cy='" + (cy + 10) + "' r='1.4' fill='rgba(90,30,5,0.55)'/>" +
+      "<circle cx='" + (cx + 10) + "' cy='" + (cy + 14) + "' r='1.4' fill='rgba(90,30,5,0.55)'/>" +
+      "<circle cx='" + (cx - 12) + "' cy='" + (cy + 12) + "' r='1.4' fill='rgba(90,30,5,0.55)'/>" +
+      "<path d='M" + (cx - 3) + " " + (cy - 28) + " Q" + cx + " " + (cy - 34) + " " + (cx + 5) + " " + (cy - 30) + "' stroke='#4a3010' stroke-width='2.5' fill='none' stroke-linecap='round'/>" +
+      "<ellipse cx='" + (cx + 10) + "' cy='" + (cy - 28) + "' rx='7' ry='3' fill='#4b932c' transform='rotate(30 " + (cx + 10) + " " + (cy - 28) + ")'/>" +
+      "<ellipse cx='" + (cx - 10) + "' cy='" + (cy - 6) + "' rx='6' ry='3' fill='rgba(255,255,255,0.35)'/>",
+    kiwi: (cx, cy) =>
+      "<circle cx='" + cx + "' cy='" + cy + "' r='33' fill='#6e4a1e'/>" +
+      "<circle cx='" + cx + "' cy='" + cy + "' r='28' fill='#a8c766'/>" +
+      "<circle cx='" + cx + "' cy='" + cy + "' r='14' fill='#f6f2dc'/>" +
+      "<circle cx='" + (cx - 6) + "' cy='" + (cy - 6) + "' r='1.4' fill='#161616'/>" +
+      "<circle cx='" + (cx + 6) + "' cy='" + (cy - 6) + "' r='1.4' fill='#161616'/>" +
+      "<circle cx='" + (cx - 8) + "' cy='" + (cy + 3) + "' r='1.4' fill='#161616'/>" +
+      "<circle cx='" + (cx + 8) + "' cy='" + (cy + 3) + "' r='1.4' fill='#161616'/>" +
+      "<circle cx='" + (cx - 5) + "' cy='" + (cy + 10) + "' r='1.4' fill='#161616'/>" +
+      "<circle cx='" + (cx + 5) + "' cy='" + (cy + 10) + "' r='1.4' fill='#161616'/>" +
+      "<circle cx='" + cx + "' cy='" + (cy - 12) + "' r='1.4' fill='#161616'/>",
+    banana: (cx, cy) =>
+      "<path d='M" + (cx - 28) + " " + (cy + 22) +
+      " C" + (cx - 34) + " " + (cy - 10) +
+      " " + (cx - 8) + " " + (cy - 28) +
+      " " + (cx + 26) + " " + (cy - 18) +
+      " C" + (cx + 20) + " " + (cy - 12) +
+      " " + (cx + 8) + " " + (cy - 4) +
+      " " + (cx - 2) + " " + (cy + 8) +
+      " C" + (cx - 10) + " " + (cy + 18) +
+      " " + (cx - 18) + " " + (cy + 24) +
+      " " + (cx - 28) + " " + (cy + 22) +
+      " Z' fill='#f1cc38' stroke='#6e5410' stroke-width='2' stroke-linejoin='round'/>" +
+      "<path d='M" + (cx + 22) + " " + (cy - 17) +
+      " l4 -4' stroke='#4a3610' stroke-width='2.5' stroke-linecap='round'/>" +
+      "<path d='M" + (cx - 22) + " " + (cy + 20) +
+      " l-2 3' stroke='#4a3610' stroke-width='2' stroke-linecap='round'/>",
+    watermelon: (cx, cy) =>
+      "<path d='M" + (cx - 34) + " " + (cy + 28) +
+      " Q" + cx + " " + (cy - 30) + " " + (cx + 34) + " " + (cy + 28) + " Z' fill='#2e6e3a' stroke='#153a1c' stroke-width='2'/>" +
+      "<path d='M" + (cx - 28) + " " + (cy + 24) +
+      " Q" + cx + " " + (cy - 18) + " " + (cx + 28) + " " + (cy + 24) + " Z' fill='#f6eedc'/>" +
+      "<path d='M" + (cx - 23) + " " + (cy + 20) +
+      " Q" + cx + " " + (cy - 8) + " " + (cx + 23) + " " + (cy + 20) + " Z' fill='#e63827'/>" +
+      "<ellipse cx='" + (cx - 8) + "' cy='" + cy + "' rx='1.8' ry='2.8' fill='#181210'/>" +
+      "<ellipse cx='" + (cx + 8) + "' cy='" + cy + "' rx='1.8' ry='2.8' fill='#181210'/>" +
+      "<ellipse cx='" + cx + "' cy='" + (cy + 10) + "' rx='1.8' ry='2.8' fill='#181210'/>" +
+      "<ellipse cx='" + (cx - 4) + "' cy='" + (cy - 5) + "' rx='1.8' ry='2.8' fill='#181210'/>" +
+      "<ellipse cx='" + (cx + 4) + "' cy='" + (cy - 5) + "' rx='1.8' ry='2.8' fill='#181210'/>",
+  };
+
+  function applyFruitSprite(el, block) {
+    const fruit = fruitTypeFor(block);
+    const drawer = FRUIT_DRAWERS[fruit] || FRUIT_DRAWERS.apple;
+    const isH = block.orient === "h";
+    const n = block.len;
+    const cell = 100;
+    const vbW = isH ? cell * n : cell;
+    const vbH = isH ? cell : cell * n;
+    let inner = "";
+    for (let i = 0; i < n; i++) {
+      const cx = isH ? i * cell + cell / 2 : cell / 2;
+      const cy = isH ? cell / 2 : i * cell + cell / 2;
+      inner += drawer(cx, cy);
+    }
+    const svg =
+      "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 " +
+      vbW + " " + vbH + "'>" + inner + "</svg>";
+    el.style.backgroundColor = "transparent";
+    el.style.backgroundImage = encodeSvg(svg);
+    el.style.backgroundSize = "100% 100%";
+    el.style.backgroundRepeat = "no-repeat";
+    el.style.backgroundBlendMode = "normal";
+  }
+
+  // Dispatch.
+  function applyBlockStyle(el, block, styleName) {
+    if (styleName === "cars") return applyCarSprite(el, block);
+    if (styleName === "fruit") return applyFruitSprite(el, block);
+    applyWoodGrain(el, woodBaseColor(block), block.orient, block.id);
+  }
+
   function renderBoard() {
     boardEl.innerHTML = "";
+    const themeClass = "theme-" + state.blockStyle;
     for (const b of state.blocks) {
       const el = document.createElement("div");
-      el.className = "block" + (b.isTarget ? " target" : "");
+      el.className = "block " + themeClass + (b.isTarget ? " target" : "");
       el.dataset.id = String(b.id);
       const w = b.orient === "h" ? b.len : 1;
       const h = b.orient === "v" ? b.len : 1;
       el.style.width = `calc(var(--cell) * ${w} - 4px)`;
       el.style.height = `calc(var(--cell) * ${h} - 4px)`;
       el.style.transform = blockTransform(b.row, b.col);
-      applyWoodGrain(el, woodBaseColor(b), b.orient, b.id);
+      applyBlockStyle(el, b, state.blockStyle);
       el.addEventListener("pointerdown", onBlockPointerDown);
       boardEl.appendChild(el);
     }
@@ -507,11 +763,17 @@
   }
 
   function openSettings() {
-    // Sync the radio selection with current difficulty.
-    const radios = settingsModal.querySelectorAll('input[name="difficulty"]');
-    radios.forEach((r) => {
-      r.checked = r.value === state.difficulty;
-    });
+    // Sync the radio selection with current difficulty and block style.
+    settingsModal
+      .querySelectorAll('input[name="difficulty"]')
+      .forEach((r) => {
+        r.checked = r.value === state.difficulty;
+      });
+    settingsModal
+      .querySelectorAll('input[name="block-style"]')
+      .forEach((r) => {
+        r.checked = r.value === state.blockStyle;
+      });
     showModal(settingsModal);
   }
 
@@ -524,6 +786,17 @@
     updateHeader();
     // Start a fresh puzzle at the new difficulty immediately.
     newPuzzle();
+  }
+
+  function onBlockStyleChange(e) {
+    const value = e.target.value;
+    if (!BLOCK_STYLES[value]) return;
+    if (value === state.blockStyle) return;
+    state.blockStyle = value;
+    store.setBlockStyle(value);
+    // Re-render the *current* puzzle in the new style — positions,
+    // move count, and originalBlocks snapshot are all preserved.
+    renderBoard();
   }
 
   function onResetCount() {
@@ -657,6 +930,7 @@
     store.initVersion();
     state.completed = store.getCount();
     state.difficulty = store.getDifficulty();
+    state.blockStyle = store.getBlockStyle();
 
     // Migration: anyone who already solved puzzles before this update
     // doesn't need a tutorial.
@@ -684,6 +958,9 @@
     settingsModal
       .querySelectorAll('input[name="difficulty"]')
       .forEach((r) => r.addEventListener("change", onDifficultyChange));
+    settingsModal
+      .querySelectorAll('input[name="block-style"]')
+      .forEach((r) => r.addEventListener("change", onBlockStyleChange));
 
     tutorialBtn.addEventListener("click", () => tutorial.finish());
 
