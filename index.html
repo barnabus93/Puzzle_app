@@ -40,9 +40,25 @@
         <div class="difficulty-label">
           <span id="difficulty-label">Moderate</span>
         </div>
-        <button id="new-puzzle-btn" type="button" class="primary-btn">
-          New Puzzle
-        </button>
+        <div class="status-actions">
+          <button
+            id="restart-btn"
+            type="button"
+            class="icon-btn-small"
+            aria-label="Restart puzzle"
+            title="Restart this puzzle"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path
+                d="M12 5V2L7 6l5 4V7a5 5 0 1 1-4.9 6h-2.02A7 7 0 1 0 12 5z"
+                fill="currentColor"
+              />
+            </svg>
+          </button>
+          <button id="new-puzzle-btn" type="button" class="primary-btn">
+            New Puzzle
+          </button>
+        </div>
       </div>
     </main>
 

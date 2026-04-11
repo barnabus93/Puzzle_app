@@ -172,6 +172,7 @@
   const moveCountEl = document.getElementById("move-count");
   const difficultyLabelEl = document.getElementById("difficulty-label");
   const newPuzzleBtn = document.getElementById("new-puzzle-btn");
+  const restartBtn = document.getElementById("restart-btn");
   const settingsBtn = document.getElementById("settings-btn");
   const settingsModal = document.getElementById("settings-modal");
   const winModal = document.getElementById("win-modal");
@@ -186,11 +187,26 @@
 
   let state = {
     blocks: [],
+    // Deep-cloned snapshot of the blocks as they first loaded for the
+    // current puzzle. Used by the Restart button to reset without
+    // rolling a brand-new puzzle.
+    originalBlocks: null,
     moves: 0,
     completed: 0,
     difficulty: "moderate",
     winLocked: false,
   };
+
+  function cloneBlocks(blocks) {
+    return blocks.map((b) => ({
+      id: b.id,
+      row: b.row,
+      col: b.col,
+      len: b.len,
+      orient: b.orient,
+      isTarget: b.isTarget,
+    }));
+  }
 
   function cellPx() {
     const v = getComputedStyle(boardEl).getPropertyValue("--cell").trim();
@@ -211,6 +227,64 @@
     return `translate(calc(var(--cell) * ${col} + 2px), calc(var(--cell) * ${row} + 2px))`;
   }
 
+  // Rich, saturated base colors applied under the wood-grain overlay.
+  const WOOD_COLORS = {
+    target: "#c8302b",
+    palette: [
+      "#d14b3c",
+      "#e07c3e",
+      "#d9a42e",
+      "#7ea83a",
+      "#4ba069",
+      "#369990",
+      "#4879b8",
+      "#6657b0",
+      "#a04db8",
+      "#c0508c",
+      "#b57d3a",
+      "#6b86a8",
+    ],
+  };
+
+  function woodBaseColor(block) {
+    if (block.isTarget) return WOOD_COLORS.target;
+    const p = WOOD_COLORS.palette;
+    return p[block.id % p.length];
+  }
+
+  // Apply a wood-grain background to a block element. The grain is drawn
+  // with an SVG feTurbulence filter — one SVG per block, with a unique
+  // seed so every block has its own natural-looking grain. The grain
+  // runs along the block's length (horizontal streaks for horizontal
+  // blocks, vertical for vertical). Multiplied over the solid base
+  // colour via `background-blend-mode: multiply` so you get rich
+  // coloured wood rather than a flat gradient.
+  function applyWoodGrain(el, baseColor, orient, seedSource) {
+    const seed = ((seedSource * 37 + 11) % 97) + 1;
+    const bf = orient === "h" ? "0.013 0.32" : "0.32 0.013";
+    const filterId = "wg" + seed;
+    const svg =
+      "<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 240 80'>" +
+      "<filter id='" + filterId + "' x='0' y='0' width='100%' height='100%'>" +
+      "<feTurbulence type='fractalNoise' baseFrequency='" + bf +
+      "' numOctaves='3' seed='" + seed + "'/>" +
+      "<feColorMatrix values='" +
+      "0.22 0.22 0.22 0 0.5 " +
+      "0.22 0.22 0.22 0 0.5 " +
+      "0.22 0.22 0.22 0 0.5 " +
+      "0 0 0 0 1'/>" +
+      "</filter>" +
+      "<rect width='100%' height='100%' filter='url(%23" + filterId + ")'/>" +
+      "</svg>";
+    const encoded = encodeURIComponent(svg);
+    el.style.backgroundColor = baseColor;
+    el.style.backgroundImage =
+      'url("data:image/svg+xml;charset=utf-8,' + encoded + '")';
+    el.style.backgroundSize = "100% 100%";
+    el.style.backgroundRepeat = "no-repeat";
+    el.style.backgroundBlendMode = "multiply";
+  }
+
   function renderBoard() {
     boardEl.innerHTML = "";
     for (const b of state.blocks) {
@@ -222,10 +296,7 @@
       el.style.width = `calc(var(--cell) * ${w} - 4px)`;
       el.style.height = `calc(var(--cell) * ${h} - 4px)`;
       el.style.transform = blockTransform(b.row, b.col);
-      if (!b.isTarget) {
-        const hue = b.id % 12;
-        el.style.background = `linear-gradient(180deg, var(--b${hue}), rgba(0,0,0,0.22))`;
-      }
+      applyWoodGrain(el, woodBaseColor(b), b.orient, b.id);
       el.addEventListener("pointerdown", onBlockPointerDown);
       boardEl.appendChild(el);
     }
@@ -389,7 +460,21 @@
     state.moves = 0;
     const { blocks } = pickPuzzle(state.difficulty);
     state.blocks = blocks;
+    // Snapshot for the Restart button.
+    state.originalBlocks = cloneBlocks(blocks);
     sizeBoard();
+    renderBoard();
+    updateHeader();
+  }
+
+  // Reset the current puzzle's blocks to the positions they had when the
+  // puzzle was first loaded. Does NOT pick a new puzzle — use "New Puzzle"
+  // for that.
+  function restartPuzzle() {
+    if (!state.originalBlocks || !state.originalBlocks.length) return;
+    state.winLocked = false;
+    state.moves = 0;
+    state.blocks = cloneBlocks(state.originalBlocks);
     renderBoard();
     updateHeader();
   }
@@ -447,13 +532,14 @@
   // modal and marks the tutorial as seen.
   const TUTORIAL_BLOCKS = [
     // Target (red) — will slide right to the exit at the end.
-    { id: 0, row: 2, col: 1, len: 2, orient: "h", isTarget: true, color: null },
+    { id: 0, row: 2, col: 1, len: 2, orient: "h", isTarget: true, color: WOOD_COLORS.target },
     // Blocker (blue) — sits in the target's way until we slide it up.
-    { id: 1, row: 1, col: 4, len: 2, orient: "v", isTarget: false, color: "#56ccf2" },
-    // Decorative blocks for context.
-    { id: 2, row: 0, col: 0, len: 2, orient: "h", isTarget: false, color: "#f2994a" },
-    { id: 3, row: 4, col: 2, len: 2, orient: "h", isTarget: false, color: "#27ae60" },
-    { id: 4, row: 4, col: 5, len: 2, orient: "v", isTarget: false, color: "#bb6bd9" },
+    { id: 1, row: 1, col: 4, len: 2, orient: "v", isTarget: false, color: "#4879b8" },
+    // Decorative blocks for context — distinct colours so none can be
+    // confused with the "blue" blocker the caption refers to.
+    { id: 2, row: 0, col: 0, len: 2, orient: "h", isTarget: false, color: "#d9a42e" },
+    { id: 3, row: 4, col: 2, len: 2, orient: "h", isTarget: false, color: "#7ea83a" },
+    { id: 4, row: 4, col: 5, len: 2, orient: "v", isTarget: false, color: "#8b4db8" },
   ];
 
   const tutorial = {
@@ -470,9 +556,7 @@
         el.style.width = `calc(var(--cell) * ${w} - 4px)`;
         el.style.height = `calc(var(--cell) * ${h} - 4px)`;
         el.style.transform = blockTransform(b.row, b.col);
-        if (!b.isTarget && b.color) {
-          el.style.background = `linear-gradient(180deg, ${b.color}, rgba(0,0,0,0.22))`;
-        }
+        applyWoodGrain(el, b.color, b.orient, b.id + 100);
         tutorialBoardEl.appendChild(el);
       }
     },
@@ -576,6 +660,10 @@
     newPuzzleBtn.addEventListener("click", () => {
       hideModal(winModal);
       newPuzzle();
+    });
+    restartBtn.addEventListener("click", () => {
+      hideModal(winModal);
+      restartPuzzle();
     });
     nextPuzzleBtn.addEventListener("click", () => {
       hideModal(winModal);
