@@ -263,6 +263,17 @@
     const seed = ((seedSource * 37 + 11) % 97) + 1;
     const bf = orient === "h" ? "0.013 0.32" : "0.32 0.013";
     const filterId = "wg" + seed;
+    // NOTE: write `#` here (not `%23`). encodeURIComponent turns `#`
+    // into `%23` in the data URI, and the browser URL-decodes it back
+    // to `#` before handing the SVG to the renderer. If you hard-code
+    // `%23` here, it gets double-encoded and the filter lookup breaks
+    // — the rect then falls back to `fill="black"` (SVG default) and
+    // the multiply blend paints every block solid black.
+    //
+    // The rect also gets `fill="white"` as a safety net: white × any
+    // base colour in multiply blend = the base colour unchanged, so
+    // if the filter ever fails to resolve we still see a plain solid
+    // block rather than a black one.
     const svg =
       "<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 240 80'>" +
       "<filter id='" + filterId + "' x='0' y='0' width='100%' height='100%'>" +
@@ -274,7 +285,7 @@
       "0.22 0.22 0.22 0 0.5 " +
       "0 0 0 0 1'/>" +
       "</filter>" +
-      "<rect width='100%' height='100%' filter='url(%23" + filterId + ")'/>" +
+      "<rect width='100%' height='100%' fill='white' filter='url(#" + filterId + ")'/>" +
       "</svg>";
     const encoded = encodeURIComponent(svg);
     el.style.backgroundColor = baseColor;
