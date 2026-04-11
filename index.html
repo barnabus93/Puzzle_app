@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="theme-color" content="#1f2430" />
+    <title>Unblock Puzzle</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="counter" aria-live="polite">
+        Completed: <span id="completed-count">0</span>
+      </div>
+      <button
+        id="settings-btn"
+        class="icon-btn"
+        type="button"
+        aria-label="Settings"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M19.14 12.94a7.49 7.49 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.88 2h-3.84a.5.5 0 0 0-.5.43l-.36 2.54c-.58.24-1.13.55-1.63.94l-2.39-.96a.5.5 0 0 0-.61.22L2.63 8.49a.5.5 0 0 0 .12.64l2.03 1.58a7.49 7.49 0 0 0 0 1.88L2.75 14.17a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.34.67.24l2.39-.96c.5.39 1.05.7 1.63.94l.36 2.54c.05.25.26.43.5.43h3.84c.25 0 .46-.18.5-.43l.36-2.54c.58-.24 1.13-.55 1.63-.94l2.39.96c.25.1.53 0 .67-.24l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"
+            fill="currentColor"
+          />
+        </svg>
+      </button>
+    </header>
+
+    <main class="app-main">
+      <div id="board-wrap" class="board-wrap">
+        <div id="board" class="board" aria-label="Puzzle board"></div>
+      </div>
+
+      <div class="status-bar">
+        <div class="moves">Moves: <span id="move-count">0</span></div>
+        <div class="difficulty-label">
+          <span id="difficulty-label">Moderate</span>
+        </div>
+        <button id="new-puzzle-btn" type="button" class="primary-btn">
+          New Puzzle
+        </button>
+      </div>
+    </main>
+
+    <div
+      id="settings-modal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settings-title"
+      hidden
+    >
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-card">
+        <h2 id="settings-title">Settings</h2>
+
+        <fieldset class="field">
+          <legend>Difficulty</legend>
+          <label class="radio">
+            <input type="radio" name="difficulty" value="simple" />
+            <span>Simple</span>
+          </label>
+          <label class="radio">
+            <input
+              type="radio"
+              name="difficulty"
+              value="moderate"
+              checked
+            />
+            <span>Moderate</span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="difficulty" value="difficult" />
+            <span>Difficult</span>
+          </label>
+        </fieldset>
+
+        <div class="field">
+          <button id="reset-count-btn" type="button" class="danger-btn">
+            Reset completed count
+          </button>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="primary-btn" data-close>Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="win-modal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="win-title"
+      hidden
+    >
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-card">
+        <h2 id="win-title">Solved!</h2>
+        <p>
+          You solved it in
+          <strong><span id="win-moves">0</span></strong> moves.
+        </p>
+        <p>
+          Puzzles completed:
+          <strong><span id="win-total">0</span></strong>
+        </p>
+        <div class="modal-actions">
+          <button id="next-puzzle-btn" type="button" class="primary-btn">
+            Next puzzle
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="puzzles.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
