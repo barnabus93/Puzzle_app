@@ -342,6 +342,89 @@ fieldset.field legend {
   width: 100%;
 }
 
+/* Tutorial modal */
+.tutorial-card {
+  max-width: 340px;
+}
+.tutorial-card h2 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+.tutorial-board {
+  --cell: 40px;
+  --cells: 6;
+  position: relative;
+  width: calc(var(--cell) * var(--cells));
+  height: calc(var(--cell) * var(--cells));
+  background: var(--board-bg);
+  border: 3px solid var(--board-border);
+  border-radius: 10px;
+  margin: 4px auto 10px;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: var(--cell) var(--cell);
+  background-position: -1px -1px;
+  overflow: visible;
+}
+.tutorial-board::after {
+  content: "";
+  position: absolute;
+  top: calc(var(--cell) * 2 + 4px);
+  right: -7px;
+  width: 10px;
+  height: calc(var(--cell) - 8px);
+  background: var(--target);
+  border-radius: 3px;
+  box-shadow: 0 0 10px 2px var(--exit-glow);
+}
+.tutorial-block {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 6px;
+  border: 1.5px solid var(--block-border);
+  box-shadow:
+    inset 0 -3px 0 rgba(0, 0, 0, 0.18),
+    inset 0 2px 0 rgba(255, 255, 255, 0.12);
+  transition: transform 650ms cubic-bezier(0.4, 0.1, 0.25, 1);
+  will-change: transform;
+}
+.tutorial-block::before {
+  content: "";
+  position: absolute;
+  inset: 18% 12%;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.tutorial-block.target {
+  background: linear-gradient(180deg, var(--target) 0%, var(--target-2) 100%);
+}
+.tutorial-block.target::before {
+  background: rgba(255, 255, 255, 0.22);
+}
+.tutorial-block.highlight {
+  box-shadow:
+    inset 0 -3px 0 rgba(0, 0, 0, 0.18),
+    inset 0 2px 0 rgba(255, 255, 255, 0.12),
+    0 0 0 3px rgba(255, 255, 255, 0.6),
+    0 0 18px 4px rgba(110, 168, 255, 0.7);
+}
+.tutorial-caption {
+  text-align: center;
+  min-height: 3em;
+  color: var(--fg);
+  margin: 6px 4px 2px;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+.tutorial-actions {
+  justify-content: center;
+}
+.tutorial-actions button {
+  min-width: 150px;
+}
+
 @media (max-height: 560px) {
   .app-header {
     padding: 8px 12px;
@@ -351,5 +434,8 @@ fieldset.field legend {
   }
   .status-bar {
     padding-top: 8px;
+  }
+  .tutorial-board {
+    --cell: 34px;
   }
 }

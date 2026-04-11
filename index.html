@@ -118,6 +118,29 @@
       </div>
     </div>
 
+    <div
+      id="tutorial-modal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tutorial-title"
+      hidden
+    >
+      <div class="modal-backdrop"></div>
+      <div class="modal-card tutorial-card">
+        <h2 id="tutorial-title">How to play</h2>
+        <div id="tutorial-board" class="tutorial-board"></div>
+        <p id="tutorial-caption" class="tutorial-caption">
+          Watch this quick demo&hellip;
+        </p>
+        <div class="modal-actions tutorial-actions">
+          <button id="tutorial-btn" type="button" class="danger-btn">
+            Skip tutorial
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="puzzles.js"></script>
     <script src="app.js"></script>
   </body>

@@ -30,6 +30,7 @@
   const STORAGE_KEYS = {
     count: "puzzle.completedCount",
     difficulty: "puzzle.difficulty",
+    tutorial: "puzzle.tutorialSeen",
     version: "puzzle.version",
   };
   const STORAGE_VERSION = 1;
@@ -66,6 +67,20 @@
     setDifficulty(d) {
       try {
         localStorage.setItem(STORAGE_KEYS.difficulty, d);
+      } catch {
+        /* ignore */
+      }
+    },
+    getTutorialSeen() {
+      try {
+        return localStorage.getItem(STORAGE_KEYS.tutorial) === "1";
+      } catch {
+        return false;
+      }
+    },
+    setTutorialSeen(v) {
+      try {
+        localStorage.setItem(STORAGE_KEYS.tutorial, v ? "1" : "0");
       } catch {
         /* ignore */
       }
@@ -164,6 +179,10 @@
   const winTotalEl = document.getElementById("win-total");
   const nextPuzzleBtn = document.getElementById("next-puzzle-btn");
   const resetCountBtn = document.getElementById("reset-count-btn");
+  const tutorialModal = document.getElementById("tutorial-modal");
+  const tutorialBoardEl = document.getElementById("tutorial-board");
+  const tutorialCaptionEl = document.getElementById("tutorial-caption");
+  const tutorialBtn = document.getElementById("tutorial-btn");
 
   let state = {
     blocks: [],
@@ -421,11 +440,134 @@
     completedCountEl.textContent = "0";
   }
 
+  // Tutorial ------------------------------------------------------------
+  // A tiny scripted demo shown on first load. Uses its own small board
+  // inside the tutorial modal — completely independent of the main game
+  // state. One button ("Skip tutorial" → "Start playing!") closes the
+  // modal and marks the tutorial as seen.
+  const TUTORIAL_BLOCKS = [
+    // Target (red) — will slide right to the exit at the end.
+    { id: 0, row: 2, col: 1, len: 2, orient: "h", isTarget: true, color: null },
+    // Blocker (blue) — sits in the target's way until we slide it up.
+    { id: 1, row: 1, col: 4, len: 2, orient: "v", isTarget: false, color: "#56ccf2" },
+    // Decorative blocks for context.
+    { id: 2, row: 0, col: 0, len: 2, orient: "h", isTarget: false, color: "#f2994a" },
+    { id: 3, row: 4, col: 2, len: 2, orient: "h", isTarget: false, color: "#27ae60" },
+    { id: 4, row: 4, col: 5, len: 2, orient: "v", isTarget: false, color: "#bb6bd9" },
+  ];
+
+  const tutorial = {
+    timers: [],
+
+    renderBoard() {
+      tutorialBoardEl.innerHTML = "";
+      for (const b of TUTORIAL_BLOCKS) {
+        const el = document.createElement("div");
+        el.className = "tutorial-block" + (b.isTarget ? " target" : "");
+        el.dataset.id = String(b.id);
+        const w = b.orient === "h" ? b.len : 1;
+        const h = b.orient === "v" ? b.len : 1;
+        el.style.width = `calc(var(--cell) * ${w} - 4px)`;
+        el.style.height = `calc(var(--cell) * ${h} - 4px)`;
+        el.style.transform = blockTransform(b.row, b.col);
+        if (!b.isTarget && b.color) {
+          el.style.background = `linear-gradient(180deg, ${b.color}, rgba(0,0,0,0.22))`;
+        }
+        tutorialBoardEl.appendChild(el);
+      }
+    },
+
+    moveBlock(id, row, col) {
+      const el = tutorialBoardEl.querySelector(
+        '.tutorial-block[data-id="' + id + '"]'
+      );
+      if (el) el.style.transform = blockTransform(row, col);
+    },
+
+    highlight(id, on) {
+      const el = tutorialBoardEl.querySelector(
+        '.tutorial-block[data-id="' + id + '"]'
+      );
+      if (!el) return;
+      if (on) el.classList.add("highlight");
+      else el.classList.remove("highlight");
+    },
+
+    setCaption(text) {
+      tutorialCaptionEl.textContent = text;
+    },
+
+    schedule(delay, fn) {
+      this.timers.push(setTimeout(fn, delay));
+    },
+
+    clearTimers() {
+      for (const t of this.timers) clearTimeout(t);
+      this.timers = [];
+    },
+
+    play() {
+      this.clearTimers();
+      this.renderBoard();
+      this.setCaption("Drag blocks to slide them along their axis.");
+      tutorialBtn.textContent = "Skip tutorial";
+      tutorialBtn.classList.remove("primary-btn");
+      tutorialBtn.classList.add("danger-btn");
+
+      // Scripted sequence. Each entry = delay AFTER the previous step.
+      const steps = [
+        [1600, () => {
+          this.setCaption(
+            "Slide the blue block up to clear the exit row…"
+          );
+          this.highlight(1, true);
+        }],
+        [700, () => this.moveBlock(1, 0, 4)],
+        [1100, () => {
+          this.highlight(1, false);
+          this.setCaption(
+            "…then slide the red block out through the right edge!"
+          );
+          this.highlight(0, true);
+        }],
+        [700, () => this.moveBlock(0, 2, 4)],
+        [850, () => {
+          this.setCaption("Solved! That's it — tap below to start.");
+          this.highlight(0, false);
+          this.moveBlock(0, 2, 7); // slide off-screen through exit
+        }],
+        [900, () => {
+          tutorialBtn.textContent = "Start playing!";
+          tutorialBtn.classList.remove("danger-btn");
+          tutorialBtn.classList.add("primary-btn");
+        }],
+      ];
+
+      let cum = 0;
+      for (const [d, fn] of steps) {
+        cum += d;
+        this.schedule(cum, fn);
+      }
+    },
+
+    finish() {
+      this.clearTimers();
+      store.setTutorialSeen(true);
+      hideModal(tutorialModal);
+    },
+  };
+
   // Init ----------------------------------------------------------------
   function init() {
     store.initVersion();
     state.completed = store.getCount();
     state.difficulty = store.getDifficulty();
+
+    // Migration: anyone who already solved puzzles before this update
+    // doesn't need a tutorial.
+    if (state.completed > 0 && !store.getTutorialSeen()) {
+      store.setTutorialSeen(true);
+    }
 
     wireModal(settingsModal);
     wireModal(winModal);
@@ -444,6 +586,8 @@
       .querySelectorAll('input[name="difficulty"]')
       .forEach((r) => r.addEventListener("change", onDifficultyChange));
 
+    tutorialBtn.addEventListener("click", () => tutorial.finish());
+
     window.addEventListener("resize", () => {
       sizeBoard();
       // Re-apply transforms in case cell size changed.
@@ -458,6 +602,12 @@
     });
 
     newPuzzle();
+
+    // First-time players see a brief animated demo.
+    if (!store.getTutorialSeen()) {
+      showModal(tutorialModal);
+      tutorial.play();
+    }
   }
 
   if (document.readyState === "loading") {
