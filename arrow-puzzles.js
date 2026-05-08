@@ -12,26 +12,30 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             6,
-            3
+            2
           ],
           [
             5,
-            3
+            2
           ]
         ],
-        "dir": "w",
+        "dir": "e",
         "isTarget": true
       },
       {
         "id": 1,
         "cells": [
           [
-            6,
-            1
+            5,
+            4
           ],
           [
-            5,
-            1
+            6,
+            4
+          ],
+          [
+            6,
+            5
           ]
         ],
         "dir": "n",
@@ -41,16 +45,12 @@ window.ARROW_PUZZLES = {
         "id": 2,
         "cells": [
           [
-            4,
-            0
-          ],
-          [
             5,
-            0
+            3
           ],
           [
             6,
-            0
+            3
           ]
         ],
         "dir": "s",
@@ -61,15 +61,482 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             1,
+            5
+          ],
+          [
+            1,
+            4
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 3,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            3,
+            6
+          ],
+          [
+            4,
+            6
+          ]
+        ],
+        "dir": "s",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            5,
+            6
+          ],
+          [
+            6,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            5,
+            4
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            6,
+            4
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            5,
+            0
+          ],
+          [
+            6,
+            0
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            1,
+            3
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 3,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            4,
+            4
+          ],
+          [
+            5,
+            4
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            5,
+            0
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            4,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            3,
+            4
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            4,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            1,
+            4
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 3,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            1,
+            5
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            3,
+            5
+          ]
+        ],
+        "dir": "s",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            6,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            5,
+            3
+          ],
+          [
+            6,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            1,
+            3
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            1,
+            4
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 3,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            1,
+            6
+          ],
+          [
+            2,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            3,
+            0
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            1,
+            5
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            6,
+            0
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            5,
+            1
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            5,
+            4
+          ],
+          [
+            5,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 3,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            1,
+            2
+          ],
+          [
+            2,
             2
           ],
           [
             1,
             1
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            2,
+            0
           ],
           [
-            1,
+            2,
+            1
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            6,
             0
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            5,
+            1
           ]
         ],
         "dir": "n",
@@ -79,12 +546,110 @@ window.ARROW_PUZZLES = {
         "id": 4,
         "cells": [
           [
-            2,
+            6,
+            2
+          ],
+          [
+            5,
+            2
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            4,
+            6
+          ],
+          [
+            5,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 3,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            5,
+            6
+          ],
+          [
+            5,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            5,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            6,
+            3
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            5,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            0,
+            2
+          ],
+          [
+            1,
             2
           ],
           [
             2,
-            1
+            2
           ]
         ],
         "dir": "s",
@@ -116,16 +681,12 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            5,
-            3
+            6,
+            1
           ],
           [
             5,
-            4
-          ],
-          [
-            4,
-            4
+            1
           ]
         ],
         "dir": "n",
@@ -136,101 +697,18 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             6,
-            4
-          ],
-          [
-            6,
             3
           ],
           [
-            6,
+            5,
+            3
+          ],
+          [
+            5,
             2
           ]
         ],
         "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            1,
-            3
-          ],
-          [
-            1,
-            2
-          ],
-          [
-            2,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 3,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            2,
-            4
-          ],
-          [
-            2,
-            3
-          ]
-        ],
-        "dir": "e",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            3,
-            5
-          ],
-          [
-            3,
-            4
-          ],
-          [
-            2,
-            5
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            3,
-            6
-          ],
-          [
-            2,
-            6
-          ],
-          [
-            1,
-            6
-          ],
-          [
-            1,
-            5
-          ]
-        ],
-        "dir": "e",
         "isTarget": false
       },
       {
@@ -238,29 +716,14 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             0,
-            3
+            0
           ],
           [
-            1,
-            3
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            4,
-            1
-          ],
-          [
-            3,
+            0,
             1
           ]
         ],
-        "dir": "e",
+        "dir": "w",
         "isTarget": false
       }
     ]
@@ -275,15 +738,11 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             4,
-            2
+            6
           ],
           [
             3,
-            2
-          ],
-          [
-            2,
-            2
+            6
           ]
         ],
         "dir": "s",
@@ -293,31 +752,27 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            6,
-            2
+            5,
+            6
           ],
           [
             6,
-            1
+            6
           ]
         ],
-        "dir": "s",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 2,
         "cells": [
           [
-            5,
-            2
+            6,
+            0
           ],
           [
             5,
-            3
-          ],
-          [
-            5,
-            4
+            0
           ]
         ],
         "dir": "e",
@@ -328,18 +783,18 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             5,
-            6
+            5
           ],
           [
-            4,
-            6
+            5,
+            4
           ],
           [
-            3,
-            6
+            6,
+            4
           ]
         ],
-        "dir": "e",
+        "dir": "n",
         "isTarget": false
       },
       {
@@ -347,425 +802,15 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             1,
-            2
-          ],
-          [
-            0,
-            2
-          ],
-          [
-            0,
-            1
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 3,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            6,
-            1
-          ],
-          [
-            6,
-            2
-          ],
-          [
-            6,
-            3
-          ]
-        ],
-        "dir": "e",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            6,
-            4
-          ],
-          [
-            5,
-            4
-          ],
-          [
-            6,
-            5
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            5,
-            6
-          ],
-          [
-            6,
-            6
-          ],
-          [
-            5,
-            5
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            3,
-            5
-          ],
-          [
-            3,
-            4
-          ],
-          [
-            3,
-            3
-          ],
-          [
-            4,
-            3
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            1,
-            1
-          ],
-          [
-            2,
-            1
-          ],
-          [
-            1,
             0
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 3,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            5,
-            6
-          ],
-          [
-            6,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            5,
-            1
-          ],
-          [
-            5,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            6,
-            0
-          ],
-          [
-            6,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            2,
-            0
-          ],
-          [
-            2,
-            1
-          ],
-          [
-            2,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 3,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            6,
-            5
-          ],
-          [
-            6,
-            4
-          ],
-          [
-            6,
-            3
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            6,
-            1
-          ],
-          [
-            6,
-            2
-          ],
-          [
-            5,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            6,
-            0
-          ],
-          [
-            5,
-            0
-          ],
-          [
-            4,
-            0
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            1,
-            2
           ],
           [
             1,
             1
           ],
           [
-            0,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 3,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
             1,
-            6
-          ],
-          [
-            1,
-            5
-          ],
-          [
-            1,
-            4
-          ]
-        ],
-        "dir": "s",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            4,
-            5
-          ],
-          [
-            5,
-            5
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            3,
-            6
-          ],
-          [
-            3,
-            5
-          ],
-          [
-            3,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            6,
-            0
-          ],
-          [
-            5,
-            0
-          ],
-          [
-            4,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 3,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            4,
-            3
-          ],
-          [
-            5,
-            3
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            4,
-            0
-          ],
-          [
-            4,
-            1
-          ],
-          [
-            4,
             2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            5,
-            2
-          ],
-          [
-            6,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            0,
-            4
-          ],
-          [
-            0,
-            3
           ],
           [
             0,
@@ -786,12 +831,16 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            4,
-            3
+            6,
+            6
           ],
           [
-            4,
-            2
+            6,
+            5
+          ],
+          [
+            6,
+            4
           ]
         ],
         "dir": "w",
@@ -801,77 +850,69 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            4,
-            1
+            6,
+            2
+          ],
+          [
+            6,
+            3
           ],
           [
             5,
-            1
-          ],
-          [
-            4,
-            0
+            3
           ]
         ],
-        "dir": "n",
+        "dir": "s",
         "isTarget": false
       },
       {
         "id": 2,
         "cells": [
           [
-            0,
-            0
-          ],
-          [
-            0,
+            6,
             1
           ],
           [
-            1,
-            0
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            3,
-            0
-          ],
-          [
-            2,
-            0
-          ],
-          [
-            3,
+            5,
             1
+          ],
+          [
+            5,
+            0
           ]
         ],
         "dir": "n",
         "isTarget": false
       },
       {
-        "id": 4,
+        "id": 3,
         "cells": [
           [
-            5,
+            2,
             3
           ],
           [
-            5,
-            4
+            3,
+            3
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            4,
+            1
           ],
           [
-            5,
-            5
+            3,
+            1
           ],
           [
             4,
-            5
+            2
           ]
         ],
         "dir": "e",
@@ -888,16 +929,91 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            1,
+            5,
+            4
+          ],
+          [
+            6,
+            4
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            4,
             2
           ],
           [
-            1,
+            4,
+            1
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            5,
+            0
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            5,
+            1
+          ],
+          [
+            6,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            2,
             3
           ],
           [
+            2,
+            2
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 4,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            2,
+            5
+          ],
+          [
             1,
-            4
+            5
           ]
         ],
         "dir": "w",
@@ -912,7 +1028,7 @@ window.ARROW_PUZZLES = {
           ],
           [
             1,
-            0
+            2
           ]
         ],
         "dir": "s",
@@ -920,6 +1036,694 @@ window.ARROW_PUZZLES = {
       },
       {
         "id": 2,
+        "cells": [
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            3,
+            4
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            4,
+            4
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 4,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            5,
+            6
+          ],
+          [
+            4,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            5,
+            3
+          ],
+          [
+            4,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            3,
+            1
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            2
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 4,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            2,
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            2,
+            1
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            6,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            4,
+            0
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 4,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            2,
+            6
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            2,
+            4
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            6,
+            3
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            4,
+            3
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 4,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 4,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            5,
+            6
+          ],
+          [
+            4,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            1,
+            6
+          ],
+          [
+            2,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            3,
+            5
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            3,
+            4
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            1,
+            4
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            3,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 4,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            6,
+            1
+          ],
+          [
+            5,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            4
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 5,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            1,
+            4
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            1
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            4,
+            0
+          ],
+          [
+            5,
+            0
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            5,
+            1
+          ],
+          [
+            5,
+            2
+          ],
+          [
+            6,
+            1
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 5,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            3,
+            1
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            5,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            0,
+            5
+          ],
+          [
+            0,
+            4
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            0,
+            3
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            3
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 4,
         "cells": [
           [
             4,
@@ -932,10 +1736,58 @@ window.ARROW_PUZZLES = {
           [
             2,
             2
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 5,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            6,
+            5
+          ],
+          [
+            5,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            2,
+            5
           ],
           [
             2,
-            1
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            3,
+            6
+          ],
+          [
+            3,
+            5
           ]
         ],
         "dir": "w",
@@ -945,16 +1797,20 @@ window.ARROW_PUZZLES = {
         "id": 3,
         "cells": [
           [
-            5,
-            0
+            3,
+            4
           ],
           [
-            5,
-            1
+            3,
+            3
+          ],
+          [
+            3,
+            2
           ],
           [
             4,
-            1
+            2
           ]
         ],
         "dir": "w",
@@ -964,20 +1820,494 @@ window.ARROW_PUZZLES = {
         "id": 4,
         "cells": [
           [
-            5,
+            3,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            3,
+            1
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 5,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "dir": "s",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            4,
             3
           ],
           [
             5,
-            4
+            3
           ],
           [
-            5,
+            6,
+            3
+          ],
+          [
+            6,
+            4
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            3,
+            1
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            3,
+            6
+          ],
+          [
+            3,
             5
           ],
           [
             4,
             5
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            2,
+            3
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 5,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            6,
+            4
+          ],
+          [
+            5,
+            4
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            6,
+            2
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            6,
+            0
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            4,
+            1
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            5,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            3,
+            2
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            4,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            1,
+            4
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 5,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            5,
+            1
+          ],
+          [
+            4,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            2,
+            3
+          ],
+          [
+            1,
+            3
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            1,
+            4
+          ],
+          [
+            2,
+            4
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 5,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            5,
+            6
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            5,
+            4
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            5,
+            0
+          ],
+          [
+            5,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            6,
+            0
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            5,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            2,
+            0
+          ],
+          [
+            3,
+            0
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 5,
+    "gridW": 7,
+    "gridH": 7,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            3
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            5,
+            1
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            3,
+            0
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            6,
+            2
+          ],
+          [
+            6,
+            1
           ]
         ],
         "dir": "s",
@@ -987,720 +2317,15 @@ window.ARROW_PUZZLES = {
         "id": 5,
         "cells": [
           [
-            2,
+            4,
             5
           ],
-          [
-            2,
-            4
-          ],
-          [
-            3,
-            4
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 4,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            6,
-            3
-          ],
-          [
-            6,
-            4
-          ]
-        ],
-        "dir": "e",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            6,
-            5
-          ],
-          [
-            6,
-            6
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            1,
-            5
-          ],
-          [
-            2,
-            5
-          ],
-          [
-            3,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
           [
             5,
             5
           ],
           [
             4,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            3,
-            6
-          ],
-          [
-            2,
-            6
-          ],
-          [
-            1,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 4,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            4,
-            3
-          ],
-          [
-            3,
-            3
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            4,
-            2
-          ],
-          [
-            4,
-            1
-          ],
-          [
-            3,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            1,
-            0
-          ],
-          [
-            2,
-            0
-          ],
-          [
-            3,
-            0
-          ],
-          [
-            3,
-            1
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            1,
-            1
-          ],
-          [
-            0,
-            1
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            1,
-            2
-          ],
-          [
-            1,
-            3
-          ],
-          [
-            1,
-            4
-          ],
-          [
-            0,
-            4
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            5,
-            1
-          ],
-          [
-            6,
-            1
-          ],
-          [
-            6,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 4,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            4,
-            2
-          ],
-          [
-            5,
-            2
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            3,
-            0
-          ],
-          [
-            4,
-            0
-          ],
-          [
-            4,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            5,
-            1
-          ],
-          [
-            5,
-            0
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            0,
-            0
-          ],
-          [
-            1,
-            0
-          ],
-          [
-            2,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 4,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            4,
-            2
-          ],
-          [
-            3,
-            2
-          ],
-          [
-            2,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            0,
-            2
-          ],
-          [
-            1,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            0,
-            4
-          ],
-          [
-            1,
-            4
-          ],
-          [
-            2,
-            4
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            3,
-            3
-          ],
-          [
-            2,
-            3
-          ],
-          [
-            1,
-            3
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            0,
-            5
-          ],
-          [
-            1,
-            5
-          ],
-          [
-            2,
-            5
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 4,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            5,
-            3
-          ],
-          [
-            5,
-            2
-          ],
-          [
-            5,
-            1
-          ]
-        ],
-        "dir": "e",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            4,
-            6
-          ],
-          [
-            4,
-            5
-          ],
-          [
-            4,
-            4
-          ],
-          [
-            5,
-            4
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            5,
-            6
-          ],
-          [
-            5,
-            5
-          ],
-          [
-            6,
-            5
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            1,
-            3
-          ],
-          [
-            1,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            2,
-            4
-          ],
-          [
-            2,
-            5
-          ],
-          [
-            3,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 4,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            3,
-            2
-          ],
-          [
-            3,
-            3
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            3,
-            1
-          ],
-          [
-            3,
-            0
-          ],
-          [
-            2,
-            1
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            6,
-            0
-          ],
-          [
-            6,
-            1
-          ],
-          [
-            6,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            5,
-            0
-          ],
-          [
-            4,
-            0
-          ],
-          [
-            5,
-            1
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            2,
-            6
-          ],
-          [
-            3,
-            6
-          ],
-          [
-            4,
-            6
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            0,
-            5
-          ],
-          [
-            0,
-            6
-          ],
-          [
-            1,
-            5
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 4,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            6,
-            4
-          ],
-          [
-            6,
-            3
-          ],
-          [
-            6,
-            2
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            5,
-            1
-          ],
-          [
-            5,
-            0
-          ],
-          [
-            6,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            0,
-            0
-          ],
-          [
-            1,
-            0
-          ],
-          [
-            2,
-            0
-          ],
-          [
-            2,
-            1
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            3,
-            1
-          ],
-          [
-            4,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            3,
-            4
-          ],
-          [
-            3,
-            3
-          ],
-          [
-            2,
             4
           ]
         ],
@@ -1718,105 +2343,11 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            6,
-            4
-          ],
-          [
-            6,
-            3
-          ],
-          [
-            6,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            6,
-            5
-          ],
-          [
-            6,
-            6
-          ],
-          [
-            5,
-            6
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            4,
-            5
-          ],
-          [
-            3,
-            5
-          ],
-          [
-            4,
-            6
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            1,
+            2,
             5
           ],
           [
             2,
-            5
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            2,
-            6
-          ],
-          [
-            3,
-            6
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 5,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            5,
-            4
-          ],
-          [
-            6,
             4
           ]
         ],
@@ -1827,143 +2358,49 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            6,
-            0
-          ],
-          [
-            6,
-            1
-          ],
-          [
-            6,
+            2,
             2
           ],
-          [
-            5,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            5,
-            0
-          ],
-          [
-            5,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            3,
-            0
-          ],
-          [
-            3,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
           [
             2,
             1
           ],
           [
-            1,
-            1
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 5,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            3,
-            5
-          ],
-          [
-            3,
-            6
+            2,
+            0
           ]
         ],
         "dir": "s",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            4,
-            5
-          ],
-          [
-            5,
-            5
-          ],
-          [
-            6,
-            5
-          ]
-        ],
-        "dir": "w",
         "isTarget": false
       },
       {
         "id": 2,
         "cells": [
           [
-            4,
-            6
+            3,
+            3
           ],
           [
-            5,
-            6
-          ],
-          [
-            6,
-            6
+            2,
+            3
           ]
         ],
-        "dir": "w",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 3,
         "cells": [
           [
-            6,
+            3,
             1
           ],
           [
-            6,
-            0
+            3,
+            2
           ],
           [
-            5,
+            4,
             1
           ]
         ],
@@ -1975,616 +2412,6 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             5,
-            2
-          ],
-          [
-            6,
-            2
-          ],
-          [
-            6,
-            3
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            1,
-            4
-          ],
-          [
-            0,
-            4
-          ],
-          [
-            0,
-            3
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 5,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            3,
-            6
-          ],
-          [
-            3,
-            5
-          ],
-          [
-            3,
-            4
-          ]
-        ],
-        "dir": "s",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            5,
-            5
-          ],
-          [
-            6,
-            5
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            6,
-            6
-          ],
-          [
-            5,
-            6
-          ],
-          [
-            4,
-            6
-          ],
-          [
-            4,
-            5
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            5,
-            4
-          ],
-          [
-            4,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            6,
-            2
-          ],
-          [
-            6,
-            1
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            1,
-            2
-          ],
-          [
-            2,
-            2
-          ],
-          [
-            2,
-            3
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 5,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            1,
-            3
-          ],
-          [
-            1,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            1,
-            5
-          ],
-          [
-            1,
-            6
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            0,
-            4
-          ],
-          [
-            0,
-            5
-          ],
-          [
-            1,
-            4
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            5,
-            6
-          ],
-          [
-            5,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            4,
-            4
-          ],
-          [
-            4,
-            5
-          ],
-          [
-            4,
-            6
-          ],
-          [
-            3,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            2,
-            5
-          ],
-          [
-            2,
-            4
-          ],
-          [
-            2,
-            3
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 5,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            5,
-            3
-          ],
-          [
-            6,
-            3
-          ]
-        ],
-        "dir": "e",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            6,
-            4
-          ],
-          [
-            6,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            5,
-            5
-          ],
-          [
-            5,
-            6
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            3,
-            6
-          ],
-          [
-            3,
-            5
-          ],
-          [
-            3,
-            4
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            0,
-            5
-          ],
-          [
-            1,
-            5
-          ],
-          [
-            2,
-            5
-          ],
-          [
-            2,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 5,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            1,
-            5
-          ],
-          [
-            1,
-            4
-          ],
-          [
-            1,
-            3
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            1,
-            0
-          ],
-          [
-            1,
-            1
-          ],
-          [
-            1,
-            2
-          ],
-          [
-            0,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            3,
-            0
-          ],
-          [
-            2,
-            0
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            5,
-            1
-          ],
-          [
-            5,
-            2
-          ],
-          [
-            5,
-            3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            2,
-            3
-          ],
-          [
-            2,
-            4
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            2,
-            6
-          ],
-          [
-            2,
-            5
-          ],
-          [
-            1,
-            6
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 5,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            5,
-            3
-          ],
-          [
-            6,
-            3
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            6,
-            2
-          ],
-          [
-            5,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            4,
-            1
-          ],
-          [
-            5,
-            1
-          ],
-          [
-            6,
-            1
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            0,
-            2
-          ],
-          [
-            1,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            2,
-            2
-          ],
-          [
-            3,
-            2
-          ],
-          [
-            4,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 5,
-    "gridW": 7,
-    "gridH": 7,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            5,
-            1
-          ],
-          [
-            6,
-            1
-          ]
-        ],
-        "dir": "e",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            6,
-            4
-          ],
-          [
-            6,
-            5
-          ],
-          [
-            5,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            6,
-            3
-          ],
-          [
-            5,
             3
           ],
           [
@@ -2594,67 +2421,6 @@ window.ARROW_PUZZLES = {
           [
             4,
             2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            4,
-            4
-          ],
-          [
-            3,
-            4
-          ],
-          [
-            3,
-            3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            1,
-            5
-          ],
-          [
-            2,
-            5
-          ],
-          [
-            3,
-            5
-          ],
-          [
-            3,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            3,
-            0
-          ],
-          [
-            4,
-            0
-          ],
-          [
-            4,
-            1
           ]
         ],
         "dir": "e",
@@ -2671,8 +2437,8 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            2,
-            6
+            1,
+            5
           ],
           [
             1,
@@ -2686,31 +2452,35 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            6,
+            2,
             5
           ],
           [
-            5,
-            5
+            2,
+            4
           ],
           [
-            6,
-            6
+            3,
+            4
           ]
         ],
-        "dir": "w",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 2,
         "cells": [
           [
-            4,
-            6
+            5,
+            5
           ],
           [
             5,
             6
+          ],
+          [
+            6,
+            5
           ]
         ],
         "dir": "w",
@@ -2720,11 +2490,11 @@ window.ARROW_PUZZLES = {
         "id": 3,
         "cells": [
           [
-            6,
+            5,
             4
           ],
           [
-            5,
+            6,
             4
           ],
           [
@@ -2739,38 +2509,34 @@ window.ARROW_PUZZLES = {
         "id": 4,
         "cells": [
           [
-            5,
-            2
+            6,
+            1
           ],
           [
             5,
             1
-          ],
-          [
-            4,
-            2
           ]
         ],
-        "dir": "w",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 5,
         "cells": [
           [
-            6,
-            0
+            4,
+            3
           ],
           [
-            5,
-            0
+            4,
+            2
           ],
           [
-            6,
+            4,
             1
           ]
         ],
-        "dir": "s",
+        "dir": "w",
         "isTarget": false
       }
     ]
@@ -2785,14 +2551,14 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             5,
-            3
+            6
           ],
           [
-            5,
-            2
+            4,
+            6
           ]
         ],
-        "dir": "e",
+        "dir": "w",
         "isTarget": true
       },
       {
@@ -2805,10 +2571,6 @@ window.ARROW_PUZZLES = {
           [
             5,
             4
-          ],
-          [
-            6,
-            4
           ]
         ],
         "dir": "n",
@@ -2818,54 +2580,46 @@ window.ARROW_PUZZLES = {
         "id": 2,
         "cells": [
           [
-            5,
-            6
-          ],
-          [
-            4,
-            6
-          ],
-          [
             4,
             5
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
+          ],
           [
             4,
             4
-          ],
-          [
-            4,
-            3
-          ],
-          [
-            4,
-            2
           ]
         ],
         "dir": "n",
         "isTarget": false
       },
       {
-        "id": 4,
+        "id": 3,
         "cells": [
-          [
-            2,
-            5
-          ],
           [
             3,
             5
           ],
           [
             2,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            3,
             4
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            3,
+            2
           ]
         ],
         "dir": "n",
@@ -2876,15 +2630,15 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             1,
-            5
-          ],
-          [
-            0,
-            5
+            1
           ],
           [
             1,
-            6
+            2
+          ],
+          [
+            0,
+            2
           ]
         ],
         "dir": "e",
@@ -2901,15 +2655,15 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            5,
+            4,
             1
           ],
           [
-            5,
+            4,
             2
           ],
           [
-            5,
+            4,
             3
           ]
         ],
@@ -2921,14 +2675,10 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             0,
-            3
+            2
           ],
           [
             0,
-            4
-          ],
-          [
-            1,
             3
           ]
         ],
@@ -2943,12 +2693,12 @@ window.ARROW_PUZZLES = {
             2
           ],
           [
-            2,
-            2
+            1,
+            3
           ],
           [
-            1,
-            1
+            2,
+            2
           ]
         ],
         "dir": "e",
@@ -2958,12 +2708,20 @@ window.ARROW_PUZZLES = {
         "id": 3,
         "cells": [
           [
-            1,
-            5
+            3,
+            6
+          ],
+          [
+            2,
+            6
           ],
           [
             1,
             6
+          ],
+          [
+            1,
+            5
           ]
         ],
         "dir": "s",
@@ -2973,12 +2731,12 @@ window.ARROW_PUZZLES = {
         "id": 4,
         "cells": [
           [
-            0,
-            5
+            2,
+            4
           ],
           [
-            0,
-            6
+            1,
+            4
           ]
         ],
         "dir": "s",
@@ -2988,16 +2746,16 @@ window.ARROW_PUZZLES = {
         "id": 5,
         "cells": [
           [
-            4,
-            3
-          ],
-          [
             3,
             3
           ],
           [
             3,
             2
+          ],
+          [
+            3,
+            1
           ]
         ],
         "dir": "n",
@@ -3016,163 +2774,50 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
+            2,
+            6
+          ],
+          [
+            2,
+            7
+          ]
+        ],
+        "dir": "s",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
             6,
+            6
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            6,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            4,
+            6
+          ],
+          [
+            4,
             7
           ],
           [
-            6,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            6,
-            0
-          ],
-          [
-            6,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            7,
-            2
-          ],
-          [
-            6,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
             3,
-            0
-          ],
-          [
-            2,
-            0
-          ],
-          [
-            3,
-            1
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            5,
-            2
-          ],
-          [
-            5,
-            1
-          ],
-          [
-            5,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            4,
-            3
-          ],
-          [
-            4,
-            4
-          ],
-          [
-            5,
-            3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 5,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            6,
-            5
-          ],
-          [
-            7,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            3,
-            5
-          ],
-          [
-            2,
-            5
-          ],
-          [
-            1,
-            5
-          ],
-          [
-            1,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            4,
-            5
-          ],
-          [
-            4,
-            6
-          ],
-          [
-            3,
-            6
+            7
           ]
         ],
         "dir": "w",
@@ -3182,20 +2827,16 @@ window.ARROW_PUZZLES = {
         "id": 3,
         "cells": [
           [
-            3,
-            4
+            7,
+            6
           ],
           [
-            4,
-            4
-          ],
-          [
-            5,
-            4
-          ],
-          [
-            5,
+            7,
             5
+          ],
+          [
+            7,
+            4
           ]
         ],
         "dir": "w",
@@ -3205,12 +2846,16 @@ window.ARROW_PUZZLES = {
         "id": 4,
         "cells": [
           [
-            4,
+            5,
             1
           ],
           [
-            4,
-            0
+            6,
+            1
+          ],
+          [
+            6,
+            2
           ]
         ],
         "dir": "e",
@@ -3220,54 +2865,39 @@ window.ARROW_PUZZLES = {
         "id": 5,
         "cells": [
           [
-            3,
-            1
+            6,
+            5
           ],
           [
-            2,
-            1
+            5,
+            5
+          ],
+          [
+            5,
+            4
           ]
         ],
-        "dir": "e",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 6,
         "cells": [
           [
-            2,
+            4,
+            0
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            4,
             2
           ],
           [
             3,
             2
-          ],
-          [
-            4,
-            2
-          ],
-          [
-            4,
-            3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            1,
-            1
-          ],
-          [
-            1,
-            0
-          ],
-          [
-            0,
-            1
           ]
         ],
         "dir": "n",
@@ -3284,12 +2914,12 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            7,
-            1
+            2,
+            4
           ],
           [
-            7,
-            2
+            2,
+            3
           ]
         ],
         "dir": "e",
@@ -3299,16 +2929,16 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            7,
-            3
+            2,
+            7
           ],
           [
-            6,
-            3
+            3,
+            7
           ],
           [
-            7,
-            4
+            2,
+            6
           ]
         ],
         "dir": "n",
@@ -3318,257 +2948,35 @@ window.ARROW_PUZZLES = {
         "id": 2,
         "cells": [
           [
-            7,
-            5
-          ],
-          [
-            6,
-            5
-          ],
-          [
-            7,
-            6
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            5,
-            5
-          ],
-          [
-            4,
-            5
-          ],
-          [
             3,
-            5
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            0,
-            6
-          ],
-          [
-            0,
-            5
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            4,
             3
           ],
           [
-            4,
+            3,
             4
           ],
           [
-            5,
-            3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 5,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            7,
+            3,
             5
           ],
           [
-            6,
+            2,
             5
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            7,
-            1
-          ],
-          [
-            7,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            6,
-            4
-          ],
-          [
-            6,
-            3
-          ],
-          [
-            6,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            5,
-            2
-          ],
-          [
-            5,
-            1
-          ],
-          [
-            6,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            3,
-            0
-          ],
-          [
-            3,
-            1
-          ],
-          [
-            2,
-            1
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            4,
-            5
-          ],
-          [
-            4,
-            6
-          ],
-          [
-            3,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 5,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            1,
-            2
-          ],
-          [
-            1,
-            3
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            2,
-            1
-          ],
-          [
-            1,
-            1
-          ],
-          [
-            2,
-            2
           ]
         ],
         "dir": "s",
         "isTarget": false
       },
       {
-        "id": 2,
-        "cells": [
-          [
-            1,
-            0
-          ],
-          [
-            0,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
         "id": 3,
         "cells": [
           [
-            6,
-            2
+            1,
+            7
           ],
           [
-            6,
-            1
-          ],
-          [
-            5,
-            2
+            0,
+            7
           ]
         ],
         "dir": "w",
@@ -3578,53 +2986,177 @@ window.ARROW_PUZZLES = {
         "id": 4,
         "cells": [
           [
-            7,
-            1
+            1,
+            6
           ],
           [
-            7,
-            2
-          ],
-          [
-            7,
-            3
+            0,
+            6
           ]
         ],
-        "dir": "e",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 5,
         "cells": [
           [
-            3,
-            1
+            5,
+            5
           ],
           [
-            3,
-            2
-          ],
-          [
-            4,
-            1
+            6,
+            5
           ]
         ],
-        "dir": "e",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 6,
         "cells": [
           [
+            5,
+            0
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            4,
+            1
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 5,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            3,
+            2
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
             2,
             3
           ],
           [
             3,
             3
+          ],
+          [
+            3,
+            4
           ]
         ],
         "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            1,
+            7
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            1,
+            6
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "dir": "w",
         "isTarget": false
       },
       {
@@ -3632,14 +3164,18 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             5,
-            6
+            1
           ],
           [
-            4,
-            6
+            6,
+            1
+          ],
+          [
+            6,
+            2
           ]
         ],
-        "dir": "w",
+        "dir": "n",
         "isTarget": false
       }
     ]
@@ -3659,6 +3195,10 @@ window.ARROW_PUZZLES = {
           [
             4,
             5
+          ],
+          [
+            4,
+            6
           ]
         ],
         "dir": "n",
@@ -3668,35 +3208,35 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            3,
-            6
+            0,
+            3
           ],
           [
-            3,
+            0,
+            4
+          ],
+          [
+            0,
             5
-          ],
-          [
-            2,
-            6
           ]
         ],
-        "dir": "e",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 2,
         "cells": [
           [
-            0,
-            5
-          ],
-          [
-            0,
+            2,
             4
           ],
           [
             1,
             4
+          ],
+          [
+            2,
+            5
           ]
         ],
         "dir": "n",
@@ -3706,16 +3246,16 @@ window.ARROW_PUZZLES = {
         "id": 3,
         "cells": [
           [
-            4,
-            7
+            1,
+            2
           ],
           [
-            3,
-            7
+            1,
+            1
           ],
           [
-            2,
-            7
+            0,
+            2
           ]
         ],
         "dir": "s",
@@ -3725,24 +3265,24 @@ window.ARROW_PUZZLES = {
         "id": 4,
         "cells": [
           [
-            2,
-            4
+            0,
+            1
           ],
           [
-            2,
-            3
-          ],
-          [
-            2,
-            2
+            0,
+            0
           ]
         ],
-        "dir": "w",
+        "dir": "s",
         "isTarget": false
       },
       {
         "id": 5,
         "cells": [
+          [
+            6,
+            5
+          ],
           [
             5,
             5
@@ -3750,10 +3290,127 @@ window.ARROW_PUZZLES = {
           [
             5,
             4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 5,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            6,
+            6
+          ],
+          [
+            7,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            5,
+            5
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            5,
+            7
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            4,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            5,
+            4
           ],
           [
             5,
             3
+          ],
+          [
+            6,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            3,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            3,
+            0
           ]
         ],
         "dir": "e",
@@ -3770,15 +3427,11 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            7,
-            5
+            5,
+            7
           ],
           [
-            7,
-            6
-          ],
-          [
-            7,
+            6,
             7
           ]
         ],
@@ -3789,19 +3442,19 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            7,
-            4
+            5,
+            6
           ],
           [
-            7,
-            3
+            4,
+            6
           ],
           [
-            6,
-            4
+            3,
+            6
           ]
         ],
-        "dir": "w",
+        "dir": "n",
         "isTarget": false
       },
       {
@@ -3809,15 +3462,19 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             7,
-            1
+            4
           ],
           [
             7,
-            2
+            5
+          ],
+          [
+            7,
+            6
           ],
           [
             6,
-            2
+            6
           ]
         ],
         "dir": "n",
@@ -3827,19 +3484,19 @@ window.ARROW_PUZZLES = {
         "id": 3,
         "cells": [
           [
-            6,
-            0
+            2,
+            6
           ],
           [
-            6,
-            1
+            2,
+            7
           ],
           [
-            7,
-            0
+            1,
+            7
           ]
         ],
-        "dir": "n",
+        "dir": "e",
         "isTarget": false
       },
       {
@@ -3854,11 +3511,11 @@ window.ARROW_PUZZLES = {
             5
           ],
           [
-            1,
-            4
+            0,
+            6
           ]
         ],
-        "dir": "s",
+        "dir": "e",
         "isTarget": false
       },
       {
@@ -3866,49 +3523,275 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             6,
+            4
+          ],
+          [
+            6,
             3
           ],
           [
             5,
-            3
+            4
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 6,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            7,
+            4
+          ],
+          [
+            6,
+            4
+          ]
+        ],
+        "dir": "e",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            6,
+            5
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            7,
+            5
           ]
         ],
         "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            6,
+            7
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            5,
+            5
+          ],
+          [
+            5,
+            4
+          ],
+          [
+            4,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            4,
+            6
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            4,
+            1
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 6,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            6,
+            3
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            6,
+            1
+          ]
+        ],
+        "dir": "e",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            5,
+            4
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            7,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            5,
+            5
+          ],
+          [
+            6,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            6,
+            7
+          ],
+          [
+            6,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            4,
+            5
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            4,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            0,
+            5
+          ]
+        ],
+        "dir": "s",
         "isTarget": false
       },
       {
         "id": 6,
         "cells": [
           [
-            4,
-            4
+            3,
+            6
           ],
           [
-            3,
-            4
+            2,
+            6
           ],
           [
-            3,
-            3
+            2,
+            5
           ]
         ],
-        "dir": "n",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 7,
         "cells": [
           [
-            3,
-            1
+            0,
+            7
           ],
           [
-            4,
-            1
-          ],
-          [
-            3,
-            0
+            1,
+            7
           ]
         ],
         "dir": "n",
@@ -3919,18 +3802,18 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             1,
-            6
+            1
           ],
           [
             1,
-            7
+            2
           ],
           [
-            0,
-            7
+            2,
+            1
           ]
         ],
-        "dir": "w",
+        "dir": "s",
         "isTarget": false
       }
     ]
@@ -3944,12 +3827,16 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            6,
-            3
+            5,
+            7
           ],
           [
-            7,
-            3
+            5,
+            6
+          ],
+          [
+            5,
+            5
           ]
         ],
         "dir": "w",
@@ -3959,510 +3846,92 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            5,
-            4
-          ],
-          [
-            5,
-            3
-          ],
-          [
-            5,
-            2
-          ],
-          [
             6,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            7,
-            2
-          ],
-          [
-            7,
-            1
-          ],
-          [
-            7,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            1,
-            2
-          ],
-          [
-            1,
             3
           ],
           [
-            0,
+            5,
             3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            2,
-            4
-          ],
-          [
-            3,
-            4
-          ],
-          [
-            2,
-            3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            4,
-            1
-          ],
-          [
-            4,
-            2
           ],
           [
             4,
             3
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 6,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            6,
-            6
-          ],
-          [
-            7,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            5,
-            5
-          ],
-          [
-            5,
-            6
-          ],
-          [
-            6,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            7,
-            2
-          ],
-          [
-            6,
-            2
-          ],
-          [
-            6,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            5,
-            2
-          ],
-          [
-            5,
-            3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            6,
-            0
-          ],
-          [
-            5,
-            0
           ]
         ],
         "dir": "s",
         "isTarget": false
       },
       {
-        "id": 5,
-        "cells": [
-          [
-            4,
-            7
-          ],
-          [
-            4,
-            6
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 6,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            6,
-            7
-          ],
-          [
-            5,
-            7
-          ],
-          [
-            4,
-            7
-          ]
-        ],
-        "dir": "n",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            3,
-            6
-          ],
-          [
-            2,
-            6
-          ],
-          [
-            3,
-            7
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
         "id": 2,
         "cells": [
           [
-            1,
-            7
-          ],
-          [
-            2,
-            7
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            1,
-            5
-          ],
-          [
-            0,
-            5
-          ],
-          [
-            1,
-            6
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            1,
-            1
-          ],
-          [
-            1,
-            2
-          ],
-          [
-            0,
-            2
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            2,
-            0
-          ],
-          [
-            2,
-            1
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
             3,
-            0
+            4
           ],
           [
             4,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            6,
-            5
-          ],
-          [
-            7,
-            5
-          ],
-          [
-            7,
-            6
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            2,
-            2
-          ],
-          [
-            2,
-            3
-          ],
-          [
-            3,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 6,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            5,
-            3
-          ],
-          [
-            4,
-            3
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            5,
-            1
-          ],
-          [
-            5,
-            0
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            6,
-            2
-          ],
-          [
-            5,
-            2
-          ],
-          [
-            4,
-            2
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            4,
-            0
-          ],
-          [
-            4,
-            1
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            6,
-            1
-          ],
-          [
-            7,
-            1
-          ],
-          [
-            6,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            7,
-            5
-          ],
-          [
-            7,
-            6
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            3,
-            2
-          ],
-          [
-            3,
-            1
-          ],
-          [
-            2,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            5,
             4
           ],
           [
             5,
-            5
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            2,
+            3
           ],
           [
-            5,
-            6
+            2,
+            4
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            1,
+            3
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            0
           ]
         ],
         "dir": "s",
@@ -4480,14 +3949,14 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             7,
-            5
+            6
           ],
           [
             7,
-            4
+            7
           ]
         ],
-        "dir": "e",
+        "dir": "w",
         "isTarget": true
       },
       {
@@ -4495,15 +3964,11 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             7,
-            7
+            3
           ],
           [
             7,
-            6
-          ],
-          [
-            6,
-            7
+            2
           ]
         ],
         "dir": "n",
@@ -4513,19 +3978,11 @@ window.ARROW_PUZZLES = {
         "id": 2,
         "cells": [
           [
+            7,
+            5
+          ],
+          [
             6,
-            6
-          ],
-          [
-            5,
-            6
-          ],
-          [
-            4,
-            6
-          ],
-          [
-            4,
             5
           ]
         ],
@@ -4536,39 +3993,35 @@ window.ARROW_PUZZLES = {
         "id": 3,
         "cells": [
           [
-            3,
-            6
+            7,
+            1
           ],
           [
-            3,
-            7
+            7,
+            0
           ],
           [
-            2,
-            7
+            6,
+            1
           ]
         ],
-        "dir": "n",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 4,
         "cells": [
           [
-            2,
-            4
+            1,
+            5
           ],
           [
             2,
             5
           ],
           [
-            2,
-            6
-          ],
-          [
-            1,
-            6
+            3,
+            5
           ]
         ],
         "dir": "s",
@@ -4578,69 +4031,50 @@ window.ARROW_PUZZLES = {
         "id": 5,
         "cells": [
           [
-            5,
-            3
+            0,
+            5
           ],
           [
-            5,
-            4
-          ],
-          [
-            4,
+            0,
             4
           ]
         ],
-        "dir": "w",
+        "dir": "s",
         "isTarget": false
       },
       {
         "id": 6,
         "cells": [
           [
-            7,
-            2
+            3,
+            4
           ],
           [
-            7,
-            3
+            4,
+            4
+          ],
+          [
+            4,
+            5
           ]
         ],
-        "dir": "n",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 7,
         "cells": [
           [
-            2,
-            1
+            6,
+            4
           ],
           [
-            3,
-            1
+            7,
+            4
           ],
           [
-            3,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            5,
-            2
-          ],
-          [
-            4,
-            2
-          ],
-          [
-            4,
-            1
+            6,
+            3
           ]
         ],
         "dir": "n",
@@ -4658,18 +4092,18 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             6,
-            2
-          ],
-          [
-            6,
-            3
-          ],
-          [
-            6,
             4
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            6,
+            6
           ]
         ],
-        "dir": "e",
+        "dir": "w",
         "isTarget": true
       },
       {
@@ -4677,15 +4111,15 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             5,
-            5
-          ],
-          [
-            5,
-            6
+            1
           ],
           [
             6,
-            5
+            1
+          ],
+          [
+            6,
+            2
           ]
         ],
         "dir": "n",
@@ -4695,681 +4129,80 @@ window.ARROW_PUZZLES = {
         "id": 2,
         "cells": [
           [
-            6,
-            6
+            7,
+            3
           ],
           [
-            7,
-            6
+            6,
+            3
           ]
         ],
-        "dir": "s",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 3,
         "cells": [
           [
+            7,
+            0
+          ],
+          [
             6,
-            7
-          ],
-          [
-            5,
-            7
-          ],
-          [
-            4,
-            7
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            3,
-            6
-          ],
-          [
-            4,
-            6
-          ],
-          [
-            3,
-            5
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            3,
-            7
-          ],
-          [
-            2,
-            7
-          ],
-          [
-            1,
-            7
-          ],
-          [
-            1,
-            6
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            3,
-            3
-          ],
-          [
-            4,
-            3
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 7,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            7,
-            3
-          ],
-          [
-            7,
-            2
+            0
           ],
           [
             7,
             1
           ]
         ],
-        "dir": "e",
-        "isTarget": true
+        "dir": "n",
+        "isTarget": false
       },
       {
-        "id": 1,
+        "id": 4,
         "cells": [
           [
-            7,
-            6
+            2,
+            2
           ],
           [
-            7,
-            5
+            3,
+            2
           ],
           [
-            6,
-            6
+            4,
+            2
           ]
         ],
         "dir": "n",
         "isTarget": false
       },
       {
-        "id": 2,
+        "id": 5,
         "cells": [
           [
             0,
-            5
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            1,
+            2
           ],
           [
             0,
-            4
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            2,
-            3
-          ],
-          [
-            2,
-            4
-          ],
-          [
-            2,
-            5
-          ],
-          [
-            1,
-            5
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            5,
-            6
-          ],
-          [
-            4,
-            6
-          ],
-          [
-            4,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            6,
-            5
-          ],
-          [
-            6,
-            4
-          ],
-          [
-            7,
-            4
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            5,
-            4
-          ],
-          [
-            4,
-            4
-          ],
-          [
-            4,
-            3
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            2,
-            1
-          ],
-          [
-            1,
-            1
-          ],
-          [
-            2,
             2
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 7,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            2,
-            6
-          ],
-          [
-            3,
-            6
-          ]
-        ],
-        "dir": "s",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            7,
-            7
-          ],
-          [
-            6,
-            7
-          ],
-          [
-            5,
-            7
-          ],
-          [
-            5,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            4,
-            5
-          ],
-          [
-            4,
-            6
-          ],
-          [
-            5,
-            5
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            7,
-            6
-          ],
-          [
-            6,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            6,
-            3
-          ],
-          [
-            7,
-            3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            5,
-            2
-          ],
-          [
-            6,
-            2
-          ],
-          [
-            7,
-            2
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            4,
-            4
-          ],
-          [
-            5,
-            4
-          ],
-          [
-            4,
-            3
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            0,
-            0
-          ],
-          [
-            1,
-            0
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            6,
-            1
-          ],
-          [
-            7,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 7,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            6,
-            6
-          ],
-          [
-            6,
-            7
-          ]
-        ],
-        "dir": "n",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            4,
-            7
-          ],
-          [
-            5,
-            7
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            5,
-            5
-          ],
-          [
-            5,
-            6
-          ],
-          [
-            4,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            3,
-            7
-          ],
-          [
-            2,
-            7
-          ],
-          [
-            1,
-            7
-          ],
-          [
-            1,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            4,
-            4
-          ],
-          [
-            4,
-            5
-          ],
-          [
-            5,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            3,
-            0
-          ],
-          [
-            4,
-            0
-          ],
-          [
-            5,
-            0
-          ],
-          [
-            5,
-            1
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            6,
-            2
-          ],
-          [
-            5,
-            2
-          ],
-          [
-            6,
-            3
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 7,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            7,
-            4
-          ],
-          [
-            6,
-            4
-          ],
-          [
-            5,
-            4
-          ]
-        ],
-        "dir": "e",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            7,
-            7
-          ],
-          [
-            7,
-            6
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            6,
-            7
-          ],
-          [
-            6,
-            6
-          ],
-          [
-            6,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            5,
-            5
-          ],
-          [
-            5,
-            6
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            1,
-            5
-          ],
-          [
-            1,
-            6
-          ],
-          [
-            0,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            3,
-            6
-          ],
-          [
-            3,
-            5
-          ],
-          [
-            4,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            2,
-            6
-          ],
-          [
-            2,
-            7
-          ],
-          [
-            1,
-            7
           ]
         ],
         "dir": "n",
@@ -5379,15 +4212,15 @@ window.ARROW_PUZZLES = {
         "id": 7,
         "cells": [
           [
-            2,
-            2
+            1,
+            5
           ],
           [
             1,
-            2
+            4
           ]
         ],
-        "dir": "s",
+        "dir": "e",
         "isTarget": false
       }
     ]
@@ -5402,11 +4235,143 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             5,
-            2
+            3
+          ],
+          [
+            6,
+            3
+          ]
+        ],
+        "dir": "e",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            5,
+            7
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            5,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            7,
+            4
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            7,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            6,
+            6
+          ],
+          [
+            7,
+            6
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            1,
+            5
+          ],
+          [
+            2,
+            5
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            0,
+            4
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            0,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            3,
+            5
+          ],
+          [
+            3,
+            4
           ],
           [
             4,
-            2
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 7,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            3,
+            7
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            3,
+            5
           ]
         ],
         "dir": "n",
@@ -5416,15 +4381,850 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
+            2,
+            7
+          ],
+          [
+            2,
+            6
+          ],
+          [
             1,
-            2
+            7
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            2,
+            5
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            1,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            0,
+            6
           ],
           [
             0,
+            5
+          ],
+          [
+            0,
+            4
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
             2
           ],
           [
             1,
+            3
+          ],
+          [
+            0,
+            3
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            7,
+            6
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            6,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 7,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            7,
+            1
+          ],
+          [
+            7,
+            2
+          ]
+        ],
+        "dir": "e",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            7,
+            4
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            7,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            6,
+            7
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            7,
+            6
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            7,
+            3
+          ],
+          [
+            6,
+            3
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            5,
+            2
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            5,
+            6
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            5,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            1,
+            5
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            2,
+            6
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            1,
+            6
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            0,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 7,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            2,
+            5
+          ],
+          [
+            2,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            2,
+            4
+          ],
+          [
+            3,
+            4
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            3,
+            2
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            3,
+            6
+          ],
+          [
+            4,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 7,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            6,
+            6
+          ],
+          [
+            6,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            7,
+            4
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            6,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            7,
+            2
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            6,
+            1
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            5,
+            5
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            5,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            3,
+            5
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            3,
+            4
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            5,
+            2
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 7,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            5,
+            7
+          ],
+          [
+            5,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            3,
+            6
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            1,
+            7
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            1,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            0,
+            6
+          ],
+          [
+            0,
+            5
+          ],
+          [
+            1,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            3,
+            5
+          ],
+          [
+            2,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            2,
+            4
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            1,
+            3
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 8,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            7,
+            5
+          ],
+          [
+            7,
+            6
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "dir": "n",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            0,
+            5
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            1,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            4,
+            6
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            5,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            6,
+            5
+          ],
+          [
+            5,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            2,
+            3
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            0,
+            3
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            2,
+            4
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            0,
+            4
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 8,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "dir": "s",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            3,
+            2
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            5,
+            2
+          ],
+          [
+            5,
             3
           ]
         ],
@@ -5435,440 +5235,103 @@ window.ARROW_PUZZLES = {
         "id": 2,
         "cells": [
           [
-            2,
-            2
-          ],
-          [
-            2,
+            4,
             1
           ],
           [
-            2,
+            4,
             0
           ],
           [
             3,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            3,
-            2
-          ],
-          [
-            3,
-            3
-          ],
-          [
-            2,
-            3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            0,
-            5
-          ],
-          [
-            0,
-            4
-          ],
-          [
-            0,
-            3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            0,
             1
-          ],
-          [
-            0,
-            0
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            1,
-            5
-          ],
-          [
-            1,
-            6
-          ],
-          [
-            1,
-            7
-          ],
-          [
-            0,
-            7
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            4,
-            7
-          ],
-          [
-            4,
-            6
-          ],
-          [
-            5,
-            6
           ]
         ],
         "dir": "e",
         "isTarget": false
       },
       {
-        "id": 8,
-        "cells": [
-          [
-            5,
-            3
-          ],
-          [
-            6,
-            3
-          ],
-          [
-            7,
-            3
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 7,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            1,
-            5
-          ],
-          [
-            1,
-            6
-          ],
-          [
-            1,
-            7
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            1,
-            4
-          ],
-          [
-            2,
-            4
-          ],
-          [
-            3,
-            4
-          ],
-          [
-            3,
-            5
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            1,
-            3
-          ],
-          [
-            1,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
         "id": 3,
         "cells": [
           [
-            0,
+            5,
+            0
+          ],
+          [
+            5,
             1
           ],
           [
-            1,
-            1
-          ],
-          [
-            2,
-            1
+            6,
+            0
           ]
         ],
-        "dir": "w",
+        "dir": "s",
         "isTarget": false
       },
       {
         "id": 4,
         "cells": [
           [
-            7,
-            1
+            3,
+            7
           ],
           [
-            7,
-            2
-          ],
-          [
-            7,
-            3
+            4,
+            7
           ]
         ],
-        "dir": "w",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 5,
         "cells": [
           [
-            2,
-            3
+            4,
+            4
           ],
           [
-            3,
-            3
+            4,
+            5
           ],
           [
-            2,
-            2
+            5,
+            4
           ]
         ],
-        "dir": "s",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 6,
         "cells": [
           [
-            3,
-            2
-          ],
-          [
-            4,
-            2
-          ],
-          [
-            3,
-            1
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            4,
-            0
-          ],
-          [
-            5,
-            0
-          ],
-          [
-            6,
-            0
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 7,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
             6,
             7
           ],
           [
-            7,
-            7
-          ]
-        ],
-        "dir": "n",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            3,
-            7
-          ],
-          [
-            4,
-            7
-          ],
-          [
-            3,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
             5,
             7
-          ],
-          [
-            5,
-            6
-          ],
-          [
-            5,
-            5
-          ],
-          [
-            6,
-            5
           ]
         ],
         "dir": "n",
         "isTarget": false
       },
       {
-        "id": 3,
-        "cells": [
-          [
-            1,
-            7
-          ],
-          [
-            0,
-            7
-          ],
-          [
-            0,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            0,
-            3
-          ],
-          [
-            1,
-            3
-          ],
-          [
-            2,
-            3
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            1,
-            2
-          ],
-          [
-            1,
-            1
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            0,
-            4
-          ],
-          [
-            1,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
         "id": 7,
         "cells": [
           [
-            4,
-            0
+            6,
+            2
           ],
           [
-            5,
-            0
+            6,
+            3
+          ],
+          [
+            6,
+            4
           ]
         ],
         "dir": "e",
@@ -5886,15 +5349,15 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             7,
-            1
+            5
           ],
           [
-            6,
-            1
+            7,
+            6
           ],
           [
-            5,
-            1
+            7,
+            7
           ]
         ],
         "dir": "n",
@@ -5904,359 +5367,11 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            3,
-            1
-          ],
-          [
-            3,
-            2
-          ],
-          [
-            4,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            0,
-            1
-          ],
-          [
-            0,
-            0
-          ],
-          [
-            1,
-            0
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            2,
-            1
-          ],
-          [
-            1,
-            1
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            2,
-            3
-          ],
-          [
-            1,
-            3
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            1,
-            4
-          ],
-          [
-            2,
-            4
-          ],
-          [
-            3,
-            4
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            2,
-            6
-          ],
-          [
-            1,
-            6
-          ],
-          [
-            1,
-            5
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            4,
-            4
-          ],
-          [
-            4,
-            3
-          ],
-          [
-            4,
-            2
+            6,
+            7
           ],
           [
             5,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            6,
-            5
-          ],
-          [
-            6,
-            6
-          ],
-          [
-            7,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 8,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            1,
-            5
-          ],
-          [
-            1,
-            6
-          ],
-          [
-            1,
-            7
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            0,
-            2
-          ],
-          [
-            0,
-            1
-          ],
-          [
-            0,
-            0
-          ],
-          [
-            1,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            2,
-            3
-          ],
-          [
-            1,
-            3
-          ],
-          [
-            1,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            2,
-            4
-          ],
-          [
-            1,
-            4
-          ],
-          [
-            0,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            2,
-            1
-          ],
-          [
-            1,
-            1
-          ],
-          [
-            2,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            3,
-            0
-          ],
-          [
-            3,
-            1
-          ],
-          [
-            3,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            7,
-            2
-          ],
-          [
-            7,
-            3
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            4,
-            2
-          ],
-          [
-            5,
-            2
-          ],
-          [
-            6,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            4,
-            6
-          ],
-          [
-            5,
-            6
-          ],
-          [
-            5,
-            7
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 8,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            1,
-            7
-          ],
-          [
-            2,
-            7
-          ]
-        ],
-        "dir": "s",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            7,
-            7
-          ],
-          [
-            6,
             7
           ]
         ],
@@ -6267,30 +5382,38 @@ window.ARROW_PUZZLES = {
         "id": 2,
         "cells": [
           [
-            5,
-            7
+            3,
+            5
+          ],
+          [
+            4,
+            5
           ],
           [
             5,
-            6
+            5
           ]
         ],
-        "dir": "s",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 3,
         "cells": [
           [
-            4,
+            1,
             5
           ],
           [
-            4,
+            1,
             6
           ],
           [
-            4,
+            1,
+            7
+          ],
+          [
+            0,
             7
           ]
         ],
@@ -6301,31 +5424,31 @@ window.ARROW_PUZZLES = {
         "id": 4,
         "cells": [
           [
-            3,
-            5
+            6,
+            4
           ],
           [
-            3,
-            6
-          ],
-          [
-            3,
-            7
+            5,
+            4
           ]
         ],
-        "dir": "s",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 5,
         "cells": [
           [
-            4,
-            0
+            6,
+            3
+          ],
+          [
+            5,
+            3
           ],
           [
             4,
-            1
+            3
           ]
         ],
         "dir": "w",
@@ -6335,49 +5458,34 @@ window.ARROW_PUZZLES = {
         "id": 6,
         "cells": [
           [
-            4,
+            7,
+            1
+          ],
+          [
+            7,
             2
           ],
           [
-            4,
-            3
+            6,
+            2
           ]
         ],
-        "dir": "n",
+        "dir": "s",
         "isTarget": false
       },
       {
         "id": 7,
         "cells": [
           [
-            6,
-            4
-          ],
-          [
-            5,
-            4
-          ],
-          [
-            4,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            2,
+            1,
             3
           ],
           [
-            2,
+            1,
             2
           ],
           [
-            1,
+            0,
             3
           ]
         ],
@@ -6395,35 +5503,31 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            2,
-            4
-          ],
-          [
-            2,
+            5,
             5
           ],
           [
-            2,
-            6
+            5,
+            4
           ]
         ],
-        "dir": "w",
+        "dir": "n",
         "isTarget": true
       },
       {
         "id": 1,
         "cells": [
           [
-            1,
-            0
+            2,
+            4
           ],
           [
-            2,
-            0
+            3,
+            4
           ],
           [
-            2,
-            1
+            4,
+            4
           ]
         ],
         "dir": "w",
@@ -6434,11 +5538,15 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             3,
-            2
+            5
           ],
           [
             2,
-            2
+            5
+          ],
+          [
+            3,
+            6
           ]
         ],
         "dir": "w",
@@ -6448,246 +5556,60 @@ window.ARROW_PUZZLES = {
         "id": 3,
         "cells": [
           [
-            3,
-            3
-          ],
-          [
-            2,
-            3
+            0,
+            4
           ],
           [
             1,
-            3
+            4
           ]
         ],
-        "dir": "s",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 4,
         "cells": [
           [
-            4,
-            0
-          ],
-          [
-            4,
+            1,
             1
           ],
           [
-            3,
-            1
+            1,
+            2
           ]
         ],
-        "dir": "n",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 5,
         "cells": [
           [
-            7,
-            4
-          ],
-          [
-            7,
+            0,
             3
-          ],
-          [
-            7,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            4,
-            3
-          ],
-          [
-            4,
-            4
-          ],
-          [
-            4,
-            5
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            6,
-            6
-          ],
-          [
-            5,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            1,
-            2
-          ],
-          [
-            1,
-            1
           ],
           [
             0,
             2
           ]
         ],
-        "dir": "e",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 8,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            2,
-            6
-          ],
-          [
-            3,
-            6
-          ]
-        ],
-        "dir": "s",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            5,
-            5
-          ],
-          [
-            6,
-            5
-          ],
-          [
-            7,
-            5
-          ],
-          [
-            7,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            5,
-            7
-          ],
-          [
-            5,
-            6
-          ],
-          [
-            6,
-            6
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            4,
-            6
-          ],
-          [
-            4,
-            7
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            3,
-            0
-          ],
-          [
-            4,
-            0
-          ],
-          [
-            5,
-            0
-          ],
-          [
-            5,
-            1
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            3,
-            4
-          ],
-          [
-            4,
-            4
-          ],
-          [
-            5,
-            4
-          ]
-        ],
-        "dir": "w",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 6,
         "cells": [
           [
-            6,
-            3
+            1,
+            0
           ],
           [
-            6,
-            4
+            0,
+            0
           ]
         ],
-        "dir": "s",
+        "dir": "n",
         "isTarget": false
       },
       {
@@ -6699,203 +5621,6 @@ window.ARROW_PUZZLES = {
           ],
           [
             3,
-            2
-          ],
-          [
-            3,
-            1
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            0,
-            0
-          ],
-          [
-            1,
-            0
-          ],
-          [
-            2,
-            0
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 8,
-    "gridW": 8,
-    "gridH": 8,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            6,
-            5
-          ],
-          [
-            6,
-            4
-          ],
-          [
-            6,
-            3
-          ]
-        ],
-        "dir": "e",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            6,
-            6
-          ],
-          [
-            7,
-            6
-          ],
-          [
-            7,
-            7
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            6,
-            7
-          ],
-          [
-            5,
-            7
-          ],
-          [
-            4,
-            7
-          ],
-          [
-            4,
-            6
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            3,
-            7
-          ],
-          [
-            3,
-            6
-          ],
-          [
-            3,
-            5
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            1,
-            6
-          ],
-          [
-            1,
-            7
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            5,
-            5
-          ],
-          [
-            4,
-            5
-          ],
-          [
-            5,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            3,
-            4
-          ],
-          [
-            2,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            1,
-            0
-          ],
-          [
-            0,
-            0
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            2,
-            0
-          ],
-          [
-            2,
-            1
-          ],
-          [
-            2,
-            2
-          ],
-          [
-            1,
             2
           ]
         ],
@@ -6913,16 +5638,186 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            7,
-            3
+            4,
+            7
           ],
+          [
+            3,
+            7
+          ],
+          [
+            2,
+            7
+          ]
+        ],
+        "dir": "s",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            7,
+            7
+          ],
+          [
+            6,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            5,
+            7
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            6,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
           [
             6,
             3
           ],
           [
+            6,
+            2
+          ],
+          [
             5,
             3
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            6,
+            4
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            7,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            5,
+            4
+          ],
+          [
+            5,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            4,
+            5
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            2,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            5,
+            0
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            6,
+            0
+          ],
+          [
+            6,
+            1
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 8,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            5,
+            5
+          ],
+          [
+            5,
+            6
           ]
         ],
         "dir": "w",
@@ -6932,12 +5827,12 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            7,
-            1
+            5,
+            2
           ],
           [
             6,
-            1
+            2
           ],
           [
             5,
@@ -6951,50 +5846,42 @@ window.ARROW_PUZZLES = {
         "id": 2,
         "cells": [
           [
-            7,
-            2
-          ],
-          [
-            6,
-            2
-          ],
-          [
             5,
-            2
+            4
+          ],
+          [
+            4,
+            4
           ]
         ],
-        "dir": "n",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 3,
         "cells": [
           [
-            7,
-            0
-          ],
-          [
-            6,
-            0
-          ],
-          [
             5,
+            0
+          ],
+          [
+            4,
             0
           ]
         ],
-        "dir": "n",
+        "dir": "s",
         "isTarget": false
       },
       {
         "id": 4,
         "cells": [
           [
-            4,
-            0
+            5,
+            3
           ],
           [
-            4,
-            1
+            6,
+            3
           ]
         ],
         "dir": "n",
@@ -7004,16 +5891,12 @@ window.ARROW_PUZZLES = {
         "id": 5,
         "cells": [
           [
-            3,
+            7,
             0
           ],
           [
-            2,
+            6,
             0
-          ],
-          [
-            3,
-            1
           ]
         ],
         "dir": "e",
@@ -7024,15 +5907,15 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             0,
-            0
+            3
           ],
           [
             0,
-            1
+            4
           ],
           [
-            1,
-            0
+            0,
+            5
           ]
         ],
         "dir": "n",
@@ -7042,16 +5925,16 @@ window.ARROW_PUZZLES = {
         "id": 7,
         "cells": [
           [
-            4,
-            5
-          ],
-          [
-            4,
-            6
+            3,
+            3
           ],
           [
             3,
-            6
+            4
+          ],
+          [
+            4,
+            3
           ]
         ],
         "dir": "n",
@@ -7061,16 +5944,16 @@ window.ARROW_PUZZLES = {
         "id": 8,
         "cells": [
           [
+            2,
+            5
+          ],
+          [
             1,
-            3
+            5
           ],
           [
             2,
-            3
-          ],
-          [
-            1,
-            2
+            6
           ]
         ],
         "dir": "n",
@@ -7087,12 +5970,12 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            7,
-            2
+            6,
+            3
           ],
           [
-            7,
-            1
+            6,
+            2
           ]
         ],
         "dir": "e",
@@ -7102,35 +5985,39 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
+            5,
+            6
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            5,
+            4
+          ],
+          [
             6,
             4
-          ],
-          [
-            7,
-            4
-          ],
-          [
-            7,
-            5
           ]
         ],
-        "dir": "e",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 2,
         "cells": [
           [
-            5,
-            3
+            7,
+            7
           ],
           [
             6,
-            3
+            7
           ],
           [
-            7,
-            3
+            6,
+            6
           ]
         ],
         "dir": "n",
@@ -7141,15 +6028,15 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             7,
-            6
-          ],
-          [
-            6,
-            6
+            4
           ],
           [
             7,
-            7
+            5
+          ],
+          [
+            6,
+            5
           ]
         ],
         "dir": "n",
@@ -7159,19 +6046,182 @@ window.ARROW_PUZZLES = {
         "id": 4,
         "cells": [
           [
-            5,
-            6
+            4,
+            5
           ],
           [
-            5,
-            7
+            3,
+            5
+          ],
+          [
+            3,
+            4
           ]
         ],
-        "dir": "w",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 5,
+        "cells": [
+          [
+            0,
+            6
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            0,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            1,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            1,
+            3
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 9,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            2,
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "dir": "e",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            1,
+            6
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            0,
+            7
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            0,
+            3
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            4
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            1,
+            5
+          ],
+          [
+            2,
+            5
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 4,
         "cells": [
           [
             2,
@@ -7180,47 +6230,81 @@ window.ARROW_PUZZLES = {
           [
             3,
             6
-          ],
-          [
-            4,
-            6
-          ],
-          [
-            4,
-            7
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            1,
-            6
-          ],
-          [
-            1,
-            5
-          ],
-          [
-            1,
-            4
           ]
         ],
         "dir": "e",
         "isTarget": false
       },
       {
-        "id": 7,
+        "id": 5,
         "cells": [
           [
-            2,
+            3,
+            7
+          ],
+          [
+            4,
+            7
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            6,
+            7
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            6,
             5
           ],
           [
-            2,
+            7,
+            5
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            5,
+            4
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            6,
+            4
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            4,
+            2
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            4,
             4
           ],
           [
@@ -7242,46 +6326,390 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            1,
-            1
+            6,
+            7
           ],
           [
-            1,
-            2
+            7,
+            7
           ]
         ],
-        "dir": "e",
+        "dir": "w",
         "isTarget": true
       },
       {
         "id": 1,
         "cells": [
           [
-            1,
-            4
+            6,
+            2
           ],
           [
-            1,
-            5
+            6,
+            1
+          ],
+          [
+            7,
+            1
           ]
         ],
-        "dir": "s",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 2,
         "cells": [
           [
-            2,
-            7
+            7,
+            2
           ],
           [
-            1,
-            7
+            7,
+            3
           ],
+          [
+            6,
+            3
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            5,
+            5
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            6,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            7,
+            6
+          ],
+          [
+            7,
+            5
+          ],
+          [
+            7,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
           [
             1,
             6
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            0,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            2,
+            6
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            4,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            2,
+            5
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            0,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            5,
+            4
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            5,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 9,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            7,
+            6
+          ],
+          [
+            7,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            6,
+            2
+          ],
+          [
+            7,
+            2
+          ],
+          [
+            6,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            6,
+            4
+          ],
+          [
+            7,
+            4
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            7,
+            1
+          ],
+          [
+            7,
+            0
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            7,
+            3
+          ],
+          [
+            6,
+            3
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            5,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            3,
+            5
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            3,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            4,
+            4
+          ],
+          [
+            4,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 9,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            7,
+            6
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "dir": "n",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            6,
+            7
+          ],
+          [
+            6,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            4,
+            5
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            3,
+            7
           ]
         ],
         "dir": "n",
@@ -7292,18 +6720,14 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             1,
-            3
+            6
           ],
           [
             2,
-            3
-          ],
-          [
-            2,
-            4
+            6
           ]
         ],
-        "dir": "s",
+        "dir": "w",
         "isTarget": false
       },
       {
@@ -7311,57 +6735,41 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             5,
-            4
+            7
           ],
           [
             5,
-            5
-          ],
-          [
-            4,
-            5
+            6
           ]
         ],
-        "dir": "s",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 5,
         "cells": [
           [
-            3,
-            4
-          ],
-          [
-            3,
-            5
-          ],
-          [
             2,
-            5
+            7
+          ],
+          [
+            1,
+            7
           ]
         ],
-        "dir": "s",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 6,
         "cells": [
           [
-            7,
-            3
-          ],
-          [
-            7,
-            4
-          ],
-          [
-            7,
+            0,
             5
           ],
           [
-            6,
-            5
+            0,
+            6
           ]
         ],
         "dir": "w",
@@ -7371,19 +6779,19 @@ window.ARROW_PUZZLES = {
         "id": 7,
         "cells": [
           [
-            6,
-            1
+            3,
+            5
           ],
           [
-            6,
-            2
+            2,
+            5
           ],
           [
-            7,
-            1
+            3,
+            6
           ]
         ],
-        "dir": "n",
+        "dir": "w",
         "isTarget": false
       },
       {
@@ -7391,11 +6799,11 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             5,
-            3
+            4
           ],
           [
             5,
-            2
+            3
           ]
         ],
         "dir": "w",
@@ -7412,16 +6820,12 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            6,
-            3
+            7,
+            7
           ],
           [
             6,
-            4
-          ],
-          [
-            6,
-            5
+            7
           ]
         ],
         "dir": "w",
@@ -7432,15 +6836,15 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             7,
-            1
+            6
           ],
           [
             7,
-            2
+            5
           ],
           [
-            6,
-            2
+            7,
+            4
           ]
         ],
         "dir": "n",
@@ -7451,11 +6855,11 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             6,
-            0
+            3
           ],
           [
-            6,
-            1
+            5,
+            3
           ]
         ],
         "dir": "n",
@@ -7465,11 +6869,15 @@ window.ARROW_PUZZLES = {
         "id": 3,
         "cells": [
           [
-            4,
+            6,
+            0
+          ],
+          [
+            6,
             1
           ],
           [
-            4,
+            7,
             0
           ]
         ],
@@ -7480,12 +6888,16 @@ window.ARROW_PUZZLES = {
         "id": 4,
         "cells": [
           [
-            3,
-            0
+            6,
+            6
           ],
           [
-            3,
-            1
+            5,
+            6
+          ],
+          [
+            4,
+            6
           ]
         ],
         "dir": "w",
@@ -7495,19 +6907,19 @@ window.ARROW_PUZZLES = {
         "id": 5,
         "cells": [
           [
-            5,
-            1
-          ],
-          [
-            5,
-            2
-          ],
-          [
             4,
-            2
+            5
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            2,
+            5
           ]
         ],
-        "dir": "e",
+        "dir": "w",
         "isTarget": false
       },
       {
@@ -7515,57 +6927,196 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             5,
-            6
+            4
           ],
           [
-            4,
-            6
-          ],
-          [
-            3,
-            6
-          ],
-          [
-            3,
+            5,
             5
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            5,
-            4
-          ],
-          [
-            5,
-            3
-          ],
-          [
-            4,
-            4
           ]
         ],
         "dir": "n",
         "isTarget": false
       },
       {
+        "id": 7,
+        "cells": [
+          [
+            3,
+            0
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            4,
+            1
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
         "id": 8,
         "cells": [
           [
-            1,
-            3
+            6,
+            5
+          ],
+          [
+            6,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 10,
+    "gridW": 8,
+    "gridH": 8,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            7,
+            5
+          ],
+          [
+            7,
+            6
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "dir": "n",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            4,
+            7
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            6,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            3,
+            7
           ],
           [
             2,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            3,
+            5
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            3,
+            3
+          ],
+          [
+            4,
             3
           ],
           [
             3,
-            3
+            2
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            3,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            7,
+            1
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            5,
+            0
           ]
         ],
         "dir": "e",
@@ -7585,11 +7136,11 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             8,
-            4
+            5
           ],
           [
             8,
-            5
+            4
           ]
         ],
         "dir": "w",
@@ -7599,19 +7150,19 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            6,
+            8,
+            2
+          ],
+          [
+            8,
             3
           ],
           [
             7,
             3
-          ],
-          [
-            8,
-            3
           ]
         ],
-        "dir": "n",
+        "dir": "s",
         "isTarget": false
       },
       {
@@ -7619,19 +7170,11 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             8,
-            2
-          ],
-          [
-            7,
-            2
-          ],
-          [
-            6,
-            2
-          ],
-          [
-            6,
             1
+          ],
+          [
+            8,
+            0
           ]
         ],
         "dir": "n",
@@ -7641,35 +7184,35 @@ window.ARROW_PUZZLES = {
         "id": 3,
         "cells": [
           [
-            8,
-            1
-          ],
-          [
-            8,
+            7,
             0
           ],
           [
-            7,
-            1
+            6,
+            0
+          ],
+          [
+            5,
+            0
           ]
         ],
-        "dir": "n",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 4,
         "cells": [
           [
-            4,
-            3
+            3,
+            0
           ],
           [
             3,
-            3
+            1
           ],
           [
-            2,
-            3
+            3,
+            2
           ]
         ],
         "dir": "e",
@@ -7679,39 +7222,31 @@ window.ARROW_PUZZLES = {
         "id": 5,
         "cells": [
           [
-            5,
-            3
+            1,
+            0
           ],
           [
-            5,
-            4
-          ],
-          [
-            5,
-            5
+            2,
+            0
           ]
         ],
-        "dir": "n",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 6,
         "cells": [
           [
-            1,
-            3
+            2,
+            2
           ],
           [
             1,
             2
           ],
           [
-            1,
-            1
-          ],
-          [
             2,
-            1
+            3
           ]
         ],
         "dir": "s",
@@ -7721,31 +7256,35 @@ window.ARROW_PUZZLES = {
         "id": 7,
         "cells": [
           [
-            5,
-            2
+            3,
+            7
+          ],
+          [
+            3,
+            8
           ],
           [
             4,
-            2
+            7
           ]
         ],
-        "dir": "n",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 8,
         "cells": [
           [
-            8,
-            8
+            4,
+            1
           ],
           [
-            8,
-            7
+            5,
+            1
           ],
           [
-            8,
-            6
+            5,
+            2
           ]
         ],
         "dir": "n",
@@ -7755,564 +7294,12 @@ window.ARROW_PUZZLES = {
         "id": 9,
         "cells": [
           [
-            2,
-            8
-          ],
-          [
-            3,
-            8
-          ],
-          [
-            2,
-            7
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 10,
-        "cells": [
-          [
-            1,
-            6
-          ],
-          [
-            1,
-            7
-          ],
-          [
-            0,
-            7
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 11,
-        "cells": [
-          [
-            5,
-            6
-          ],
-          [
-            5,
-            7
-          ],
-          [
-            4,
-            7
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 7,
-    "gridW": 9,
-    "gridH": 9,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            3,
-            5
-          ],
-          [
-            4,
-            5
-          ],
-          [
-            5,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            0,
-            5
-          ],
-          [
-            0,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            1,
-            5
-          ],
-          [
-            2,
-            5
-          ],
-          [
-            2,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            0,
-            3
-          ],
-          [
-            0,
-            2
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            1,
-            1
-          ],
-          [
-            0,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            2,
-            0
-          ],
-          [
-            2,
-            1
-          ],
-          [
-            3,
-            0
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            2,
-            3
-          ],
-          [
-            2,
-            2
-          ],
-          [
-            3,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
             3,
             4
           ],
           [
             3,
-            3
-          ],
-          [
-            4,
-            3
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            7,
-            7
-          ],
-          [
-            7,
-            6
-          ],
-          [
-            6,
-            7
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 7,
-    "gridW": 9,
-    "gridH": 9,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            7,
-            6
-          ],
-          [
-            7,
             5
-          ],
-          [
-            7,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            5,
-            0
-          ],
-          [
-            6,
-            0
-          ],
-          [
-            7,
-            0
-          ],
-          [
-            7,
-            1
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            7,
-            3
-          ],
-          [
-            7,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            3,
-            2
-          ],
-          [
-            2,
-            2
-          ],
-          [
-            1,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            5,
-            2
-          ],
-          [
-            5,
-            3
-          ],
-          [
-            5,
-            4
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            6,
-            1
-          ],
-          [
-            6,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            5,
-            6
-          ],
-          [
-            6,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            4,
-            6
-          ],
-          [
-            4,
-            5
-          ],
-          [
-            5,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            2,
-            3
-          ],
-          [
-            1,
-            3
-          ],
-          [
-            0,
-            3
-          ],
-          [
-            0,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 9,
-        "cells": [
-          [
-            4,
-            0
-          ],
-          [
-            4,
-            1
-          ],
-          [
-            4,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 10,
-        "cells": [
-          [
-            5,
-            7
-          ],
-          [
-            5,
-            8
-          ],
-          [
-            4,
-            8
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 7,
-    "gridW": 9,
-    "gridH": 9,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            1,
-            3
-          ],
-          [
-            1,
-            4
-          ]
-        ],
-        "dir": "s",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            6,
-            4
-          ],
-          [
-            7,
-            4
-          ],
-          [
-            7,
-            5
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            8,
-            2
-          ],
-          [
-            7,
-            2
-          ],
-          [
-            8,
-            3
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            3,
-            4
-          ],
-          [
-            3,
-            3
-          ],
-          [
-            2,
-            4
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            2,
-            3
-          ],
-          [
-            2,
-            2
-          ],
-          [
-            3,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            3,
-            8
-          ],
-          [
-            2,
-            8
-          ],
-          [
-            1,
-            8
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            3,
-            7
-          ],
-          [
-            4,
-            7
           ],
           [
             3,
@@ -8320,294 +7307,6 @@ window.ARROW_PUZZLES = {
           ]
         ],
         "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            2,
-            7
-          ],
-          [
-            2,
-            6
-          ],
-          [
-            2,
-            5
-          ],
-          [
-            3,
-            5
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            1,
-            1
-          ],
-          [
-            2,
-            1
-          ],
-          [
-            3,
-            1
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 9,
-        "cells": [
-          [
-            0,
-            8
-          ],
-          [
-            0,
-            7
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 10,
-        "cells": [
-          [
-            8,
-            7
-          ],
-          [
-            8,
-            8
-          ],
-          [
-            7,
-            8
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 7,
-    "gridW": 9,
-    "gridH": 9,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            1,
-            6
-          ],
-          [
-            1,
-            7
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            1,
-            5
-          ],
-          [
-            0,
-            5
-          ],
-          [
-            0,
-            4
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            1,
-            4
-          ],
-          [
-            1,
-            3
-          ],
-          [
-            2,
-            3
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            1,
-            2
-          ],
-          [
-            2,
-            2
-          ],
-          [
-            3,
-            2
-          ],
-          [
-            3,
-            3
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            0,
-            0
-          ],
-          [
-            1,
-            0
-          ],
-          [
-            2,
-            0
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            4,
-            4
-          ],
-          [
-            3,
-            4
-          ],
-          [
-            2,
-            4
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            6,
-            5
-          ],
-          [
-            7,
-            5
-          ],
-          [
-            8,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            5,
-            4
-          ],
-          [
-            5,
-            3
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            6,
-            8
-          ],
-          [
-            6,
-            7
-          ],
-          [
-            7,
-            7
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 9,
-        "cells": [
-          [
-            6,
-            3
-          ],
-          [
-            6,
-            2
-          ],
-          [
-            6,
-            1
-          ],
-          [
-            7,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 10,
-        "cells": [
-          [
-            7,
-            8
-          ],
-          [
-            8,
-            8
-          ]
-        ],
-        "dir": "w",
         "isTarget": false
       }
     ]
@@ -8625,8 +7324,8 @@ window.ARROW_PUZZLES = {
             8
           ],
           [
-            1,
-            7
+            2,
+            8
           ]
         ],
         "dir": "s",
@@ -8636,201 +7335,16 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            2,
-            8
-          ],
-          [
-            3,
-            8
-          ],
-          [
-            4,
-            8
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            2,
-            7
-          ],
-          [
-            3,
-            7
-          ],
-          [
-            2,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            8,
-            6
-          ],
-          [
-            8,
-            7
-          ],
-          [
-            8,
-            8
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            7,
-            8
-          ],
-          [
             6,
             8
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            7,
-            3
           ],
-          [
-            8,
-            3
-          ],
-          [
-            7,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            7,
-            5
-          ],
-          [
-            7,
-            6
-          ],
-          [
-            8,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            7,
-            7
-          ],
-          [
-            6,
-            7
-          ],
-          [
-            5,
-            7
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            0,
-            1
-          ],
-          [
-            1,
-            1
-          ],
-          [
-            0,
-            0
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 9,
-        "cells": [
-          [
-            0,
-            3
-          ],
-          [
-            0,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 7,
-    "gridW": 9,
-    "gridH": 9,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
           [
             5,
             8
           ],
           [
-            6,
-            8
-          ]
-        ],
-        "dir": "n",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            3,
-            8
-          ],
-          [
-            3,
+            5,
             7
-          ],
-          [
-            3,
-            6
           ]
         ],
         "dir": "w",
@@ -8846,10 +7360,55 @@ window.ARROW_PUZZLES = {
           [
             4,
             7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            3,
+            7
           ],
           [
+            3,
+            8
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            8,
+            8
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
             4,
-            6
+            5
+          ],
+          [
+            5,
+            5
           ],
           [
             5,
@@ -8860,80 +7419,15 @@ window.ARROW_PUZZLES = {
         "isTarget": false
       },
       {
-        "id": 3,
-        "cells": [
-          [
-            0,
-            8
-          ],
-          [
-            1,
-            8
-          ],
-          [
-            2,
-            8
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            4,
-            3
-          ],
-          [
-            3,
-            3
-          ],
-          [
-            2,
-            3
-          ],
-          [
-            2,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            0,
-            5
-          ],
-          [
-            0,
-            6
-          ],
-          [
-            0,
-            7
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
         "id": 6,
         "cells": [
           [
-            3,
+            5,
+            1
+          ],
+          [
+            5,
             0
-          ],
-          [
-            3,
-            1
-          ],
-          [
-            2,
-            1
           ]
         ],
         "dir": "e",
@@ -8943,19 +7437,57 @@ window.ARROW_PUZZLES = {
         "id": 7,
         "cells": [
           [
-            2,
-            5
+            6,
+            2
           ],
           [
-            2,
-            6
+            6,
+            1
+          ],
+          [
+            6,
+            0
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            6,
+            3
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            5,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 9,
+        "cells": [
+          [
+            1,
+            5
           ],
           [
             1,
             6
+          ],
+          [
+            1,
+            7
           ]
         ],
-        "dir": "s",
+        "dir": "w",
         "isTarget": false
       }
     ]
@@ -8970,15 +7502,11 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             7,
-            6
-          ],
-          [
-            7,
             7
           ],
           [
-            7,
-            8
+            8,
+            7
           ]
         ],
         "dir": "w",
@@ -8988,12 +7516,16 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            7,
-            1
+            8,
+            3
           ],
           [
             7,
-            0
+            3
+          ],
+          [
+            7,
+            2
           ]
         ],
         "dir": "n",
@@ -9003,12 +7535,20 @@ window.ARROW_PUZZLES = {
         "id": 2,
         "cells": [
           [
-            7,
-            2
+            6,
+            8
           ],
           [
             6,
-            2
+            7
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            7,
+            6
           ]
         ],
         "dir": "n",
@@ -9018,19 +7558,15 @@ window.ARROW_PUZZLES = {
         "id": 3,
         "cells": [
           [
-            7,
-            4
+            8,
+            6
           ],
           [
-            7,
-            3
-          ],
-          [
-            6,
-            4
+            8,
+            5
           ]
         ],
-        "dir": "w",
+        "dir": "n",
         "isTarget": false
       },
       {
@@ -9038,11 +7574,15 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             6,
-            5
+            4
           ],
           [
             7,
-            5
+            4
+          ],
+          [
+            8,
+            4
           ]
         ],
         "dir": "n",
@@ -9052,16 +7592,16 @@ window.ARROW_PUZZLES = {
         "id": 5,
         "cells": [
           [
-            6,
-            0
+            2,
+            3
           ],
           [
-            6,
-            1
+            2,
+            2
           ],
           [
-            5,
-            1
+            1,
+            3
           ]
         ],
         "dir": "n",
@@ -9071,31 +7611,35 @@ window.ARROW_PUZZLES = {
         "id": 6,
         "cells": [
           [
-            1,
-            0
+            6,
+            1
           ],
           [
-            2,
-            0
+            5,
+            1
+          ],
+          [
+            6,
+            2
           ]
         ],
-        "dir": "e",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 7,
         "cells": [
           [
-            1,
-            1
+            0,
+            2
           ],
           [
             0,
             1
           ],
           [
-            1,
-            2
+            0,
+            0
           ]
         ],
         "dir": "s",
@@ -9105,233 +7649,26 @@ window.ARROW_PUZZLES = {
         "id": 8,
         "cells": [
           [
-            8,
-            1
-          ],
-          [
-            8,
-            2
-          ],
-          [
-            8,
-            3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 9,
-        "cells": [
-          [
-            5,
-            4
-          ],
-          [
-            4,
-            4
-          ],
-          [
-            5,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 10,
-        "cells": [
-          [
             2,
-            6
+            0
           ],
           [
             2,
-            5
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 8,
-    "gridW": 9,
-    "gridH": 9,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            1,
             1
-          ],
-          [
-            1,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            3,
-            2
           ],
           [
             3,
-            1
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            2,
-            1
-          ],
-          [
-            2,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            4,
-            1
-          ],
-          [
-            4,
-            2
+            0
           ]
         ],
         "dir": "w",
         "isTarget": false
       },
       {
-        "id": 4,
-        "cells": [
-          [
-            5,
-            0
-          ],
-          [
-            5,
-            1
-          ],
-          [
-            6,
-            0
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            7,
-            2
-          ],
-          [
-            6,
-            2
-          ],
-          [
-            5,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            7,
-            8
-          ],
-          [
-            6,
-            8
-          ],
-          [
-            6,
-            7
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            6,
-            3
-          ],
-          [
-            5,
-            3
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            6,
-            4
-          ],
-          [
-            7,
-            4
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
         "id": 9,
         "cells": [
           [
-            5,
-            8
-          ],
-          [
-            5,
-            7
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 10,
-        "cells": [
-          [
-            2,
-            5
-          ],
-          [
-            2,
+            1,
             4
           ],
           [
@@ -9339,32 +7676,28 @@ window.ARROW_PUZZLES = {
             5
           ]
         ],
-        "dir": "n",
+        "dir": "s",
         "isTarget": false
       },
       {
-        "id": 11,
+        "id": 10,
         "cells": [
           [
-            8,
-            6
-          ],
-          [
-            8,
-            7
+            7,
+            0
           ],
           [
             7,
-            7
+            1
           ]
         ],
-        "dir": "e",
+        "dir": "n",
         "isTarget": false
       }
     ]
   },
   {
-    "minTaps": 8,
+    "minTaps": 7,
     "gridW": 9,
     "gridH": 9,
     "pieces": [
@@ -9373,15 +7706,15 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             8,
-            7
+            5
           ],
           [
             7,
-            7
+            5
           ],
           [
             6,
-            7
+            5
           ]
         ],
         "dir": "w",
@@ -9391,12 +7724,16 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            8,
-            1
+            7,
+            0
           ],
           [
             8,
-            2
+            0
+          ],
+          [
+            8,
+            1
           ]
         ],
         "dir": "n",
@@ -9407,11 +7744,15 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             7,
-            1
+            2
           ],
           [
             7,
-            0
+            1
+          ],
+          [
+            6,
+            2
           ]
         ],
         "dir": "n",
@@ -9422,15 +7763,11 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             6,
-            5
+            0
           ],
           [
-            7,
-            5
-          ],
-          [
-            7,
-            6
+            6,
+            1
           ]
         ],
         "dir": "n",
@@ -9441,6 +7778,10 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             8,
+            3
+          ],
+          [
+            8,
             4
           ],
           [
@@ -9448,83 +7789,22 @@ window.ARROW_PUZZLES = {
             4
           ]
         ],
-        "dir": "n",
+        "dir": "s",
         "isTarget": false
       },
       {
         "id": 5,
         "cells": [
           [
-            1,
-            6
-          ],
-          [
-            2,
-            6
-          ],
-          [
-            2,
-            7
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            5,
-            6
-          ],
-          [
-            5,
-            5
-          ],
-          [
-            5,
-            4
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            3,
-            5
-          ],
-          [
-            4,
-            5
-          ],
-          [
-            3,
-            4
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            2,
-            2
-          ],
-          [
-            3,
-            2
-          ],
-          [
             4,
             2
           ],
           [
-            4,
+            5,
+            2
+          ],
+          [
+            5,
             3
           ]
         ],
@@ -9532,7 +7812,7 @@ window.ARROW_PUZZLES = {
         "isTarget": false
       },
       {
-        "id": 9,
+        "id": 6,
         "cells": [
           [
             0,
@@ -9540,26 +7820,30 @@ window.ARROW_PUZZLES = {
           ],
           [
             0,
-            5
+            3
           ],
           [
-            1,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 10,
-        "cells": [
-          [
-            1,
+            0,
             2
           ],
           [
             1,
+            2
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            0,
             1
+          ],
+          [
+            0,
+            0
           ],
           [
             1,
@@ -9568,11 +7852,30 @@ window.ARROW_PUZZLES = {
         ],
         "dir": "s",
         "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            4,
+            4
+          ],
+          [
+            5,
+            4
+          ],
+          [
+            6,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
       }
     ]
   },
   {
-    "minTaps": 8,
+    "minTaps": 7,
     "gridW": 9,
     "gridH": 9,
     "pieces": [
@@ -9580,43 +7883,20 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            3,
-            2
+            1,
+            7
           ],
           [
-            3,
-            1
+            1,
+            6
           ]
         ],
-        "dir": "n",
+        "dir": "w",
         "isTarget": true
       },
       {
         "id": 1,
         "cells": [
-          [
-            0,
-            1
-          ],
-          [
-            1,
-            1
-          ],
-          [
-            0,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            1,
-            3
-          ],
           [
             1,
             2
@@ -9626,7 +7906,30 @@ window.ARROW_PUZZLES = {
             2
           ]
         ],
-        "dir": "n",
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            0,
+            5
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            1,
+            3
+          ]
+        ],
+        "dir": "w",
         "isTarget": false
       },
       {
@@ -9634,48 +7937,10 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             1,
-            0
+            4
           ],
           [
-            2,
-            0
-          ],
-          [
-            2,
-            1
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            0,
-            3
-          ],
-          [
-            0,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            2,
-            7
-          ],
-          [
-            2,
-            6
-          ],
-          [
-            2,
+            1,
             5
           ]
         ],
@@ -9683,19 +7948,53 @@ window.ARROW_PUZZLES = {
         "isTarget": false
       },
       {
+        "id": 4,
+        "cells": [
+          [
+            3,
+            5
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            4
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            5,
+            5
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            5,
+            4
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
         "id": 6,
         "cells": [
           [
-            0,
-            7
+            2,
+            4
           ],
           [
-            1,
-            7
-          ],
-          [
-            1,
-            8
+            2,
+            5
           ]
         ],
         "dir": "s",
@@ -9705,30 +8004,177 @@ window.ARROW_PUZZLES = {
         "id": 7,
         "cells": [
           [
+            7,
+            2
+          ],
+          [
+            6,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 7,
+    "gridW": 9,
+    "gridH": 9,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            4
+          ],
+          [
             1,
             5
+          ]
+        ],
+        "dir": "e",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            1,
+            8
+          ],
+          [
+            2,
+            8
+          ],
+          [
+            3,
+            8
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            1,
+            7
+          ],
+          [
+            2,
+            7
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            1,
+            6
           ],
           [
             0,
-            5
+            6
           ]
         ],
         "dir": "s",
         "isTarget": false
       },
       {
+        "id": 4,
+        "cells": [
+          [
+            3,
+            5
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            5,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            6,
+            6
+          ],
+          [
+            7,
+            6
+          ],
+          [
+            8,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            2,
+            6
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            4,
+            8
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
         "id": 8,
         "cells": [
           [
-            5,
-            0
+            4,
+            3
           ],
           [
-            5,
-            1
-          ],
-          [
-            5,
+            4,
             2
           ]
         ],
@@ -9739,34 +8185,38 @@ window.ARROW_PUZZLES = {
         "id": 9,
         "cells": [
           [
-            2,
-            3
+            7,
+            1
           ],
           [
-            3,
-            3
+            7,
+            2
+          ],
+          [
+            8,
+            1
           ]
         ],
-        "dir": "s",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 10,
         "cells": [
           [
-            4,
-            7
-          ],
-          [
-            4,
-            8
+            3,
+            2
           ],
           [
             3,
-            8
+            1
+          ],
+          [
+            4,
+            1
           ]
         ],
-        "dir": "s",
+        "dir": "e",
         "isTarget": false
       },
       {
@@ -9774,24 +8224,39 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             7,
-            3
+            7
           ],
           [
-            7,
-            2
-          ],
-          [
-            7,
-            1
+            8,
+            7
           ]
         ],
-        "dir": "s",
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 12,
+        "cells": [
+          [
+            6,
+            4
+          ],
+          [
+            5,
+            4
+          ],
+          [
+            6,
+            5
+          ]
+        ],
+        "dir": "w",
         "isTarget": false
       }
     ]
   },
   {
-    "minTaps": 8,
+    "minTaps": 7,
     "gridW": 9,
     "gridH": 9,
     "pieces": [
@@ -9799,72 +8264,76 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            6,
-            3
+            1,
+            5
           ],
           [
-            6,
-            2
+            1,
+            6
           ]
         ],
-        "dir": "e",
+        "dir": "s",
         "isTarget": true
       },
       {
         "id": 1,
         "cells": [
           [
-            6,
-            7
+            4,
+            5
           ],
           [
-            7,
-            7
-          ],
-          [
-            8,
-            7
+            3,
+            5
           ]
         ],
-        "dir": "n",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 2,
         "cells": [
           [
-            6,
-            5
+            2,
+            6
           ],
           [
-            6,
+            3,
             6
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            7
           ]
         ],
-        "dir": "n",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 3,
         "cells": [
           [
-            6,
-            4
-          ],
-          [
             7,
-            4
+            7
           ],
           [
-            8,
-            4
+            6,
+            7
           ],
           [
-            8,
-            5
+            5,
+            7
+          ],
+          [
+            5,
+            6
           ]
         ],
-        "dir": "n",
+        "dir": "s",
         "isTarget": false
       },
       {
@@ -9872,57 +8341,215 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             8,
-            8
+            4
           ],
           [
-            7,
-            8
+            8,
+            5
           ],
           [
-            6,
-            8
+            8,
+            6
           ]
         ],
-        "dir": "n",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 5,
         "cells": [
           [
-            5,
-            4
+            8,
+            1
           ],
           [
-            4,
-            4
+            8,
+            2
           ],
           [
-            3,
-            4
-          ],
-          [
-            3,
-            3
+            7,
+            2
           ]
         ],
-        "dir": "e",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 6,
         "cells": [
           [
-            3,
-            5
+            7,
+            3
           ],
           [
-            4,
-            5
+            8,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            8,
+            0
+          ],
+          [
+            7,
+            0
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            0,
+            3
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 7,
+    "gridW": 9,
+    "gridH": 9,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            2,
+            7
+          ],
+          [
+            2,
+            8
+          ]
+        ],
+        "dir": "s",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            7,
+            8
+          ],
+          [
+            8,
+            8
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            6,
+            8
           ],
           [
             5,
+            8
+          ],
+          [
+            5,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            8,
+            7
+          ],
+          [
+            7,
+            7
+          ],
+          [
+            6,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            4,
+            7
+          ],
+          [
+            4,
+            8
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            7,
             5
+          ],
+          [
+            7,
+            6
+          ],
+          [
+            8,
+            5
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            6,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            8,
+            1
           ]
         ],
         "dir": "e",
@@ -9932,8 +8559,155 @@ window.ARROW_PUZZLES = {
         "id": 7,
         "cells": [
           [
+            7,
+            2
+          ],
+          [
+            8,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            5,
+            5
+          ],
+          [
+            4,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 7,
+    "gridW": 9,
+    "gridH": 9,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            6,
+            8
+          ],
+          [
+            6,
+            7
+          ]
+        ],
+        "dir": "n",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            3,
+            7
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            1,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            3,
+            8
+          ],
+          [
+            2,
+            8
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            4,
+            8
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            4,
+            7
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            1,
+            8
+          ],
+          [
             0,
-            4
+            8
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            1,
+            5
           ],
           [
             1,
@@ -9944,377 +8718,37 @@ window.ARROW_PUZZLES = {
         "isTarget": false
       },
       {
-        "id": 8,
-        "cells": [
-          [
-            4,
-            8
-          ],
-          [
-            3,
-            8
-          ],
-          [
-            2,
-            8
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 8,
-    "gridW": 9,
-    "gridH": 9,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            8,
-            6
-          ],
-          [
-            7,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            8,
-            5
-          ],
-          [
-            7,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            6,
-            4
-          ],
-          [
-            7,
-            4
-          ],
-          [
-            8,
-            4
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            7,
-            0
-          ],
-          [
-            6,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            8,
-            1
-          ],
-          [
-            7,
-            1
-          ],
-          [
-            8,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            6,
-            2
-          ],
-          [
-            6,
-            1
-          ],
-          [
-            5,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            3,
-            2
-          ],
-          [
-            2,
-            2
-          ],
-          [
-            2,
-            1
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
         "id": 7,
         "cells": [
           [
             0,
-            2
+            4
           ],
           [
             0,
-            1
-          ],
-          [
-            1,
-            1
+            3
           ]
         ],
-        "dir": "s",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 8,
         "cells": [
           [
-            1,
-            3
-          ],
-          [
-            2,
-            3
-          ],
-          [
-            3,
-            3
-          ],
-          [
-            3,
-            4
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 9,
-        "cells": [
-          [
             4,
-            2
-          ],
-          [
-            4,
-            1
-          ],
-          [
-            5,
-            1
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 8,
-    "gridW": 9,
-    "gridH": 9,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            7,
-            7
-          ],
-          [
-            6,
-            7
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            7,
-            4
-          ],
-          [
-            7,
             5
           ],
-          [
-            6,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            5,
-            0
-          ],
-          [
-            6,
-            0
-          ],
-          [
-            7,
-            0
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            6,
-            3
-          ],
-          [
-            6,
-            4
-          ],
-          [
-            5,
-            4
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            6,
-            1
-          ],
-          [
-            7,
-            1
-          ],
-          [
-            7,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            4,
-            2
-          ],
-          [
-            4,
-            3
-          ],
-          [
-            4,
-            4
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            2,
-            4
-          ],
-          [
-            3,
-            4
-          ],
-          [
-            3,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
           [
             4,
             6
           ],
           [
-            4,
+            5,
             5
           ]
         ],
         "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            3,
-            0
-          ],
-          [
-            2,
-            0
-          ]
-        ],
-        "dir": "e",
         "isTarget": false
       }
     ]
@@ -10332,11 +8766,11 @@ window.ARROW_PUZZLES = {
             7
           ],
           [
-            2,
+            4,
             7
           ],
           [
-            1,
+            5,
             7
           ]
         ],
@@ -10347,35 +8781,31 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            4,
+            7,
             7
           ],
           [
-            5,
-            7
+            7,
+            6
           ],
           [
-            5,
-            8
+            6,
+            7
           ]
         ],
-        "dir": "e",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 2,
         "cells": [
           [
-            6,
+            8,
             7
           ],
           [
-            6,
+            8,
             8
-          ],
-          [
-            7,
-            7
           ]
         ],
         "dir": "w",
@@ -10386,37 +8816,37 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             8,
-            7
+            0
           ],
           [
             8,
-            8
+            1
+          ],
+          [
+            7,
+            1
           ]
         ],
-        "dir": "s",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 4,
         "cells": [
           [
-            5,
-            2
+            8,
+            4
           ],
           [
-            5,
-            1
+            8,
+            5
           ],
           [
-            5,
-            0
-          ],
-          [
-            6,
-            0
+            8,
+            6
           ]
         ],
-        "dir": "e",
+        "dir": "n",
         "isTarget": false
       },
       {
@@ -10424,15 +8854,15 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             8,
-            6
+            3
           ],
           [
             7,
-            6
+            3
           ],
           [
-            6,
-            6
+            7,
+            2
           ]
         ],
         "dir": "n",
@@ -10442,16 +8872,16 @@ window.ARROW_PUZZLES = {
         "id": 6,
         "cells": [
           [
-            8,
-            1
+            5,
+            4
           ],
           [
-            7,
-            1
+            5,
+            3
           ],
           [
-            7,
-            0
+            4,
+            4
           ]
         ],
         "dir": "n",
@@ -10462,15 +8892,328 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             7,
+            5
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            5,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            6,
+            1
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            6,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 8,
+    "gridW": 9,
+    "gridH": 9,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            7,
+            4
+          ],
+          [
+            7,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            8,
+            3
+          ],
+          [
+            7,
             3
           ],
           [
             7,
             2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            6,
+            3
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            7,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            8,
+            0
+          ],
+          [
+            7,
+            0
           ],
           [
             8,
-            2
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            3,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            3,
+            1
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            6,
+            0
+          ],
+          [
+            5,
+            0
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            5,
+            1
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            0
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            5,
+            4
+          ],
+          [
+            5,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 8,
+    "gridW": 9,
+    "gridH": 9,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            3,
+            8
+          ],
+          [
+            2,
+            8
+          ]
+        ],
+        "dir": "s",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            7,
+            8
+          ],
+          [
+            6,
+            8
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            4,
+            8
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            4,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            7,
+            7
+          ],
+          [
+            8,
+            7
+          ],
+          [
+            8,
+            8
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            6,
+            6
+          ],
+          [
+            7,
+            6
+          ],
+          [
+            6,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            8,
+            5
+          ],
+          [
+            8,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            6,
+            4
+          ],
+          [
+            7,
+            4
+          ],
+          [
+            7,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            7,
+            1
+          ],
+          [
+            8,
+            1
           ]
         ],
         "dir": "w",
@@ -10480,12 +9223,466 @@ window.ARROW_PUZZLES = {
         "id": 8,
         "cells": [
           [
+            1,
+            2
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 9,
+        "cells": [
+          [
+            0,
+            3
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            3
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 10,
+        "cells": [
+          [
+            3,
+            5
+          ],
+          [
             4,
-            6
+            5
           ],
           [
             5,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 11,
+        "cells": [
+          [
+            1,
             6
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            0,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 12,
+        "cells": [
+          [
+            7,
+            3
+          ],
+          [
+            8,
+            3
+          ],
+          [
+            8,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 8,
+    "gridW": 9,
+    "gridH": 9,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            7,
+            3
+          ],
+          [
+            7,
+            4
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            8,
+            1
+          ],
+          [
+            8,
+            2
+          ],
+          [
+            7,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            7,
+            0
+          ],
+          [
+            7,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            4,
+            1
+          ],
+          [
+            5,
+            1
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            3,
+            0
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            4,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            6,
+            0
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            3
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            5,
+            7
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            6,
+            8
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            1,
+            6
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 9,
+        "cells": [
+          [
+            5,
+            2
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            6,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 10,
+        "cells": [
+          [
+            5,
+            5
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            4,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 8,
+    "gridW": 9,
+    "gridH": 9,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            3,
+            1
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "dir": "s",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            6,
+            1
+          ],
+          [
+            7,
+            1
+          ],
+          [
+            7,
+            2
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            5,
+            1
+          ],
+          [
+            5,
+            2
+          ],
+          [
+            5,
+            3
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            8,
+            2
+          ],
+          [
+            8,
+            1
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            4,
+            2
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            0
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            5,
+            7
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            5,
+            8
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            5,
+            6
+          ],
+          [
+            6,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            5,
+            5
+          ],
+          [
+            6,
+            5
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            5,
+            4
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            3,
+            4
           ]
         ],
         "dir": "e",
@@ -10495,15 +9692,11 @@ window.ARROW_PUZZLES = {
         "id": 9,
         "cells": [
           [
-            3,
-            4
-          ],
-          [
-            3,
+            2,
             5
           ],
           [
-            2,
+            3,
             5
           ]
         ],
@@ -10515,37 +9708,60 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             1,
-            6
+            3
           ],
           [
-            2,
-            6
+            1,
+            4
           ],
           [
-            3,
-            6
+            1,
+            5
+          ],
+          [
+            0,
+            5
           ]
         ],
-        "dir": "w",
+        "dir": "s",
         "isTarget": false
       },
       {
         "id": 11,
         "cells": [
           [
-            1,
-            1
+            3,
+            7
           ],
           [
-            1,
-            0
+            3,
+            6
           ],
           [
             2,
-            0
+            7
           ]
         ],
-        "dir": "e",
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 12,
+        "cells": [
+          [
+            1,
+            7
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            2,
+            6
+          ]
+        ],
+        "dir": "n",
         "isTarget": false
       }
     ]
@@ -10560,11 +9776,11 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             8,
-            3
+            7
           ],
           [
-            8,
-            4
+            7,
+            7
           ]
         ],
         "dir": "w",
@@ -10574,12 +9790,246 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
+            8,
+            0
+          ],
+          [
+            8,
+            1
+          ],
+          [
+            7,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            8,
+            2
+          ],
+          [
+            8,
+            3
+          ],
+          [
+            8,
+            4
+          ],
+          [
+            7,
+            4
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            7,
+            5
+          ],
+          [
+            7,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            8,
+            5
+          ],
+          [
+            8,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            3,
+            5
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            6,
+            6
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            4,
+            6
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            5,
+            4
+          ],
+          [
+            5,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            4,
+            8
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            4,
+            7
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 9,
+        "cells": [
+          [
+            2,
+            4
+          ],
+          [
+            1,
+            4
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 10,
+        "cells": [
+          [
+            6,
+            3
+          ],
+          [
+            7,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 8,
+    "gridW": 9,
+    "gridH": 9,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            7,
+            5
+          ],
+          [
+            7,
+            6
+          ],
+          [
+            7,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            8,
+            1
+          ],
+          [
             7,
             1
           ],
           [
             8,
-            1
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            6,
+            3
+          ],
+          [
+            7,
+            3
+          ],
+          [
+            7,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            8,
+            0
           ],
           [
             7,
@@ -10590,68 +10040,38 @@ window.ARROW_PUZZLES = {
         "isTarget": false
       },
       {
-        "id": 2,
-        "cells": [
-          [
-            7,
-            2
-          ],
-          [
-            7,
-            3
-          ],
-          [
-            8,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            6,
-            3
-          ],
-          [
-            5,
-            3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
         "id": 4,
         "cells": [
           [
-            2,
+            7,
             2
           ],
           [
-            1,
+            6,
             2
           ]
         ],
-        "dir": "s",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 5,
         "cells": [
           [
-            2,
-            3
+            3,
+            0
           ],
           [
             3,
-            3
+            1
           ],
           [
-            4,
-            3
+            3,
+            2
+          ],
+          [
+            2,
+            2
           ]
         ],
         "dir": "e",
@@ -10661,517 +10081,93 @@ window.ARROW_PUZZLES = {
         "id": 6,
         "cells": [
           [
-            6,
-            1
-          ],
-          [
-            6,
+            1,
             2
           ],
           [
-            5,
+            0,
             2
           ]
         ],
-        "dir": "w",
+        "dir": "s",
         "isTarget": false
       },
       {
         "id": 7,
         "cells": [
           [
-            4,
-            4
+            6,
+            0
           ],
           [
-            4,
-            5
+            6,
+            1
           ],
           [
-            4,
-            6
+            5,
+            1
           ]
         ],
-        "dir": "n",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 8,
         "cells": [
           [
-            5,
-            4
+            4,
+            3
           ],
           [
-            6,
-            4
+            5,
+            3
           ]
         ],
-        "dir": "s",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 9,
-        "cells": [
-          [
-            5,
-            6
-          ],
-          [
-            5,
-            7
-          ],
-          [
-            4,
-            7
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 10,
         "cells": [
           [
             0,
-            1
+            4
           ],
           [
             0,
-            0
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 11,
-        "cells": [
-          [
-            4,
-            2
-          ],
-          [
-            4,
-            1
-          ],
-          [
-            4,
-            0
-          ],
-          [
-            5,
-            0
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 12,
-        "cells": [
-          [
-            6,
-            7
-          ],
-          [
-            7,
-            7
-          ],
-          [
-            8,
-            7
-          ],
-          [
-            8,
-            8
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 9,
-    "gridW": 9,
-    "gridH": 9,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            2,
-            8
-          ],
-          [
-            2,
-            7
-          ],
-          [
-            2,
-            6
-          ]
-        ],
-        "dir": "s",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            6,
-            8
-          ],
-          [
-            6,
-            7
-          ],
-          [
-            7,
-            7
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            8,
-            8
-          ],
-          [
-            8,
-            7
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            4,
-            7
-          ],
-          [
-            4,
-            8
-          ],
-          [
-            5,
-            7
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            3,
-            6
-          ],
-          [
-            3,
-            7
-          ],
-          [
-            3,
-            8
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            6,
             3
           ],
           [
-            6,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            8,
-            1
-          ],
-          [
-            7,
-            1
-          ],
-          [
-            7,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            7,
-            2
-          ],
-          [
-            7,
+            1,
             3
-          ],
-          [
-            7,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            4,
-            5
-          ],
-          [
-            3,
-            5
-          ],
-          [
-            4,
-            6
           ]
         ],
         "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 9,
-    "gridW": 9,
-    "gridH": 9,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            7,
-            6
-          ],
-          [
-            6,
-            6
-          ],
-          [
-            5,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            5,
-            0
-          ],
-          [
-            4,
-            0
-          ],
-          [
-            5,
-            1
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            6,
-            3
-          ],
-          [
-            6,
-            4
-          ],
-          [
-            6,
-            5
-          ],
-          [
-            5,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            8,
-            2
-          ],
-          [
-            7,
-            2
-          ],
-          [
-            6,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            5,
-            3
-          ],
-          [
-            5,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            7,
-            0
-          ],
-          [
-            7,
-            1
-          ],
-          [
-            6,
-            1
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            8,
-            0
-          ],
-          [
-            8,
-            1
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            2,
-            5
-          ],
-          [
-            2,
-            4
-          ],
-          [
-            2,
-            3
-          ],
-          [
-            3,
-            3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            3,
-            2
-          ],
-          [
-            3,
-            1
-          ],
-          [
-            4,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 9,
-        "cells": [
-          [
-            8,
-            4
-          ],
-          [
-            8,
-            5
-          ]
-        ],
-        "dir": "w",
         "isTarget": false
       },
       {
         "id": 10,
         "cells": [
           [
-            5,
+            2,
             7
           ],
           [
-            5,
-            8
+            1,
+            7
+          ],
+          [
+            0,
+            7
           ]
         ],
-        "dir": "e",
+        "dir": "n",
         "isTarget": false
       }
     ]
   },
   {
-    "minTaps": 9,
+    "minTaps": 8,
     "gridW": 9,
     "gridH": 9,
     "pieces": [
@@ -11179,35 +10175,27 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            8,
-            2
-          ],
-          [
             7,
-            2
+            3
           ],
           [
-            6,
-            2
+            8,
+            3
           ]
         ],
-        "dir": "e",
+        "dir": "w",
         "isTarget": true
       },
       {
         "id": 1,
         "cells": [
           [
-            6,
-            5
+            8,
+            1
           ],
           [
-            6,
-            4
-          ],
-          [
-            5,
-            5
+            8,
+            0
           ]
         ],
         "dir": "n",
@@ -11218,19 +10206,19 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             6,
-            6
+            2
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            6,
+            0
           ],
           [
             7,
-            6
-          ],
-          [
-            8,
-            6
-          ],
-          [
-            8,
-            7
+            0
           ]
         ],
         "dir": "n",
@@ -11240,12 +10228,12 @@ window.ARROW_PUZZLES = {
         "id": 3,
         "cells": [
           [
-            8,
-            4
+            7,
+            1
           ],
           [
-            8,
-            5
+            7,
+            2
           ]
         ],
         "dir": "n",
@@ -11256,34 +10244,30 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             5,
-            8
+            0
           ],
           [
-            6,
-            8
-          ],
-          [
-            7,
-            8
+            5,
+            1
           ]
         ],
-        "dir": "n",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 5,
         "cells": [
           [
-            8,
-            3
+            2,
+            1
           ],
           [
-            7,
-            3
+            2,
+            2
           ],
           [
-            6,
-            3
+            1,
+            2
           ]
         ],
         "dir": "e",
@@ -11291,195 +10275,6 @@ window.ARROW_PUZZLES = {
       },
       {
         "id": 6,
-        "cells": [
-          [
-            4,
-            5
-          ],
-          [
-            3,
-            5
-          ],
-          [
-            4,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            1,
-            6
-          ],
-          [
-            1,
-            5
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            7,
-            4
-          ],
-          [
-            7,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 9,
-        "cells": [
-          [
-            4,
-            4
-          ],
-          [
-            4,
-            3
-          ],
-          [
-            4,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 10,
-        "cells": [
-          [
-            3,
-            7
-          ],
-          [
-            2,
-            7
-          ],
-          [
-            1,
-            7
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 11,
-        "cells": [
-          [
-            5,
-            0
-          ],
-          [
-            6,
-            0
-          ],
-          [
-            7,
-            0
-          ],
-          [
-            7,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 12,
-        "cells": [
-          [
-            1,
-            3
-          ],
-          [
-            1,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 9,
-    "gridW": 9,
-    "gridH": 9,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            8,
-            1
-          ],
-          [
-            8,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            4,
-            2
-          ],
-          [
-            5,
-            2
-          ],
-          [
-            6,
-            2
-          ],
-          [
-            6,
-            3
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            6,
-            0
-          ],
-          [
-            6,
-            1
-          ],
-          [
-            7,
-            0
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
         "cells": [
           [
             0,
@@ -11487,287 +10282,11 @@ window.ARROW_PUZZLES = {
           ],
           [
             0,
-            3
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            7,
-            2
-          ],
-          [
-            7,
             1
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            3,
-            2
-          ],
-          [
-            3,
-            1
-          ],
-          [
-            4,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            7,
-            3
-          ],
-          [
-            7,
-            4
-          ],
-          [
-            8,
-            3
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            6,
-            5
-          ],
-          [
-            7,
-            5
-          ],
-          [
-            6,
-            4
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            7,
-            7
-          ],
-          [
-            7,
-            6
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 9,
-        "cells": [
-          [
-            8,
-            8
-          ],
-          [
-            8,
-            7
-          ],
-          [
-            7,
-            8
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 10,
-        "cells": [
-          [
-            1,
-            3
-          ],
-          [
-            2,
-            3
-          ],
-          [
-            3,
-            3
-          ],
-          [
-            3,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 11,
-        "cells": [
-          [
-            1,
-            4
-          ],
-          [
-            1,
-            5
-          ],
-          [
-            1,
-            6
           ],
           [
             0,
-            6
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 9,
-    "gridW": 9,
-    "gridH": 9,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            2,
-            5
-          ],
-          [
-            2,
-            4
-          ]
-        ],
-        "dir": "w",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            2,
-            3
-          ],
-          [
-            2,
-            2
-          ],
-          [
-            2,
-            1
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            2,
             0
-          ],
-          [
-            3,
-            0
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            7,
-            0
-          ],
-          [
-            7,
-            1
-          ],
-          [
-            8,
-            0
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            4,
-            0
-          ],
-          [
-            5,
-            0
-          ],
-          [
-            6,
-            0
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            6,
-            2
-          ],
-          [
-            6,
-            3
-          ],
-          [
-            5,
-            3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            3,
-            1
-          ],
-          [
-            4,
-            1
           ]
         ],
         "dir": "s",
@@ -11777,242 +10296,31 @@ window.ARROW_PUZZLES = {
         "id": 7,
         "cells": [
           [
-            1,
-            8
+            4,
+            0
           ],
           [
-            1,
-            7
-          ],
-          [
-            1,
-            6
-          ],
-          [
-            2,
-            6
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            7,
-            8
-          ],
-          [
-            6,
-            8
-          ],
-          [
-            5,
-            8
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 9,
-        "cells": [
-          [
-            3,
-            4
+            4,
+            1
           ],
           [
             3,
-            3
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 10,
-        "cells": [
-          [
-            7,
-            3
-          ],
-          [
-            7,
-            4
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 11,
-        "cells": [
-          [
-            7,
-            5
-          ],
-          [
-            6,
-            5
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 9,
-    "gridW": 9,
-    "gridH": 9,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            2,
-            8
-          ],
-          [
-            2,
-            7
-          ]
-        ],
-        "dir": "s",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            8,
-            7
-          ],
-          [
-            8,
-            8
-          ],
-          [
-            7,
-            8
+            1
           ]
         ],
         "dir": "e",
         "isTarget": false
       },
       {
-        "id": 2,
-        "cells": [
-          [
-            3,
-            7
-          ],
-          [
-            3,
-            8
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            7,
-            7
-          ],
-          [
-            6,
-            7
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            4,
-            8
-          ],
-          [
-            5,
-            8
-          ],
-          [
-            6,
-            8
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            4,
-            6
-          ],
-          [
-            3,
-            6
-          ],
-          [
-            4,
-            7
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            6,
-            1
-          ],
-          [
-            5,
-            1
-          ],
-          [
-            6,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            5,
-            4
-          ],
-          [
-            5,
-            3
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
         "id": 8,
         "cells": [
           [
-            6,
-            5
+            2,
+            4
           ],
           [
-            6,
-            6
+            1,
+            4
           ]
         ],
         "dir": "n",
@@ -12022,31 +10330,35 @@ window.ARROW_PUZZLES = {
         "id": 9,
         "cells": [
           [
-            5,
-            7
+            4,
+            4
           ],
           [
-            5,
-            6
-          ],
-          [
-            5,
+            4,
             5
+          ],
+          [
+            5,
+            4
           ]
         ],
-        "dir": "w",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 10,
         "cells": [
           [
-            1,
+            2,
             7
           ],
           [
+            2,
+            6
+          ],
+          [
             1,
-            8
+            7
           ]
         ],
         "dir": "e",
@@ -12056,39 +10368,190 @@ window.ARROW_PUZZLES = {
         "id": 11,
         "cells": [
           [
+            7,
+            4
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            7,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 8,
+    "gridW": 9,
+    "gridH": 9,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            6,
+            7
+          ],
+          [
+            7,
+            7
+          ],
+          [
+            8,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
             8,
             2
           ],
           [
-            7,
-            2
-          ],
-          [
-            7,
-            1
+            8,
+            3
           ]
         ],
         "dir": "n",
         "isTarget": false
       },
       {
-        "id": 12,
+        "id": 2,
         "cells": [
           [
-            4,
+            7,
+            4
+          ],
+          [
+            7,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            7,
             1
+          ],
+          [
+            7,
+            2
+          ],
+          [
+            6,
+            2
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            8,
+            4
+          ],
+          [
+            8,
+            5
+          ],
+          [
+            8,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            2,
+            2
           ],
           [
             3,
-            1
+            2
+          ],
+          [
+            4,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            3,
+            3
           ],
           [
             2,
-            1
+            3
           ],
           [
-            2,
-            0
+            1,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            5,
+            4
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            5,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            5,
+            5
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            4,
+            7
           ]
         ],
         "dir": "e",
@@ -12105,344 +10568,170 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            1,
-            4
+            8,
+            7
           ],
           [
-            2,
-            4
+            7,
+            7
           ]
         ],
-        "dir": "w",
+        "dir": "n",
         "isTarget": true
       },
       {
         "id": 1,
         "cells": [
           [
-            0,
-            1
-          ],
-          [
-            0,
-            0
-          ],
-          [
-            1,
-            0
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            1,
-            2
-          ],
-          [
-            2,
-            2
-          ],
-          [
-            3,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            2,
-            3
-          ],
-          [
-            3,
-            3
-          ],
-          [
-            4,
-            3
-          ],
-          [
-            4,
-            4
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            3,
-            1
-          ],
-          [
-            2,
-            1
-          ],
-          [
-            2,
-            0
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            4,
-            0
-          ],
-          [
-            3,
-            0
-          ],
-          [
-            4,
-            1
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            5,
-            1
-          ],
-          [
             6,
-            1
-          ],
-          [
-            7,
-            1
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            6,
-            0
-          ],
-          [
-            7,
-            0
-          ],
-          [
-            8,
-            0
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            7,
-            3
-          ],
-          [
-            6,
-            3
-          ],
-          [
-            5,
-            3
-          ],
-          [
-            5,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 9,
-        "cells": [
-          [
-            1,
             7
-          ],
-          [
-            1,
-            6
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 10,
-        "cells": [
-          [
-            4,
-            6
-          ],
-          [
-            5,
-            6
           ],
           [
             6,
             6
-          ],
-          [
-            6,
-            7
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 9,
-    "gridW": 9,
-    "gridH": 9,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            1,
-            8
-          ],
-          [
-            1,
-            7
-          ]
-        ],
-        "dir": "s",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            8,
-            8
-          ],
-          [
-            7,
-            8
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            3,
-            7
-          ],
-          [
-            4,
-            7
-          ],
-          [
-            3,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            5,
-            7
-          ],
-          [
-            5,
-            6
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            6,
-            7
-          ],
-          [
-            6,
-            8
-          ],
-          [
-            5,
-            8
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            4,
-            8
-          ],
-          [
-            3,
-            8
-          ],
-          [
-            2,
-            8
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            5,
-            1
-          ],
-          [
-            5,
-            2
           ]
         ],
         "dir": "e",
         "isTarget": false
       },
       {
+        "id": 2,
+        "cells": [
+          [
+            5,
+            7
+          ],
+          [
+            4,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            3,
+            7
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            1,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            0,
+            8
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            0,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            4
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
         "id": 7,
         "cells": [
           [
-            6,
+            2,
+            5
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            0,
+            5
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 9,
+        "cells": [
+          [
+            8,
+            3
+          ],
+          [
+            8,
+            4
+          ],
+          [
+            8,
             5
           ],
           [
@@ -12454,64 +10743,42 @@ window.ARROW_PUZZLES = {
         "isTarget": false
       },
       {
-        "id": 8,
-        "cells": [
-          [
-            5,
-            4
-          ],
-          [
-            5,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 9,
-        "cells": [
-          [
-            5,
-            3
-          ],
-          [
-            4,
-            3
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
         "id": 10,
         "cells": [
           [
-            2,
+            6,
             2
           ],
           [
-            2,
+            6,
+            1
+          ],
+          [
+            7,
             1
           ]
         ],
-        "dir": "s",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 11,
         "cells": [
           [
-            2,
+            3,
             5
           ],
           [
-            1,
-            5
-          ],
-          [
-            1,
+            3,
             4
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            4,
+            3
           ]
         ],
         "dir": "s",
@@ -12521,16 +10788,16 @@ window.ARROW_PUZZLES = {
         "id": 12,
         "cells": [
           [
-            8,
-            0
+            6,
+            5
           ],
           [
-            8,
-            1
+            5,
+            5
           ],
           [
-            8,
-            2
+            5,
+            4
           ]
         ],
         "dir": "n",
@@ -12548,14 +10815,14 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             8,
-            7
+            2
           ],
           [
             7,
-            7
+            2
           ]
         ],
-        "dir": "w",
+        "dir": "e",
         "isTarget": true
       },
       {
@@ -12563,14 +10830,10 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             7,
-            4
+            3
           ],
           [
-            6,
-            4
-          ],
-          [
-            6,
+            8,
             3
           ]
         ],
@@ -12581,31 +10844,39 @@ window.ARROW_PUZZLES = {
         "id": 2,
         "cells": [
           [
-            8,
-            1
+            7,
+            4
           ],
           [
-            8,
-            0
+            6,
+            4
+          ],
+          [
+            5,
+            4
+          ],
+          [
+            5,
+            3
           ]
         ],
-        "dir": "s",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 3,
         "cells": [
           [
-            8,
-            4
-          ],
-          [
-            8,
-            5
+            7,
+            6
           ],
           [
             7,
-            5
+            7
+          ],
+          [
+            7,
+            8
           ]
         ],
         "dir": "n",
@@ -12616,15 +10887,11 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             7,
-            2
+            5
           ],
           [
-            7,
-            1
-          ],
-          [
-            7,
-            0
+            6,
+            5
           ]
         ],
         "dir": "n",
@@ -12634,16 +10901,12 @@ window.ARROW_PUZZLES = {
         "id": 5,
         "cells": [
           [
-            6,
+            8,
             7
           ],
           [
-            6,
-            6
-          ],
-          [
-            7,
-            6
+            8,
+            8
           ]
         ],
         "dir": "n",
@@ -12654,15 +10917,15 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             5,
+            5
+          ],
+          [
+            5,
             6
           ],
           [
             4,
             6
-          ],
-          [
-            5,
-            7
           ]
         ],
         "dir": "n",
@@ -12673,30 +10936,30 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             3,
-            6
+            5
+          ],
+          [
+            2,
+            5
           ],
           [
             3,
-            7
+            6
           ]
         ],
-        "dir": "w",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 8,
         "cells": [
           [
-            0,
+            4,
             5
           ],
           [
-            0,
-            6
-          ],
-          [
-            1,
-            5
+            4,
+            4
           ]
         ],
         "dir": "n",
@@ -12706,31 +10969,46 @@ window.ARROW_PUZZLES = {
         "id": 9,
         "cells": [
           [
-            1,
-            7
+            0,
+            5
           ],
           [
-            2,
-            7
-          ],
-          [
-            1,
+            0,
             6
+          ],
+          [
+            0,
+            7
           ]
         ],
-        "dir": "s",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 10,
         "cells": [
           [
-            5,
-            0
+            3,
+            3
           ],
           [
-            6,
-            0
+            2,
+            3
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 11,
+        "cells": [
+          [
+            8,
+            1
+          ],
+          [
+            7,
+            1
           ],
           [
             6,
@@ -12739,26 +11017,11 @@ window.ARROW_PUZZLES = {
         ],
         "dir": "e",
         "isTarget": false
-      },
-      {
-        "id": 11,
-        "cells": [
-          [
-            2,
-            6
-          ],
-          [
-            2,
-            5
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
       }
     ]
   },
   {
-    "minTaps": 10,
+    "minTaps": 9,
     "gridW": 9,
     "gridH": 9,
     "pieces": [
@@ -12766,16 +11029,12 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            6,
-            3
+            2,
+            6
           ],
           [
-            7,
-            3
-          ],
-          [
-            8,
-            3
+            1,
+            6
           ]
         ],
         "dir": "w",
@@ -12785,284 +11044,46 @@ window.ARROW_PUZZLES = {
         "id": 1,
         "cells": [
           [
-            8,
-            2
-          ],
-          [
-            7,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 2,
-        "cells": [
-          [
-            6,
-            1
-          ],
-          [
-            6,
-            2
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            7,
-            0
-          ],
-          [
-            6,
-            0
-          ],
-          [
-            7,
-            1
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            8,
-            1
-          ],
-          [
-            8,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            3,
-            0
-          ],
-          [
-            4,
-            0
-          ],
-          [
-            5,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            3,
-            1
-          ],
-          [
             2,
-            1
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            4,
-            1
-          ],
-          [
-            5,
-            1
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            1,
-            2
-          ],
-          [
-            1,
-            1
-          ],
-          [
-            1,
-            0
-          ],
-          [
-            2,
-            0
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 9,
-        "cells": [
-          [
-            4,
-            2
-          ],
-          [
-            3,
-            2
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 10,
-        "cells": [
-          [
-            8,
-            6
-          ],
-          [
-            8,
-            5
-          ],
-          [
-            7,
-            6
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 11,
-        "cells": [
-          [
-            1,
-            6
-          ],
-          [
-            0,
-            6
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 12,
-        "cells": [
-          [
-            0,
-            3
-          ],
-          [
-            1,
-            3
-          ],
-          [
-            1,
             4
+          ],
+          [
+            2,
+            3
           ]
         ],
         "dir": "s",
         "isTarget": false
-      }
-    ]
-  },
-  {
-    "minTaps": 10,
-    "gridW": 9,
-    "gridH": 9,
-    "pieces": [
-      {
-        "id": 0,
-        "cells": [
-          [
-            8,
-            3
-          ],
-          [
-            8,
-            2
-          ],
-          [
-            8,
-            1
-          ]
-        ],
-        "dir": "e",
-        "isTarget": true
-      },
-      {
-        "id": 1,
-        "cells": [
-          [
-            7,
-            6
-          ],
-          [
-            7,
-            5
-          ],
-          [
-            7,
-            4
-          ],
-          [
-            8,
-            4
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
       },
       {
         "id": 2,
         "cells": [
           [
-            8,
-            7
+            1,
+            1
           ],
           [
-            8,
-            6
-          ],
-          [
-            8,
-            5
+            1,
+            0
           ]
         ],
-        "dir": "n",
+        "dir": "s",
         "isTarget": false
       },
       {
         "id": 3,
         "cells": [
           [
-            7,
-            8
+            2,
+            2
           ],
           [
-            8,
-            8
+            2,
+            1
+          ],
+          [
+            2,
+            0
           ]
         ],
         "dir": "s",
@@ -13072,35 +11093,35 @@ window.ARROW_PUZZLES = {
         "id": 4,
         "cells": [
           [
-            6,
-            4
+            1,
+            5
           ],
           [
-            5,
-            4
+            2,
+            5
           ],
           [
-            5,
-            3
+            1,
+            4
           ]
         ],
-        "dir": "n",
+        "dir": "s",
         "isTarget": false
       },
       {
         "id": 5,
         "cells": [
           [
-            1,
-            4
+            0,
+            2
           ],
           [
             1,
-            5
+            2
           ],
           [
             1,
-            6
+            3
           ]
         ],
         "dir": "s",
@@ -13110,73 +11131,47 @@ window.ARROW_PUZZLES = {
         "id": 6,
         "cells": [
           [
-            5,
+            7,
+            4
+          ],
+          [
+            7,
             5
           ],
           [
-            4,
-            5
+            8,
+            4
           ]
         ],
-        "dir": "n",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 7,
         "cells": [
           [
-            0,
+            8,
+            5
+          ],
+          [
+            8,
             6
           ],
           [
-            0,
+            8,
             7
-          ],
-          [
-            0,
-            8
           ]
         ],
-        "dir": "s",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 8,
         "cells": [
           [
-            5,
-            1
+            3,
+            5
           ],
-          [
-            5,
-            2
-          ],
-          [
-            4,
-            2
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 9,
-        "cells": [
-          [
-            2,
-            3
-          ],
-          [
-            1,
-            3
-          ]
-        ],
-        "dir": "s",
-        "isTarget": false
-      },
-      {
-        "id": 10,
-        "cells": [
           [
             3,
             4
@@ -13190,23 +11185,61 @@ window.ARROW_PUZZLES = {
             3
           ]
         ],
-        "dir": "w",
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 9,
+        "cells": [
+          [
+            4,
+            4
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            4,
+            6
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 10,
+        "cells": [
+          [
+            6,
+            2
+          ],
+          [
+            6,
+            1
+          ],
+          [
+            7,
+            1
+          ]
+        ],
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 11,
         "cells": [
           [
-            5,
-            8
+            3,
+            1
           ],
           [
-            5,
-            7
+            4,
+            1
           ],
           [
-            5,
-            6
+            4,
+            2
           ]
         ],
         "dir": "e",
@@ -13217,15 +11250,11 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             6,
-            7
-          ],
-          [
-            6,
             6
           ],
           [
             6,
-            5
+            7
           ]
         ],
         "dir": "n",
@@ -13234,7 +11263,7 @@ window.ARROW_PUZZLES = {
     ]
   },
   {
-    "minTaps": 10,
+    "minTaps": 9,
     "gridW": 9,
     "gridH": 9,
     "pieces": [
@@ -13242,49 +11271,53 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            1,
-            5
+            7,
+            1
           ],
           [
-            1,
-            4
+            6,
+            1
           ]
         ],
-        "dir": "w",
+        "dir": "n",
         "isTarget": true
       },
       {
         "id": 1,
         "cells": [
           [
-            2,
-            3
+            4,
+            1
           ],
           [
-            1,
-            3
+            5,
+            1
+          ],
+          [
+            5,
+            2
           ]
         ],
-        "dir": "n",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 2,
         "cells": [
           [
-            2,
-            2
+            3,
+            0
+          ],
+          [
+            3,
+            1
           ],
           [
             2,
             1
-          ],
-          [
-            1,
-            2
           ]
         ],
-        "dir": "s",
+        "dir": "e",
         "isTarget": false
       },
       {
@@ -13292,6 +11325,10 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             1,
+            1
+          ],
+          [
+            1,
             0
           ],
           [
@@ -13299,52 +11336,56 @@ window.ARROW_PUZZLES = {
             0
           ]
         ],
-        "dir": "w",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 4,
         "cells": [
           [
+            0,
+            2
+          ],
+          [
             1,
-            1
+            2
           ],
           [
             0,
             1
           ]
         ],
-        "dir": "s",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 5,
         "cells": [
           [
-            6,
-            2
+            2,
+            3
           ],
           [
-            7,
-            2
+            2,
+            4
+          ],
+          [
+            2,
+            5
           ]
         ],
-        "dir": "w",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 6,
         "cells": [
           [
-            3,
+            2,
             2
           ],
           [
             3,
-            3
-          ],
-          [
-            4,
             2
           ]
         ],
@@ -13355,8 +11396,159 @@ window.ARROW_PUZZLES = {
         "id": 7,
         "cells": [
           [
+            3,
+            6
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            3,
+            4
+          ],
+          [
             4,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            0,
+            3
+          ],
+          [
+            1,
+            3
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 9,
+    "gridW": 9,
+    "gridH": 9,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            6,
+            8
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            8,
+            8
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            7,
+            3
+          ],
+          [
+            8,
+            3
+          ],
+          [
+            7,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            7,
+            5
+          ],
+          [
+            7,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            8,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            8,
             1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            5,
+            0
+          ],
+          [
+            6,
+            0
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            0
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            3,
+            0
           ],
           [
             3,
@@ -13367,87 +11559,473 @@ window.ARROW_PUZZLES = {
         "isTarget": false
       },
       {
-        "id": 8,
+        "id": 7,
         "cells": [
           [
-            8,
+            6,
+            3
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            6,
             1
           ],
           [
-            8,
-            0
+            7,
+            1
           ]
         ],
         "dir": "n",
         "isTarget": false
       },
       {
+        "id": 8,
+        "cells": [
+          [
+            4,
+            2
+          ],
+          [
+            5,
+            2
+          ],
+          [
+            5,
+            3
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
         "id": 9,
         "cells": [
           [
-            7,
+            1,
+            4
+          ],
+          [
+            1,
+            3
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 9,
+    "gridW": 9,
+    "gridH": 9,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            8,
             3
           ],
           [
-            7,
+            8,
             4
+          ],
+          [
+            8,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            6,
+            2
+          ],
+          [
+            7,
+            2
+          ],
+          [
+            8,
+            2
           ]
         ],
         "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            8,
+            1
+          ],
+          [
+            7,
+            1
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            5,
+            3
+          ],
+          [
+            5,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            4,
+            0
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            2
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            6,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            6,
+            1
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            1,
+            4
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            0,
+            5
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            3,
+            8
+          ],
+          [
+            2,
+            8
+          ],
+          [
+            2,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 9,
+        "cells": [
+          [
+            3,
+            6
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            7
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 9,
+    "gridW": 9,
+    "gridH": 9,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            8,
+            6
+          ],
+          [
+            8,
+            7
+          ],
+          [
+            8,
+            8
+          ]
+        ],
+        "dir": "n",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            2,
+            8
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            5,
+            7
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            4,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            0,
+            8
+          ],
+          [
+            1,
+            8
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            3,
+            8
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            7,
+            6
+          ],
+          [
+            7,
+            7
+          ],
+          [
+            7,
+            8
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            1,
+            4
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            3
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            2,
+            5
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            1,
+            5
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 9,
+        "cells": [
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "dir": "s",
         "isTarget": false
       },
       {
         "id": 10,
         "cells": [
           [
-            5,
-            6
+            3,
+            4
           ],
           [
-            4,
-            6
+            3,
+            3
           ],
           [
-            5,
-            7
+            3,
+            2
           ]
         ],
-        "dir": "s",
+        "dir": "w",
         "isTarget": false
       },
       {
         "id": 11,
         "cells": [
           [
-            3,
-            4
+            2,
+            0
           ],
           [
-            4,
-            4
+            2,
+            1
           ],
           [
-            5,
-            4
-          ],
-          [
-            5,
-            5
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 12,
-        "cells": [
-          [
-            3,
-            6
-          ],
-          [
-            3,
-            7
+            2,
+            2
           ]
         ],
         "dir": "s",
@@ -13456,7 +12034,7 @@ window.ARROW_PUZZLES = {
     ]
   },
   {
-    "minTaps": 10,
+    "minTaps": 9,
     "gridW": 9,
     "gridH": 9,
     "pieces": [
@@ -13464,39 +12042,35 @@ window.ARROW_PUZZLES = {
         "id": 0,
         "cells": [
           [
-            6,
-            3
-          ],
-          [
             7,
             3
           ],
           [
-            8,
-            3
+            7,
+            4
+          ],
+          [
+            7,
+            5
           ]
         ],
-        "dir": "w",
+        "dir": "e",
         "isTarget": true
       },
       {
         "id": 1,
         "cells": [
           [
-            6,
-            2
+            7,
+            7
           ],
           [
-            6,
-            1
-          ],
-          [
-            6,
-            0
+            8,
+            7
           ],
           [
             7,
-            0
+            6
           ]
         ],
         "dir": "n",
@@ -13506,159 +12080,159 @@ window.ARROW_PUZZLES = {
         "id": 2,
         "cells": [
           [
-            8,
-            1
-          ],
-          [
-            8,
-            0
-          ],
-          [
             7,
-            1
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 3,
-        "cells": [
-          [
-            7,
-            2
-          ],
-          [
-            8,
-            2
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 4,
-        "cells": [
-          [
-            5,
-            2
-          ],
-          [
-            5,
-            1
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 5,
-        "cells": [
-          [
-            1,
-            0
-          ],
-          [
-            1,
-            1
-          ],
-          [
-            1,
-            2
-          ],
-          [
-            0,
-            2
-          ]
-        ],
-        "dir": "w",
-        "isTarget": false
-      },
-      {
-        "id": 6,
-        "cells": [
-          [
-            4,
-            1
-          ],
-          [
-            3,
-            1
-          ],
-          [
-            3,
-            0
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 7,
-        "cells": [
-          [
-            2,
-            1
-          ],
-          [
-            2,
-            0
-          ]
-        ],
-        "dir": "e",
-        "isTarget": false
-      },
-      {
-        "id": 8,
-        "cells": [
-          [
-            5,
-            4
-          ],
-          [
-            5,
-            5
-          ],
-          [
-            5,
-            6
-          ]
-        ],
-        "dir": "n",
-        "isTarget": false
-      },
-      {
-        "id": 9,
-        "cells": [
-          [
-            6,
-            6
-          ],
-          [
-            6,
-            7
+            8
           ],
           [
             6,
             8
           ]
         ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            5,
+            7
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            5,
+            6
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            2,
+            7
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            1,
+            5
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            0,
+            7
+          ]
+        ],
         "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            6,
+            5
+          ],
+          [
+            6,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            4,
+            4
+          ],
+          [
+            4,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            4,
+            0
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 9,
+        "cells": [
+          [
+            5,
+            2
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            6,
+            2
+          ]
+        ],
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 10,
         "cells": [
           [
-            3,
-            6
-          ],
-          [
-            3,
+            2,
             5
           ],
           [
-            4,
+            3,
             5
           ]
         ],
@@ -13669,25 +12243,21 @@ window.ARROW_PUZZLES = {
         "id": 11,
         "cells": [
           [
-            0,
-            7
+            6,
+            4
           ],
           [
-            1,
-            7
-          ],
-          [
-            2,
-            7
+            5,
+            4
           ]
         ],
-        "dir": "w",
+        "dir": "n",
         "isTarget": false
       }
     ]
   },
   {
-    "minTaps": 11,
+    "minTaps": 9,
     "gridW": 9,
     "gridH": 9,
     "pieces": [
@@ -13696,11 +12266,11 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             8,
-            6
+            7
           ],
           [
-            7,
-            6
+            8,
+            8
           ]
         ],
         "dir": "w",
@@ -13711,18 +12281,18 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             7,
-            4
-          ],
-          [
-            6,
-            4
+            6
           ],
           [
             7,
-            5
+            7
+          ],
+          [
+            8,
+            6
           ]
         ],
-        "dir": "w",
+        "dir": "n",
         "isTarget": false
       },
       {
@@ -13730,34 +12300,30 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             8,
-            3
-          ],
-          [
-            8,
-            2
+            5
           ],
           [
             7,
-            3
+            5
+          ],
+          [
+            7,
+            4
           ]
         ],
-        "dir": "w",
+        "dir": "n",
         "isTarget": false
       },
       {
         "id": 3,
         "cells": [
           [
-            7,
-            2
-          ],
-          [
-            7,
-            1
-          ],
-          [
-            7,
+            8,
             0
+          ],
+          [
+            8,
+            1
           ]
         ],
         "dir": "n",
@@ -13768,29 +12334,33 @@ window.ARROW_PUZZLES = {
         "cells": [
           [
             8,
-            1
+            3
           ],
           [
             8,
-            0
+            2
+          ],
+          [
+            7,
+            3
           ]
         ],
-        "dir": "n",
+        "dir": "s",
         "isTarget": false
       },
       {
         "id": 5,
         "cells": [
           [
-            8,
-            4
+            6,
+            0
           ],
           [
-            8,
-            5
+            7,
+            0
           ]
         ],
-        "dir": "n",
+        "dir": "e",
         "isTarget": false
       },
       {
@@ -13801,27 +12371,31 @@ window.ARROW_PUZZLES = {
             0
           ],
           [
-            1,
-            0
+            0,
+            1
           ],
           [
             1,
-            1
+            0
           ]
         ],
-        "dir": "s",
+        "dir": "e",
         "isTarget": false
       },
       {
         "id": 7,
         "cells": [
           [
-            3,
-            1
+            4,
+            2
           ],
           [
-            3,
-            0
+            5,
+            2
+          ],
+          [
+            4,
+            1
           ]
         ],
         "dir": "e",
@@ -13831,8 +12405,8 @@ window.ARROW_PUZZLES = {
         "id": 8,
         "cells": [
           [
-            5,
-            2
+            6,
+            1
           ],
           [
             5,
@@ -13850,6 +12424,361 @@ window.ARROW_PUZZLES = {
         "id": 9,
         "cells": [
           [
+            3,
+            8
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 10,
+        "cells": [
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 11,
+        "cells": [
+          [
+            3,
+            4
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            4,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 9,
+    "gridW": 9,
+    "gridH": 9,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            5,
+            6
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            5,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            0,
+            4
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            1,
+            5
+          ],
+          [
+            0,
+            5
+          ],
+          [
+            1,
+            6
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            4,
+            6
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            4,
+            5
+          ],
+          [
+            3,
+            5
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            4,
+            3
+          ],
+          [
+            5,
+            3
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 12,
+    "gridW": 9,
+    "gridH": 9,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            8,
+            1
+          ],
+          [
+            7,
+            1
+          ],
+          [
+            6,
+            1
+          ]
+        ],
+        "dir": "e",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            7,
+            7
+          ],
+          [
+            8,
+            7
+          ],
+          [
+            8,
+            8
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            8,
+            2
+          ],
+          [
+            7,
+            2
+          ],
+          [
+            6,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            6,
+            6
+          ],
+          [
+            6,
+            5
+          ],
+          [
+            6,
+            4
+          ],
+          [
+            7,
+            4
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            7,
+            6
+          ],
+          [
+            8,
+            6
+          ],
+          [
+            7,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            8,
+            3
+          ],
+          [
+            8,
+            4
+          ],
+          [
+            8,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            3
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
             4,
             2
           ],
@@ -13862,6 +12791,44 @@ window.ARROW_PUZZLES = {
             2
           ]
         ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 9,
+        "cells": [
+          [
+            5,
+            3
+          ],
+          [
+            5,
+            2
+          ],
+          [
+            4,
+            3
+          ]
+        ],
         "dir": "e",
         "isTarget": false
       },
@@ -13869,11 +12836,15 @@ window.ARROW_PUZZLES = {
         "id": 10,
         "cells": [
           [
-            6,
+            3,
             6
           ],
           [
-            6,
+            2,
+            6
+          ],
+          [
+            2,
             5
           ]
         ],
@@ -13884,12 +12855,231 @@ window.ARROW_PUZZLES = {
         "id": 11,
         "cells": [
           [
-            6,
-            1
+            7,
+            3
           ],
           [
             6,
+            3
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      }
+    ]
+  },
+  {
+    "minTaps": 12,
+    "gridW": 9,
+    "gridH": 9,
+    "pieces": [
+      {
+        "id": 0,
+        "cells": [
+          [
+            5,
+            8
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            3,
+            8
+          ]
+        ],
+        "dir": "n",
+        "isTarget": true
+      },
+      {
+        "id": 1,
+        "cells": [
+          [
+            0,
+            8
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            0,
+            7
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 2,
+        "cells": [
+          [
+            1,
+            7
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            2,
+            8
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 3,
+        "cells": [
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            3
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 4,
+        "cells": [
+          [
+            1,
             2
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 5,
+        "cells": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "dir": "s",
+        "isTarget": false
+      },
+      {
+        "id": 6,
+        "cells": [
+          [
+            0,
+            5
+          ],
+          [
+            0,
+            6
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 7,
+        "cells": [
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 8,
+        "cells": [
+          [
+            3,
+            1
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            3,
+            0
+          ]
+        ],
+        "dir": "e",
+        "isTarget": false
+      },
+      {
+        "id": 9,
+        "cells": [
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            4
+          ]
+        ],
+        "dir": "w",
+        "isTarget": false
+      },
+      {
+        "id": 10,
+        "cells": [
+          [
+            3,
+            6
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            2,
+            5
+          ]
+        ],
+        "dir": "n",
+        "isTarget": false
+      },
+      {
+        "id": 11,
+        "cells": [
+          [
+            5,
+            6
+          ],
+          [
+            6,
+            6
+          ],
+          [
+            6,
+            7
           ]
         ],
         "dir": "n",
@@ -13899,19 +13089,19 @@ window.ARROW_PUZZLES = {
         "id": 12,
         "cells": [
           [
-            1,
-            3
+            8,
+            7
           ],
           [
-            0,
-            3
+            8,
+            6
           ],
           [
-            0,
-            2
+            7,
+            7
           ]
         ],
-        "dir": "e",
+        "dir": "n",
         "isTarget": false
       }
     ]

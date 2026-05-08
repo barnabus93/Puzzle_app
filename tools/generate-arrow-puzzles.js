@@ -501,15 +501,14 @@ function perturbPuzzle(puzzle, tier, maxIters) {
 /**
  * Exhaustive direction search for a puzzle: try ALL direction combinations
  * for a subset of pieces to find the maximum minTaps.
- * Only practical for small subsets (3-4 pieces).
  */
-function exhaustiveDirectionSearch(puzzle, tier) {
+function exhaustiveDirectionSearch(puzzle, tier, count) {
   const { tapMin, tapMax, gridW, gridH } = tier;
   const obstacles = puzzle.pieces.filter(p => !p.isTarget);
   if (obstacles.length === 0) return puzzle;
 
-  // Pick up to 4 obstacles to exhaustively search
-  const searchCount = Math.min(4, obstacles.length);
+  // Pick up to `count` obstacles to exhaustively search
+  const searchCount = Math.min(count || 4, obstacles.length);
   const searchObstacles = obstacles.sort(() => Math.random() - 0.5).slice(0, searchCount);
   const searchIds = new Set(searchObstacles.map(p => p.id));
 
@@ -601,13 +600,15 @@ function main() {
       let better = perturbPuzzle(candidates[i], tierCfg, iters);
 
       // Exhaustive direction search on top candidates for moderate + difficult
-      if (tierCfg.tapMin >= 5 && i < 40) {
-        const exh = exhaustiveDirectionSearch(better, tierCfg);
-        if (exh.minTaps > better.minTaps) better = exh;
-        // Second round: exhaustive on a different random subset
-        if (Date.now() - phase2Start < phase2Budget) {
-          const exh2 = exhaustiveDirectionSearch(better, tierCfg);
-          if (exh2.minTaps > better.minTaps) better = exh2;
+      if (tierCfg.tapMin >= 5 && i < 50) {
+        // Number of pieces to search exhaustively: 4 for moderate, 5 for difficult
+        const searchSize = tierCfg.tapMin >= 7 ? 5 : 4;
+        // Multiple rounds with different random subsets
+        const rounds = tierCfg.tapMin >= 7 ? 4 : 2;
+        for (let round = 0; round < rounds; round++) {
+          if (Date.now() - phase2Start > phase2Budget) break;
+          const exh = exhaustiveDirectionSearch(better, tierCfg, searchSize);
+          if (exh.minTaps > better.minTaps) better = exh;
         }
       }
 
