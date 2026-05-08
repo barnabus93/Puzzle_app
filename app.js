@@ -1386,7 +1386,7 @@
         this.state.henX = this.state.henCol * cp;
       }
 
-      this.state.graceUntil = performance.now() + 250;
+      this.state.graceUntil = performance.now() + 125;
     },
 
     loseLife() {
