@@ -731,3 +731,40 @@ fieldset.field legend {
     display: none;
   }
 }
+
+/* ================================================================
+   HEN CROSSING
+   ================================================================ */
+.hen-canvas-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+}
+.hen-canvas-wrap canvas {
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  touch-action: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+.hen-lives {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  flex: 0 0 auto;
+}
+.hen-life {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  background: var(--danger);
+  border-radius: 50%;
+  opacity: 1;
+  transition: opacity 300ms;
+}
+.hen-life.lost {
+  opacity: 0.2;
+}

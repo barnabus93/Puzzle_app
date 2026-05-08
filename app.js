@@ -1010,7 +1010,531 @@
   };
 
   // ================================================================
-  // 15. INIT & LOCALSTORAGE MIGRATION
+  // 15. HEN CROSSING — Frogger-style real-time game
+  // ================================================================
+  const henStore = makeStore("hen");
+
+  const HEN_COLS = 9;
+  const HEN_ROWS = 11;
+  const HEN_MAX_LIVES = 5;
+  const HEN_ROW_TYPES = [
+    "goal", "river", "river", "river", "river",
+    "safe", "road", "road", "road", "road", "start",
+  ];
+  const HEN_LANE_DIR = [
+    0, 1, -1, 1, -1,
+    0, -1, -1, 1, 1, 0,
+  ];
+  const HEN_DIFFICULTY = {
+    simple:    { carSpeed: [1.5, 2.5], carInterval: [2000, 2800], riverSpeed: [0.8, 1.4], logInterval: [1600, 2400], padChance: 0.4 },
+    moderate:  { carSpeed: [2.5, 4.0], carInterval: [1200, 1800], riverSpeed: [1.5, 2.5], logInterval: [1300, 2000], padChance: 0.25 },
+    difficult: { carSpeed: [4.0, 6.0], carInterval: [700, 1200],  riverSpeed: [2.5, 3.5], logInterval: [1000, 1600], padChance: 0.15 },
+  };
+  const VEHICLE_TYPES = [
+    { name: "motorcycle", w: 0.7, color: "#555" },
+    { name: "sedan",      w: 1.6, color: "#3a6dbf" },
+    { name: "sedan2",     w: 1.6, color: "#d14b3c" },
+    { name: "truck",      w: 2.5, color: "#7a4a1e" },
+    { name: "bus",        w: 3.2, color: "#e8a020" },
+  ];
+  const LOG_WIDTHS = [2, 3, 4];
+
+  const hen = {
+    canvas: null, ctx: null,
+    cellPx: 40,
+    state: {
+      henCol: 4, henRow: 10, henX: 0, henY: 0,
+      lives: HEN_MAX_LIVES, completed: 0, difficulty: "moderate",
+      paused: false, dead: false, won: false,
+    },
+    lanes: [],
+    animId: null,
+    lastFrame: 0,
+    bgCache: null,
+    els: {},
+
+    initCanvas() {
+      this.canvas = document.getElementById("hen-canvas");
+      this.ctx = this.canvas.getContext("2d");
+      this.sizeCanvas();
+    },
+
+    sizeCanvas() {
+      const wrap = this.canvas.parentElement;
+      const r = wrap.getBoundingClientRect();
+      const maxW = r.width - 8, maxH = r.height - 8;
+      let cp = Math.floor(Math.min(maxW / HEN_COLS, maxH / HEN_ROWS));
+      cp = Math.max(24, Math.min(56, cp));
+      this.cellPx = cp;
+      const w = cp * HEN_COLS, h = cp * HEN_ROWS;
+      this.canvas.width = w;
+      this.canvas.height = h;
+      this.canvas.style.width = w + "px";
+      this.canvas.style.height = h + "px";
+      this.bgCache = null;
+    },
+
+    drawBackground() {
+      if (this.bgCache) { this.ctx.drawImage(this.bgCache, 0, 0); return; }
+      const c = document.createElement("canvas");
+      c.width = this.canvas.width; c.height = this.canvas.height;
+      const g = c.getContext("2d");
+      const cp = this.cellPx;
+      for (let row = 0; row < HEN_ROWS; row++) {
+        const y = row * cp, type = HEN_ROW_TYPES[row];
+        if (type === "goal" || type === "start" || type === "safe") {
+          g.fillStyle = "#2d6e3a"; g.fillRect(0, y, cp * HEN_COLS, cp);
+          g.fillStyle = "rgba(0,0,0,0.08)";
+          for (let i = 0; i < HEN_COLS * 3; i++) {
+            const gx = Math.random() * cp * HEN_COLS, gy = y + Math.random() * cp;
+            g.fillRect(gx, gy, 2, 2);
+          }
+        } else if (type === "road") {
+          g.fillStyle = "#2a2a2e"; g.fillRect(0, y, cp * HEN_COLS, cp);
+          g.strokeStyle = "rgba(255,255,255,0.3)"; g.lineWidth = 1;
+          g.setLineDash([cp * 0.4, cp * 0.3]);
+          g.beginPath(); g.moveTo(0, y + cp / 2); g.lineTo(cp * HEN_COLS, y + cp / 2); g.stroke();
+          g.setLineDash([]);
+        } else if (type === "river") {
+          g.fillStyle = "#1a5a8a"; g.fillRect(0, y, cp * HEN_COLS, cp);
+          g.fillStyle = "rgba(255,255,255,0.06)";
+          for (let i = 0; i < HEN_COLS * 2; i++) {
+            const wx = Math.random() * cp * HEN_COLS, wy = y + Math.random() * cp;
+            g.fillRect(wx, wy, cp * 0.3, 1);
+          }
+        }
+      }
+      this.bgCache = c;
+      this.ctx.drawImage(c, 0, 0);
+    },
+
+    drawHen() {
+      const cp = this.cellPx;
+      const x = this.state.henX, y = this.state.henY;
+      const s = cp / 16;
+      const px = (r, c, w, h, fill) => { this.ctx.fillStyle = fill; this.ctx.fillRect(x + c * s, y + r * s, w * s, h * s); };
+      px(2, 6, 4, 3, "#d03020");
+      px(5, 4, 8, 8, "#f5e6c8");
+      px(5, 3, 2, 6, "#d8c8a0");
+      px(5, 11, 2, 6, "#d8c8a0");
+      px(6, 10, 3, 2, "#e8a020");
+      px(5, 6, 2, 2, "#1a1a1a");
+      px(13, 5, 2, 3, "#e8a020");
+      px(13, 9, 2, 3, "#e8a020");
+    },
+
+    drawVehicle(car) {
+      const cp = this.cellPx, ctx = this.ctx;
+      const x = car.x, y = car.row * cp, w = car.w * cp, h = cp * 0.7;
+      const yOff = (cp - h) / 2;
+      ctx.fillStyle = car.color;
+      ctx.beginPath();
+      ctx.roundRect(x, y + yOff, w, h, 4);
+      ctx.fill();
+      ctx.fillStyle = "rgba(100,180,255,0.4)";
+      if (car.name === "bus" || car.name === "truck") {
+        const winY = y + yOff + h * 0.2, winH = h * 0.35;
+        for (let i = 0; i < Math.floor(car.w); i++) {
+          ctx.fillRect(x + cp * 0.15 + i * cp * 0.85, winY, cp * 0.5, winH);
+        }
+      } else if (car.name !== "motorcycle") {
+        ctx.fillRect(x + w * 0.2, y + yOff + h * 0.15, w * 0.3, h * 0.4);
+        ctx.fillRect(x + w * 0.6, y + yOff + h * 0.15, w * 0.25, h * 0.4);
+      }
+      ctx.fillStyle = "#ffee88";
+      const headSide = car.dir > 0 ? x + w - 3 : x;
+      ctx.fillRect(headSide, y + yOff + 2, 3, 4);
+      ctx.fillRect(headSide, y + yOff + h - 6, 3, 4);
+      ctx.fillStyle = "#cc2020";
+      const tailSide = car.dir > 0 ? x : x + w - 3;
+      ctx.fillRect(tailSide, y + yOff + 2, 3, 4);
+      ctx.fillRect(tailSide, y + yOff + h - 6, 3, 4);
+    },
+
+    drawLog(obj) {
+      const cp = this.cellPx, ctx = this.ctx;
+      const x = obj.x, y = obj.row * cp, w = obj.w * cp, h = cp * 0.85;
+      const yOff = (cp - h) / 2;
+      ctx.fillStyle = "#6b4226";
+      ctx.beginPath(); ctx.roundRect(x, y + yOff, w, h, 5); ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.2)"; ctx.lineWidth = 1;
+      for (let i = 1; i < obj.w; i++) {
+        ctx.beginPath(); ctx.moveTo(x + i * cp, y + yOff + 2); ctx.lineTo(x + i * cp, y + yOff + h - 2); ctx.stroke();
+      }
+      ctx.fillStyle = "rgba(139,90,43,0.4)";
+      ctx.fillRect(x + 3, y + yOff + h * 0.3, w - 6, 2);
+      ctx.fillRect(x + 3, y + yOff + h * 0.6, w - 6, 2);
+    },
+
+    drawPad(obj) {
+      const cp = this.cellPx, ctx = this.ctx;
+      const cx = obj.x + cp * 0.5, cy = obj.row * cp + cp * 0.5, r = cp * 0.38;
+      ctx.fillStyle = "#3a8a3a";
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#e85a90";
+      ctx.beginPath(); ctx.arc(cx, cy, r * 0.35, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#f8d0e0";
+      ctx.beginPath(); ctx.arc(cx - 2, cy - 2, r * 0.12, 0, Math.PI * 2); ctx.fill();
+    },
+
+    draw() {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.drawBackground();
+      for (const lane of this.lanes) {
+        for (const obj of lane.objects) {
+          if (obj.type === "car") this.drawVehicle(obj);
+          else if (obj.type === "log") this.drawLog(obj);
+          else if (obj.type === "pad") this.drawPad(obj);
+        }
+      }
+      if (!this.state.dead) this.drawHen();
+    },
+
+    randRange(a, b) { return a + Math.random() * (b - a); },
+
+    initLanes() {
+      this.lanes = [];
+      const cfg = HEN_DIFFICULTY[this.state.difficulty] || HEN_DIFFICULTY.moderate;
+      for (let row = 0; row < HEN_ROWS; row++) {
+        const type = HEN_ROW_TYPES[row], dir = HEN_LANE_DIR[row];
+        if (type === "road") {
+          const speed = this.randRange(cfg.carSpeed[0], cfg.carSpeed[1]);
+          const interval = this.randRange(cfg.carInterval[0], cfg.carInterval[1]);
+          this.lanes.push({ row, type: "road", dir, speed, interval, nextSpawn: 0, objects: [] });
+        } else if (type === "river") {
+          const speed = this.randRange(cfg.riverSpeed[0], cfg.riverSpeed[1]);
+          const interval = this.randRange(cfg.logInterval[0], cfg.logInterval[1]);
+          this.lanes.push({ row, type: "river", dir, speed, interval, nextSpawn: 0, padChance: cfg.padChance, objects: [] });
+        } else {
+          this.lanes.push({ row, type, dir: 0, speed: 0, interval: 0, nextSpawn: 0, objects: [] });
+        }
+      }
+    },
+
+    spawnCar(lane, time) {
+      const cp = this.cellPx;
+      const vt = VEHICLE_TYPES[Math.floor(Math.random() * VEHICLE_TYPES.length)];
+      const totalW = HEN_COLS * cp;
+      const x = lane.dir > 0 ? -vt.w * cp : totalW;
+      const colors = ["#3a6dbf","#d14b3c","#4bae55","#8b4fc5","#e8801a","#dcdcdc","#555"];
+      lane.objects.push({
+        type: "car", row: lane.row, x, w: vt.w, name: vt.name,
+        color: vt.name === "bus" ? "#e8a020" : vt.name === "motorcycle" ? "#555" : colors[Math.floor(Math.random() * colors.length)],
+        dir: lane.dir, speed: lane.speed + this.randRange(-0.3, 0.3),
+      });
+      lane.nextSpawn = time + lane.interval + this.randRange(-200, 200);
+    },
+
+    spawnRiverObj(lane, time) {
+      const cp = this.cellPx;
+      const totalW = HEN_COLS * cp;
+      const isPad = Math.random() < (lane.padChance || 0.2);
+      const w = isPad ? 1 : LOG_WIDTHS[Math.floor(Math.random() * LOG_WIDTHS.length)];
+      const x = lane.dir > 0 ? -w * cp : totalW;
+      lane.objects.push({
+        type: isPad ? "pad" : "log", row: lane.row, x, w,
+        dir: lane.dir, speed: lane.speed,
+      });
+      lane.nextSpawn = time + lane.interval + this.randRange(-200, 400);
+    },
+
+    update(dt, time) {
+      if (this.state.paused || this.state.dead || this.state.won) return;
+      const cp = this.cellPx;
+      const totalW = HEN_COLS * cp;
+
+      for (const lane of this.lanes) {
+        if (lane.type === "road") {
+          if (time >= lane.nextSpawn) this.spawnCar(lane, time);
+          for (const car of lane.objects) car.x += car.dir * car.speed * cp * dt;
+          lane.objects = lane.objects.filter((c) =>
+            c.dir > 0 ? c.x < totalW + cp : c.x + c.w * cp > -cp
+          );
+        } else if (lane.type === "river") {
+          if (time >= lane.nextSpawn) this.spawnRiverObj(lane, time);
+          for (const obj of lane.objects) obj.x += obj.dir * obj.speed * cp * dt;
+          lane.objects = lane.objects.filter((o) =>
+            o.dir > 0 ? o.x < totalW + cp * 2 : o.x + o.w * cp > -cp * 2
+          );
+        }
+      }
+
+      const henRow = this.state.henRow;
+      const rowType = HEN_ROW_TYPES[henRow];
+
+      if (rowType === "river") {
+        const lane = this.lanes.find((l) => l.row === henRow);
+        if (lane) {
+          const henCx = this.state.henX + cp * 0.5;
+          let onPlatform = false;
+          for (const obj of lane.objects) {
+            if (henCx >= obj.x && henCx <= obj.x + obj.w * cp) {
+              onPlatform = true;
+              this.state.henX += obj.dir * obj.speed * cp * dt;
+              break;
+            }
+          }
+          if (!onPlatform) { this.loseLife(); return; }
+          if (this.state.henX < -cp || this.state.henX > totalW) { this.loseLife(); return; }
+        }
+      }
+
+      if (rowType === "road") {
+        const lane = this.lanes.find((l) => l.row === henRow);
+        if (lane) {
+          const hx = this.state.henX, hw = cp * 0.8;
+          for (const car of lane.objects) {
+            if (hx + hw > car.x + 2 && hx < car.x + car.w * cp - 2) {
+              this.loseLife(); return;
+            }
+          }
+        }
+      }
+
+      if (henRow === 0 && !this.state.won) {
+        this.state.won = true;
+        this.onWin();
+      }
+    },
+
+    moveHen(dir) {
+      if (this.state.paused || this.state.dead || this.state.won) return;
+      const cp = this.cellPx;
+      let { henCol, henRow } = this.state;
+      if (dir === "up" && henRow > 0) henRow--;
+      else if (dir === "down" && henRow < HEN_ROWS - 1) henRow++;
+      else if (dir === "left" && henCol > 0) henCol--;
+      else if (dir === "right" && henCol < HEN_COLS - 1) henCol++;
+      else return;
+      this.state.henCol = henCol;
+      this.state.henRow = henRow;
+      this.state.henX = henCol * cp;
+      this.state.henY = henRow * cp;
+    },
+
+    loseLife() {
+      this.state.dead = true;
+      this.state.lives -= 1;
+      henStore.setInt("lives", Math.max(0, this.state.lives));
+      this.updateLivesDisplay();
+      setTimeout(() => {
+        if (this.state.lives <= 0) {
+          this.onGameOver();
+        } else {
+          this.resetHenPosition();
+          this.state.dead = false;
+        }
+      }, 600);
+    },
+
+    resetHenPosition() {
+      const cp = this.cellPx;
+      this.state.henCol = Math.floor(HEN_COLS / 2);
+      this.state.henRow = HEN_ROWS - 1;
+      this.state.henX = this.state.henCol * cp;
+      this.state.henY = this.state.henRow * cp;
+    },
+
+    onWin() {
+      this.state.completed += 1;
+      this.state.lives = Math.min(this.state.lives + 1, HEN_MAX_LIVES);
+      henStore.setInt("completedCount", this.state.completed);
+      henStore.setInt("lives", this.state.lives);
+      this.updateLivesDisplay();
+      this.els.completedCount.textContent = String(this.state.completed);
+      setTimeout(() => {
+        this.state.paused = true;
+        this.els.winTotal.textContent = String(this.state.completed);
+        showModal(this.els.winModal);
+      }, 400);
+    },
+
+    onGameOver() {
+      this.state.paused = true;
+      this.els.gameoverTotal.textContent = String(this.state.completed);
+      showModal(this.els.gameoverModal);
+    },
+
+    updateLivesDisplay() {
+      const el = document.getElementById("hen-lives");
+      el.innerHTML = "";
+      for (let i = 0; i < HEN_MAX_LIVES; i++) {
+        const d = document.createElement("span");
+        d.className = "hen-life" + (i >= this.state.lives ? " lost" : "");
+        el.appendChild(d);
+      }
+    },
+
+    updateHeader() {
+      this.els.completedCount.textContent = String(this.state.completed);
+      this.els.difficultyLabel.textContent = DIFFICULTIES[this.state.difficulty] || "Moderate";
+    },
+
+    startNewCrossing() {
+      this.state.won = false;
+      this.state.dead = false;
+      this.state.paused = false;
+      this.bgCache = null;
+      this.initLanes();
+      this.sizeCanvas();
+      this.resetHenPosition();
+      this.updateLivesDisplay();
+      this.updateHeader();
+      this.lastFrame = performance.now();
+      for (const lane of this.lanes) lane.nextSpawn = this.lastFrame + this.randRange(200, 1000);
+    },
+
+    gameLoop(timestamp) {
+      if (!this.canvas) return;
+      const dt = Math.min((timestamp - this.lastFrame) / 1000, 0.1);
+      this.lastFrame = timestamp;
+      this.update(dt, timestamp);
+      this.draw();
+      this.animId = requestAnimationFrame((t) => this.gameLoop(t));
+    },
+
+    startLoop() {
+      this.lastFrame = performance.now();
+      if (this.animId) cancelAnimationFrame(this.animId);
+      this.animId = requestAnimationFrame((t) => this.gameLoop(t));
+    },
+
+    stopLoop() {
+      if (this.animId) { cancelAnimationFrame(this.animId); this.animId = null; }
+    },
+  };
+
+  // Swipe + keyboard controls
+  let henTouchStart = null;
+
+  function henSwipeHandler(e) {
+    if (e.type === "touchstart" || e.type === "pointerdown") {
+      henTouchStart = { x: e.clientX || (e.touches && e.touches[0].clientX),
+                        y: e.clientY || (e.touches && e.touches[0].clientY) };
+      e.preventDefault();
+      return;
+    }
+    if (!henTouchStart) return;
+    const ex = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
+    const ey = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
+    const dx = ex - henTouchStart.x, dy = ey - henTouchStart.y;
+    henTouchStart = null;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+    if (Math.abs(dx) > Math.abs(dy)) hen.moveHen(dx > 0 ? "right" : "left");
+    else hen.moveHen(dy > 0 ? "down" : "up");
+  }
+
+  function henKeyHandler(e) {
+    if (router.current !== "hen") return;
+    const map = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right",
+                  w: "up", s: "down", a: "left", d: "right" };
+    if (map[e.key]) { e.preventDefault(); hen.moveHen(map[e.key]); }
+  }
+
+  // Module
+  modules.hen = {
+    _wired: false,
+
+    onEnter() {
+      hen.initCanvas();
+      hen.els = {
+        completedCount: document.getElementById("hen-completed-count"),
+        difficultyLabel: document.getElementById("hen-difficulty-label"),
+        winModal: document.getElementById("hen-win-modal"),
+        winTotal: document.getElementById("hen-win-total"),
+        gameoverModal: document.getElementById("hen-gameover-modal"),
+        gameoverTotal: document.getElementById("hen-gameover-total"),
+        settingsModal: document.getElementById("hen-settings-modal"),
+      };
+
+      hen.state.completed = henStore.getInt("completedCount", 0);
+      hen.state.difficulty = henStore.getString("difficulty", "moderate", DIFFICULTIES);
+      hen.state.lives = henStore.getInt("lives", HEN_MAX_LIVES);
+      if (hen.state.lives <= 0) hen.state.lives = HEN_MAX_LIVES;
+
+      if (!this._wired) {
+        this._wired = true;
+        wireModal(hen.els.settingsModal);
+        wireModal(hen.els.winModal);
+
+        document.getElementById("hen-settings-btn").addEventListener("click", () => {
+          hen.state.paused = true;
+          const m = hen.els.settingsModal;
+          m.querySelectorAll('input[name="hen-difficulty"]').forEach((r) => { r.checked = r.value === hen.state.difficulty; });
+          showModal(m);
+        });
+
+        hen.els.settingsModal.addEventListener("click", (e) => {
+          if (e.target instanceof HTMLElement && e.target.hasAttribute("data-close")) {
+            hen.state.paused = false;
+          }
+        });
+
+        hen.els.settingsModal.querySelectorAll('input[name="hen-difficulty"]').forEach((r) => r.addEventListener("change", (e) => {
+          if (!DIFFICULTIES[e.target.value] || e.target.value === hen.state.difficulty) return;
+          hen.state.difficulty = e.target.value;
+          henStore.setString("difficulty", e.target.value);
+          hen.startNewCrossing();
+        }));
+
+        document.getElementById("hen-reset-count-btn").addEventListener("click", () => {
+          if (!window.confirm("Reset the number of completed crossings back to 0?")) return;
+          hen.state.completed = 0; henStore.setInt("completedCount", 0);
+          hen.els.completedCount.textContent = "0";
+        });
+
+        document.getElementById("hen-next-btn").addEventListener("click", () => {
+          hideModal(hen.els.winModal);
+          hen.startNewCrossing();
+        });
+
+        document.getElementById("hen-retry-btn").addEventListener("click", () => {
+          hideModal(hen.els.gameoverModal);
+          hen.state.lives = HEN_MAX_LIVES;
+          henStore.setInt("lives", HEN_MAX_LIVES);
+          hen.startNewCrossing();
+        });
+
+        document.getElementById("hen-tutorial-btn").addEventListener("click", () => {
+          henStore.setBool("tutorialSeen", true);
+          hideModal(document.getElementById("hen-tutorial-modal"));
+          hen.state.paused = false;
+        });
+
+        hen.canvas.addEventListener("touchstart", henSwipeHandler, { passive: false });
+        hen.canvas.addEventListener("touchend", henSwipeHandler);
+        hen.canvas.addEventListener("pointerdown", henSwipeHandler);
+        hen.canvas.addEventListener("pointerup", henSwipeHandler);
+        document.addEventListener("keydown", henKeyHandler);
+
+        window.addEventListener("resize", () => {
+          if (router.current !== "hen") return;
+          hen.sizeCanvas();
+          hen.resetHenPosition();
+        });
+      }
+
+      hen.startNewCrossing();
+      hen.startLoop();
+
+      if (!henStore.getBool("tutorialSeen")) {
+        hen.state.paused = true;
+        showModal(document.getElementById("hen-tutorial-modal"));
+      }
+    },
+
+    onLeave() {
+      hen.stopLoop();
+      hen.state.paused = true;
+      hideModal(hen.els.winModal);
+      hideModal(hen.els.gameoverModal);
+      hideModal(hen.els.settingsModal);
+      hideModal(document.getElementById("hen-tutorial-modal"));
+    },
+  };
+
+  // ================================================================
+  // 16. INIT & LOCALSTORAGE MIGRATION
   // ================================================================
   function migrateStorage() {
     try {

@@ -47,13 +47,20 @@
             </svg>
             <span class="tile-label">ARROW ESCAPE</span>
           </button>
-          <div class="game-tile game-tile--disabled">
+          <button class="game-tile" data-game="hen">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
-              <rect width="64" height="64" rx="6" fill="#1f1c19" opacity="0.5"/>
-              <text x="32" y="36" text-anchor="middle" font-size="20" fill="#555">?</text>
+              <rect width="64" height="64" rx="6" fill="#1f1c19"/>
+              <rect y="0" width="64" height="12" fill="#2d6e3a"/>
+              <rect y="12" width="64" height="16" fill="#2a6ea8"/>
+              <rect y="28" width="64" height="4" fill="#2d6e3a"/>
+              <rect y="32" width="64" height="20" fill="#3a3a3a"/>
+              <line x1="0" y1="42" x2="64" y2="42" stroke="#fff" stroke-width="1" stroke-dasharray="6 4" opacity="0.5"/>
+              <rect y="52" width="64" height="12" fill="#2d6e3a"/>
+              <rect x="26" y="54" width="12" height="10" rx="3" fill="#f5e6c8"/>
+              <rect x="29" y="51" width="6" height="4" fill="#d03020"/>
             </svg>
-            <span class="tile-label">MORE COMING SOON</span>
-          </div>
+            <span class="tile-label">HEN CROSSING</span>
+          </button>
         </div>
       </div>
       <div class="scanlines"></div>
@@ -303,6 +310,96 @@
           <p id="arrow-tutorial-caption" class="tutorial-caption">Watch this quick demo&hellip;</p>
           <div class="modal-actions tutorial-actions">
             <button id="arrow-tutorial-btn" type="button" class="danger-btn">Skip tutorial</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- HEN CROSSING SCREEN                                           -->
+    <!-- ============================================================ -->
+    <div id="screen-hen" class="screen" hidden>
+      <header class="app-header">
+        <button class="menu-btn" type="button" data-back aria-label="Back to menu">&larr; MENU</button>
+        <div class="hen-lives" id="hen-lives" aria-live="polite"></div>
+        <div class="counter" aria-live="polite">
+          Crossed: <span id="hen-completed-count">0</span>
+        </div>
+        <button id="hen-settings-btn" class="icon-btn" type="button" aria-label="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M19.14 12.94a7.49 7.49 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.88 2h-3.84a.5.5 0 0 0-.5.43l-.36 2.54c-.58.24-1.13.55-1.63.94l-2.39-.96a.5.5 0 0 0-.61.22L2.63 8.49a.5.5 0 0 0 .12.64l2.03 1.58a7.49 7.49 0 0 0 0 1.88L2.75 14.17a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.34.67.24l2.39-.96c.5.39 1.05.7 1.63.94l.36 2.54c.05.25.26.43.5.43h3.84c.25 0 .46-.18.5-.43l.36-2.54c.58-.24 1.13-.55 1.63-.94l2.39.96c.25.1.53 0 .67-.24l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </header>
+
+      <main class="app-main">
+        <div class="hen-canvas-wrap">
+          <canvas id="hen-canvas"></canvas>
+        </div>
+        <div class="status-bar">
+          <div class="difficulty-label">
+            <span id="hen-difficulty-label">Moderate</span>
+          </div>
+        </div>
+      </main>
+
+      <!-- Hen settings modal -->
+      <div id="hen-settings-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card">
+          <h2>Settings</h2>
+          <fieldset class="field">
+            <legend>Difficulty</legend>
+            <label class="radio"><input type="radio" name="hen-difficulty" value="simple" /><span>Simple</span></label>
+            <label class="radio"><input type="radio" name="hen-difficulty" value="moderate" checked /><span>Moderate</span></label>
+            <label class="radio"><input type="radio" name="hen-difficulty" value="difficult" /><span>Difficult</span></label>
+          </fieldset>
+          <div class="field">
+            <button id="hen-reset-count-btn" type="button" class="danger-btn">Reset completed count</button>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="primary-btn" data-close>Close</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hen win modal -->
+      <div id="hen-win-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card">
+          <h2>Safe crossing!</h2>
+          <p>The hen made it across!</p>
+          <p>Total crossings: <strong><span id="hen-win-total">0</span></strong></p>
+          <div class="modal-actions">
+            <button id="hen-next-btn" type="button" class="primary-btn">Cross again</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hen game-over modal -->
+      <div id="hen-gameover-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-card">
+          <h2>Game Over!</h2>
+          <p>The hen ran out of lives.</p>
+          <p>Total crossings: <strong><span id="hen-gameover-total">0</span></strong></p>
+          <div class="modal-actions">
+            <button id="hen-retry-btn" type="button" class="primary-btn">Play again</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hen tutorial modal -->
+      <div id="hen-tutorial-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-card tutorial-card">
+          <h2>Hen Crossing</h2>
+          <p class="tutorial-caption">Swipe to move the hen.</p>
+          <p class="tutorial-caption">Cross the highway &mdash; avoid the cars!</p>
+          <p class="tutorial-caption">Hop across the river on logs and flower pads.</p>
+          <p class="tutorial-caption">Don&rsquo;t fall in the water!</p>
+          <div class="modal-actions tutorial-actions">
+            <button id="hen-tutorial-btn" type="button" class="primary-btn">Start playing!</button>
           </div>
         </div>
       </div>
