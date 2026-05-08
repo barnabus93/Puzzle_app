@@ -6,179 +6,310 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
     />
-    <meta name="theme-color" content="#1c1a18" />
-    <title>Sliding Block Puzzle - Play for Free!</title>
+    <meta name="theme-color" content="#0a0a0e" />
+    <title>Brain Arcade - Free Puzzles</title>
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Block Puzzle" />
+    <meta name="apple-mobile-web-app-title" content="Brain Arcade" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="app-header">
-      <div class="counter" aria-live="polite">
-        Completed: <span id="completed-count">0</span>
-      </div>
-      <button
-        id="settings-btn"
-        class="icon-btn"
-        type="button"
-        aria-label="Settings"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path
-            d="M19.14 12.94a7.49 7.49 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.88 2h-3.84a.5.5 0 0 0-.5.43l-.36 2.54c-.58.24-1.13.55-1.63.94l-2.39-.96a.5.5 0 0 0-.61.22L2.63 8.49a.5.5 0 0 0 .12.64l2.03 1.58a7.49 7.49 0 0 0 0 1.88L2.75 14.17a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.34.67.24l2.39-.96c.5.39 1.05.7 1.63.94l.36 2.54c.05.25.26.43.5.43h3.84c.25 0 .46-.18.5-.43l.36-2.54c.58-.24 1.13-.55 1.63-.94l2.39.96c.25.1.53 0 .67-.24l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"
-            fill="currentColor"
-          />
-        </svg>
-      </button>
-    </header>
-
-    <main class="app-main">
-      <div id="board-wrap" class="board-wrap">
-        <div id="board" class="board" aria-label="Puzzle board"></div>
-      </div>
-
-      <div class="status-bar">
-        <div class="moves">Moves: <span id="move-count">0</span></div>
-        <div class="difficulty-label">
-          <span id="difficulty-label">Moderate</span>
-        </div>
-        <div class="status-actions">
-          <button
-            id="restart-btn"
-            type="button"
-            class="icon-btn-small"
-            aria-label="Restart puzzle"
-            title="Restart this puzzle"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path
-                d="M12 5V2L7 6l5 4V7a5 5 0 1 1-4.9 6h-2.02A7 7 0 1 0 12 5z"
-                fill="currentColor"
-              />
+    <!-- ============================================================ -->
+    <!-- TITLE SCREEN                                                  -->
+    <!-- ============================================================ -->
+    <div id="screen-title" class="screen title-screen">
+      <div class="title-content">
+        <h1 class="arcade-title">BRAIN<br />ARCADE</h1>
+        <p class="arcade-subtitle">SELECT YOUR GAME</p>
+        <div class="game-tiles">
+          <button class="game-tile" data-game="slider">
+            <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
+              <rect width="64" height="64" rx="6" fill="#1f1c19"/>
+              <rect x="4" y="4" width="24" height="12" rx="3" fill="#d9a42e"/>
+              <rect x="4" y="20" width="12" height="24" rx="3" fill="#4879b8"/>
+              <rect x="4" y="36" width="24" height="12" rx="3" fill="#c8302b"/>
+              <rect x="32" y="4" width="12" height="24" rx="3" fill="#7ea83a"/>
+              <rect x="32" y="32" width="28" height="12" rx="3" fill="#a04db8"/>
+              <rect x="48" y="4" width="12" height="24" rx="3" fill="#e07c3e"/>
+              <rect x="20" y="48" width="24" height="12" rx="3" fill="#369990"/>
             </svg>
+            <span class="tile-label">SLIDING BLOCKS</span>
           </button>
-          <button id="new-puzzle-btn" type="button" class="primary-btn">
-            New Puzzle
+          <button class="game-tile" data-game="arrow">
+            <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
+              <rect width="64" height="64" rx="6" fill="#1f1c19"/>
+              <polygon points="32,8 40,20 36,20 36,32 28,32 28,20 24,20" fill="#c8302b"/>
+              <polygon points="8,36 20,28 20,32 44,32 44,40 20,40 20,44" fill="#6b86a8"/>
+              <polygon points="56,28 44,36 44,32 36,32 36,24 44,24 44,20" fill="#d9a42e"/>
+              <polygon points="24,56 24,44 28,44 28,36 36,36 36,44 40,44 32,56" fill="#4ba069"/>
+            </svg>
+            <span class="tile-label">ARROW ESCAPE</span>
           </button>
+          <div class="game-tile game-tile--disabled">
+            <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
+              <rect width="64" height="64" rx="6" fill="#1f1c19" opacity="0.5"/>
+              <text x="32" y="36" text-anchor="middle" font-size="20" fill="#555">?</text>
+            </svg>
+            <span class="tile-label">MORE COMING SOON</span>
+          </div>
         </div>
       </div>
-    </main>
+      <div class="scanlines"></div>
+    </div>
 
-    <div
-      id="settings-modal"
-      class="modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="settings-title"
-      hidden
-    >
-      <div class="modal-backdrop" data-close></div>
-      <div class="modal-card">
-        <h2 id="settings-title">Settings</h2>
-
-        <fieldset class="field">
-          <legend>Block style</legend>
-          <label class="radio">
-            <input type="radio" name="block-style" value="wood" checked />
-            <span>Wood blocks</span>
-          </label>
-          <label class="radio">
-            <input type="radio" name="block-style" value="cars" />
-            <span>Cars</span>
-          </label>
-          <label class="radio">
-            <input type="radio" name="block-style" value="fruit" />
-            <span>Fruit</span>
-          </label>
-        </fieldset>
-
-        <fieldset class="field">
-          <legend>Difficulty</legend>
-          <label class="radio">
-            <input type="radio" name="difficulty" value="simple" />
-            <span>Simple</span>
-          </label>
-          <label class="radio">
-            <input
-              type="radio"
-              name="difficulty"
-              value="moderate"
-              checked
+    <!-- ============================================================ -->
+    <!-- SLIDING BLOCKS SCREEN                                         -->
+    <!-- ============================================================ -->
+    <div id="screen-slider" class="screen" hidden>
+      <header class="app-header">
+        <button class="menu-btn" type="button" data-back aria-label="Back to menu">&larr; MENU</button>
+        <div class="counter" aria-live="polite">
+          Completed: <span id="slider-completed-count">0</span>
+        </div>
+        <button
+          id="slider-settings-btn"
+          class="icon-btn"
+          type="button"
+          aria-label="Settings"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path
+              d="M19.14 12.94a7.49 7.49 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.88 2h-3.84a.5.5 0 0 0-.5.43l-.36 2.54c-.58.24-1.13.55-1.63.94l-2.39-.96a.5.5 0 0 0-.61.22L2.63 8.49a.5.5 0 0 0 .12.64l2.03 1.58a7.49 7.49 0 0 0 0 1.88L2.75 14.17a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.34.67.24l2.39-.96c.5.39 1.05.7 1.63.94l.36 2.54c.05.25.26.43.5.43h3.84c.25 0 .46-.18.5-.43l.36-2.54c.58-.24 1.13-.55 1.63-.94l2.39.96c.25.1.53 0 .67-.24l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"
+              fill="currentColor"
             />
-            <span>Moderate</span>
-          </label>
-          <label class="radio">
-            <input type="radio" name="difficulty" value="difficult" />
-            <span>Difficult</span>
-          </label>
-        </fieldset>
+          </svg>
+        </button>
+      </header>
 
-        <div class="field">
-          <button id="reset-count-btn" type="button" class="danger-btn">
-            Reset completed count
-          </button>
+      <main class="app-main">
+        <div id="slider-board-wrap" class="board-wrap">
+          <div id="slider-board" class="board" aria-label="Puzzle board"></div>
         </div>
 
-        <div class="modal-actions">
-          <button type="button" class="primary-btn" data-close>Close</button>
+        <div class="status-bar">
+          <div class="moves">Moves: <span id="slider-move-count">0</span></div>
+          <div class="difficulty-label">
+            <span id="slider-difficulty-label">Moderate</span>
+          </div>
+          <div class="status-actions">
+            <button
+              id="slider-restart-btn"
+              type="button"
+              class="icon-btn-small"
+              aria-label="Restart puzzle"
+              title="Restart this puzzle"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  d="M12 5V2L7 6l5 4V7a5 5 0 1 1-4.9 6h-2.02A7 7 0 1 0 12 5z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            <button id="slider-new-puzzle-btn" type="button" class="primary-btn">
+              New Puzzle
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <!-- Slider settings modal -->
+      <div
+        id="slider-settings-modal"
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        hidden
+      >
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card">
+          <h2>Settings</h2>
+          <fieldset class="field">
+            <legend>Block style</legend>
+            <label class="radio">
+              <input type="radio" name="slider-block-style" value="wood" checked />
+              <span>Wood blocks</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="slider-block-style" value="cars" />
+              <span>Cars</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="slider-block-style" value="fruit" />
+              <span>Fruit</span>
+            </label>
+          </fieldset>
+          <fieldset class="field">
+            <legend>Difficulty</legend>
+            <label class="radio">
+              <input type="radio" name="slider-difficulty" value="simple" />
+              <span>Simple</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="slider-difficulty" value="moderate" checked />
+              <span>Moderate</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="slider-difficulty" value="difficult" />
+              <span>Difficult</span>
+            </label>
+          </fieldset>
+          <div class="field">
+            <button id="slider-reset-count-btn" type="button" class="danger-btn">
+              Reset completed count
+            </button>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="primary-btn" data-close>Close</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slider win modal -->
+      <div id="slider-win-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card">
+          <h2>Solved!</h2>
+          <p>You solved it in <strong><span id="slider-win-moves">0</span></strong> moves.</p>
+          <p>Puzzles completed: <strong><span id="slider-win-total">0</span></strong></p>
+          <div class="modal-actions">
+            <button id="slider-next-puzzle-btn" type="button" class="primary-btn">Next puzzle</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slider tutorial modal -->
+      <div id="slider-tutorial-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-card tutorial-card">
+          <h2>How to play</h2>
+          <div id="slider-tutorial-board" class="tutorial-board"></div>
+          <p id="slider-tutorial-caption" class="tutorial-caption">Watch this quick demo&hellip;</p>
+          <div class="modal-actions tutorial-actions">
+            <button id="slider-tutorial-btn" type="button" class="danger-btn">Skip tutorial</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <div
-      id="win-modal"
-      class="modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="win-title"
-      hidden
-    >
-      <div class="modal-backdrop" data-close></div>
-      <div class="modal-card">
-        <h2 id="win-title">Solved!</h2>
-        <p>
-          You solved it in
-          <strong><span id="win-moves">0</span></strong> moves.
-        </p>
-        <p>
-          Puzzles completed:
-          <strong><span id="win-total">0</span></strong>
-        </p>
-        <div class="modal-actions">
-          <button id="next-puzzle-btn" type="button" class="primary-btn">
-            Next puzzle
-          </button>
+    <!-- ============================================================ -->
+    <!-- ARROW ESCAPE SCREEN                                           -->
+    <!-- ============================================================ -->
+    <div id="screen-arrow" class="screen" hidden>
+      <header class="app-header">
+        <button class="menu-btn" type="button" data-back aria-label="Back to menu">&larr; MENU</button>
+        <div class="counter" aria-live="polite">
+          Completed: <span id="arrow-completed-count">0</span>
+        </div>
+        <button
+          id="arrow-settings-btn"
+          class="icon-btn"
+          type="button"
+          aria-label="Settings"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path
+              d="M19.14 12.94a7.49 7.49 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.88 2h-3.84a.5.5 0 0 0-.5.43l-.36 2.54c-.58.24-1.13.55-1.63.94l-2.39-.96a.5.5 0 0 0-.61.22L2.63 8.49a.5.5 0 0 0 .12.64l2.03 1.58a7.49 7.49 0 0 0 0 1.88L2.75 14.17a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.34.67.24l2.39-.96c.5.39 1.05.7 1.63.94l.36 2.54c.05.25.26.43.5.43h3.84c.25 0 .46-.18.5-.43l.36-2.54c.58-.24 1.13-.55 1.63-.94l2.39.96c.25.1.53 0 .67-.24l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
+      </header>
+
+      <main class="app-main">
+        <div id="arrow-board-wrap" class="board-wrap">
+          <div id="arrow-board" class="arrow-board" aria-label="Arrow puzzle board"></div>
+        </div>
+
+        <div class="status-bar">
+          <div class="moves">Taps: <span id="arrow-tap-count">0</span></div>
+          <div class="difficulty-label">
+            <span id="arrow-difficulty-label">Moderate</span>
+          </div>
+          <div class="status-actions">
+            <button
+              id="arrow-restart-btn"
+              type="button"
+              class="icon-btn-small"
+              aria-label="Restart puzzle"
+              title="Restart this puzzle"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  d="M12 5V2L7 6l5 4V7a5 5 0 1 1-4.9 6h-2.02A7 7 0 1 0 12 5z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            <button id="arrow-new-puzzle-btn" type="button" class="primary-btn">
+              New Puzzle
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <!-- Arrow settings modal -->
+      <div id="arrow-settings-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card">
+          <h2>Settings</h2>
+          <fieldset class="field">
+            <legend>Difficulty</legend>
+            <label class="radio">
+              <input type="radio" name="arrow-difficulty" value="simple" />
+              <span>Simple</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="arrow-difficulty" value="moderate" checked />
+              <span>Moderate</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="arrow-difficulty" value="difficult" />
+              <span>Difficult</span>
+            </label>
+          </fieldset>
+          <div class="field">
+            <button id="arrow-reset-count-btn" type="button" class="danger-btn">
+              Reset completed count
+            </button>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="primary-btn" data-close>Close</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div
-      id="tutorial-modal"
-      class="modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="tutorial-title"
-      hidden
-    >
-      <div class="modal-backdrop"></div>
-      <div class="modal-card tutorial-card">
-        <h2 id="tutorial-title">How to play</h2>
-        <div id="tutorial-board" class="tutorial-board"></div>
-        <p id="tutorial-caption" class="tutorial-caption">
-          Watch this quick demo&hellip;
-        </p>
-        <div class="modal-actions tutorial-actions">
-          <button id="tutorial-btn" type="button" class="danger-btn">
-            Skip tutorial
-          </button>
+      <!-- Arrow win modal -->
+      <div id="arrow-win-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card">
+          <h2>Solved!</h2>
+          <p>You solved it in <strong><span id="arrow-win-taps">0</span></strong> taps.</p>
+          <p>Puzzles completed: <strong><span id="arrow-win-total">0</span></strong></p>
+          <div class="modal-actions">
+            <button id="arrow-next-puzzle-btn" type="button" class="primary-btn">Next puzzle</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow tutorial modal -->
+      <div id="arrow-tutorial-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-card tutorial-card">
+          <h2>How to play</h2>
+          <div id="arrow-tutorial-board" class="arrow-board arrow-tutorial-board"></div>
+          <p id="arrow-tutorial-caption" class="tutorial-caption">Watch this quick demo&hellip;</p>
+          <div class="modal-actions tutorial-actions">
+            <button id="arrow-tutorial-btn" type="button" class="danger-btn">Skip tutorial</button>
+          </div>
         </div>
       </div>
     </div>
 
     <script src="puzzles.js"></script>
+    <script src="arrow-puzzles.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

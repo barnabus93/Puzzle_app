@@ -1,3 +1,15 @@
+/* ================================================================
+   Brain Arcade — styles.css
+   ================================================================ */
+
+@font-face {
+  font-family: "Press Start 2P";
+  src: url("fonts/PressStart2P.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg: #1c1a18;
   --bg-2: #26231f;
@@ -15,6 +27,7 @@
   --board-border: #0d0a07;
   --exit-glow: rgba(255, 120, 80, 0.6);
   --shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
+  --pixel-font: "Press Start 2P", ui-monospace, "Courier New", monospace;
 }
 
 * {
@@ -26,7 +39,7 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background: var(--bg);
+  background: #0a0a0e;
   color: var(--fg);
   font-family:
     system-ui,
@@ -44,28 +57,194 @@ body {
 }
 
 body {
-  display: flex;
-  flex-direction: column;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }
 
+/* ================================================================
+   SCREENS — show/hide pattern
+   ================================================================ */
+.screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+.screen[hidden] {
+  display: none !important;
+}
+
+/* ================================================================
+   TITLE SCREEN — 80s arcade cabinet
+   ================================================================ */
+.title-screen {
+  background: #0a0a0e;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.title-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 20px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.arcade-title {
+  font-family: var(--pixel-font);
+  font-size: clamp(1.6rem, 8vw, 2.6rem);
+  text-align: center;
+  line-height: 1.4;
+  margin: 0;
+  color: #fff;
+  text-shadow:
+    0 0 7px #0ff,
+    0 0 14px #0ff,
+    0 0 28px #0ff,
+    0 0 56px #0088ff,
+    0 0 3px rgba(255, 0, 255, 0.5);
+  letter-spacing: 0.05em;
+}
+
+.arcade-subtitle {
+  font-family: var(--pixel-font);
+  font-size: clamp(0.55rem, 2.5vw, 0.75rem);
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  margin: 0;
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.game-tiles {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.game-tile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  min-height: 72px;
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  transition:
+    border-color 180ms,
+    box-shadow 180ms,
+    transform 100ms;
+  touch-action: manipulation;
+}
+.game-tile:hover,
+.game-tile:focus-visible {
+  border-color: rgba(0, 255, 255, 0.5);
+  box-shadow:
+    0 0 8px rgba(0, 255, 255, 0.3),
+    inset 0 0 8px rgba(0, 255, 255, 0.06);
+  outline: none;
+}
+.game-tile:active {
+  transform: scale(0.97);
+}
+
+.game-tile--disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  cursor: default;
+}
+
+.tile-icon {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  border-radius: 6px;
+}
+
+.tile-label {
+  font-family: var(--pixel-font);
+  font-size: clamp(0.55rem, 2.5vw, 0.72rem);
+  line-height: 1.4;
+  letter-spacing: 0.05em;
+}
+
+/* CRT scanlines overlay */
+.scanlines {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.12) 0px,
+    rgba(0, 0, 0, 0.12) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* ================================================================
+   GAME SCREENS — shared layout
+   ================================================================ */
 .app-header {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  gap: 8px;
+  padding: 10px 12px;
   background: var(--bg-2);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
+.menu-btn {
+  font-family: var(--pixel-font);
+  font-size: 0.55rem;
+  padding: 8px 10px;
+  min-height: 36px;
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  cursor: pointer;
+  touch-action: manipulation;
+  letter-spacing: 0.05em;
+  flex: 0 0 auto;
+}
+.menu-btn:hover,
+.menu-btn:focus-visible {
+  color: var(--fg);
+  border-color: rgba(255, 255, 255, 0.3);
+  outline: none;
+}
+
 .counter {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: 0.02em;
+  flex: 1 1 auto;
+  text-align: center;
 }
 .counter span {
   color: var(--accent);
@@ -82,6 +261,7 @@ body {
   border: none;
   border-radius: 10px;
   cursor: pointer;
+  flex: 0 0 auto;
 }
 .icon-btn:hover,
 .icon-btn:focus-visible {
@@ -101,6 +281,7 @@ body {
   justify-content: space-between;
   padding: 12px;
   min-height: 0;
+  background: var(--bg);
 }
 
 .board-wrap {
@@ -112,8 +293,9 @@ body {
   min-height: 0;
 }
 
-/* The board sizes itself to fit the available square area.
-   JS sets --cell px on #board so block coordinates stay in sync. */
+/* ================================================================
+   SLIDING BLOCKS BOARD
+   ================================================================ */
 .board {
   --cell: 48px;
   --cells: 6;
@@ -132,7 +314,6 @@ body {
   background-position: -1px -1px;
 }
 
-/* Exit marker: small glowing notch at the right edge, row 2 (0-indexed). */
 .board::after {
   content: "";
   position: absolute;
@@ -166,7 +347,6 @@ body {
   z-index: 2;
 }
 
-/* Wood theme — solid wooden tile look */
 .block.theme-wood {
   border: 2px solid var(--block-border);
   box-shadow:
@@ -174,9 +354,6 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 3px 6px rgba(0, 0, 0, 0.45);
 }
-
-/* Cars theme — thin dark outline, ground-shadow so the car looks
-   like it's sitting on the asphalt */
 .block.theme-cars {
   border: none;
   border-radius: 9px;
@@ -184,16 +361,77 @@ body {
     0 3px 6px rgba(0, 0, 0, 0.55),
     0 1px 0 rgba(255, 255, 255, 0.05);
 }
-
-/* Fruit theme — no border at all, just a soft drop shadow so the
-   fruit looks like it's resting on the board */
 .block.theme-fruit {
   border: none;
   border-radius: 0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.55);
 }
 
-/* Status bar */
+/* ================================================================
+   ARROW ESCAPE BOARD
+   ================================================================ */
+.arrow-board {
+  --acell: 42px;
+  position: relative;
+  background: var(--board-bg);
+  border: 3px solid var(--board-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  touch-action: none;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: var(--acell) var(--acell);
+  background-position: calc(var(--acell) / 2) calc(var(--acell) / 2);
+}
+
+.arrow-piece {
+  position: absolute;
+  left: 0;
+  top: 0;
+  cursor: pointer;
+  transition: transform 250ms ease-out;
+  will-change: transform;
+  touch-action: manipulation;
+  border-radius: 5px;
+  border: 2px solid rgba(0, 0, 0, 0.5);
+  box-shadow:
+    inset 0 -2px 0 rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 3px 6px rgba(0, 0, 0, 0.5);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+.arrow-piece:active {
+  filter: brightness(1.15);
+}
+.arrow-piece.target-piece {
+  z-index: 2;
+}
+.arrow-piece.exiting {
+  transition: transform 350ms ease-in;
+  opacity: 0;
+}
+
+@keyframes shake {
+  0%, 100% { transform: var(--pos); }
+  20% { transform: var(--pos) translateX(-4px); }
+  40% { transform: var(--pos) translateX(4px); }
+  60% { transform: var(--pos) translateX(-3px); }
+  80% { transform: var(--pos) translateX(3px); }
+}
+.arrow-piece.shaking {
+  animation: shake 300ms ease-out;
+}
+
+.arrow-tutorial-board {
+  --acell: 40px;
+  margin: 4px auto 10px;
+  border-radius: 10px;
+}
+
+/* ================================================================
+   STATUS BAR
+   ================================================================ */
 .status-bar {
   flex: 0 0 auto;
   display: grid;
@@ -255,7 +493,9 @@ body {
   height: 22px;
 }
 
-/* Buttons */
+/* ================================================================
+   BUTTONS
+   ================================================================ */
 .primary-btn,
 .danger-btn {
   font: inherit;
@@ -287,7 +527,9 @@ body {
   outline: none;
 }
 
-/* Modals */
+/* ================================================================
+   MODALS
+   ================================================================ */
 .modal {
   position: fixed;
   inset: 0;
@@ -332,7 +574,9 @@ body {
   gap: 10px;
 }
 
-/* Form */
+/* ================================================================
+   FORM
+   ================================================================ */
 fieldset.field {
   border: none;
   padding: 0;
@@ -370,7 +614,9 @@ fieldset.field legend {
   width: 100%;
 }
 
-/* Tutorial modal */
+/* ================================================================
+   TUTORIAL
+   ================================================================ */
 .tutorial-card {
   max-width: 340px;
 }
@@ -445,17 +691,41 @@ fieldset.field legend {
   min-width: 150px;
 }
 
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
 @media (max-height: 560px) {
   .app-header {
-    padding: 8px 12px;
+    padding: 6px 10px;
   }
   .app-main {
     padding: 6px;
   }
   .status-bar {
-    padding-top: 8px;
+    padding-top: 6px;
   }
   .tutorial-board {
     --cell: 34px;
+  }
+  .arcade-title {
+    font-size: 1.4rem;
+  }
+  .game-tiles {
+    gap: 8px;
+  }
+  .game-tile {
+    padding: 10px 14px;
+    min-height: 56px;
+  }
+  .tile-icon {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+  }
+}
+
+@media (max-height: 480px) {
+  .arcade-subtitle {
+    display: none;
   }
 }
