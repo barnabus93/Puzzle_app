@@ -1332,44 +1332,60 @@
     moveHen(dir) {
       if (this.state.paused || this.state.dead || this.state.won) return;
       const cp = this.cellPx;
-      let { henCol, henRow } = this.state;
-      if (dir === "up" && henRow > 0) henRow--;
-      else if (dir === "down" && henRow < HEN_ROWS - 1) henRow++;
-      else if (dir === "left" && henCol > 0) henCol--;
-      else if (dir === "right" && henCol < HEN_COLS - 1) henCol++;
-      else return;
-      this.state.henCol = henCol;
-      this.state.henRow = henRow;
-      this.state.henX = henCol * cp;
-      this.state.henY = henRow * cp;
+      const totalW = HEN_COLS * cp;
 
-      // When landing on a river row, snap the hen's X onto the nearest
-      // platform so she doesn't immediately die because the log/pad
-      // has drifted a few pixels from the grid column she aimed for.
-      const rowType = HEN_ROW_TYPES[henRow];
-      if (rowType === "river") {
-        const lane = this.lanes.find((l) => l.row === henRow);
+      // Use the hen's ACTUAL pixel position (which may have drifted
+      // with a river platform) as the baseline — not the grid column,
+      // which is stale once she's riding a log/pad.
+      let newX = this.state.henX;
+      let newRow = this.state.henRow;
+
+      if (dir === "up" && newRow > 0) newRow--;
+      else if (dir === "down" && newRow < HEN_ROWS - 1) newRow++;
+      else if (dir === "left") newX -= cp;
+      else if (dir === "right") newX += cp;
+      else return;
+
+      // Clamp X to board bounds
+      newX = Math.max(0, Math.min(totalW - cp, newX));
+
+      this.state.henRow = newRow;
+      this.state.henX = newX;
+      this.state.henY = newRow * cp;
+      // Keep henCol roughly in sync (used only for reset position)
+      this.state.henCol = Math.round(newX / cp);
+
+      // When landing on a river row, snap onto the nearest platform
+      // so the hen doesn't fall between a log/pad and the grid.
+      const destType = HEN_ROW_TYPES[newRow];
+      if (destType === "river") {
+        const lane = this.lanes.find((l) => l.row === newRow);
         if (lane) {
-          const targetCx = this.state.henX + cp * 0.5;
+          const henCx = this.state.henX + cp * 0.5;
           let bestObj = null, bestDist = Infinity;
           for (const obj of lane.objects) {
             const objLeft = obj.x, objRight = obj.x + obj.w * cp;
-            if (targetCx >= objLeft - cp * 0.6 && targetCx <= objRight + cp * 0.6) {
-              const objCx = (objLeft + objRight) / 2;
-              const dist = Math.abs(targetCx - objCx);
+            // Search within a generous range so diagonal-ish hops land
+            if (henCx >= objLeft - cp * 0.8 && henCx <= objRight + cp * 0.8) {
+              const dist = Math.abs(henCx - (objLeft + objRight) / 2);
               if (dist < bestDist) { bestDist = dist; bestObj = obj; }
             }
           }
           if (bestObj) {
-            // Clamp hen onto the platform bounds
-            const clampedX = Math.max(bestObj.x, Math.min(bestObj.x + bestObj.w * cp - cp, this.state.henX));
-            this.state.henX = clampedX;
+            this.state.henX = Math.max(bestObj.x,
+              Math.min(bestObj.x + bestObj.w * cp - cp, this.state.henX));
           }
         }
       }
 
-      // Brief grace period so collision detection doesn't kill the hen
-      // mid-hop (the very next frame after moving).
+      // When landing on a non-river row (grass or road), re-align X
+      // to the nearest grid column so movement feels snappy again.
+      if (destType !== "river") {
+        this.state.henCol = Math.round(this.state.henX / cp);
+        this.state.henCol = Math.max(0, Math.min(HEN_COLS - 1, this.state.henCol));
+        this.state.henX = this.state.henCol * cp;
+      }
+
       this.state.graceUntil = performance.now() + 250;
     },
 
