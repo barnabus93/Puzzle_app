@@ -1240,6 +1240,19 @@
     spawnRiverObj(lane, time) {
       const cp = this.cellPx;
       const totalW = HEN_COLS * cp;
+      // Minimum gap between river objects so they never overlap and the
+      // hen can always hop between them. The gap must be ≤ 1 cell so
+      // the hen can actually reach the next platform, but > 0 so they
+      // don't clip.
+      const minGap = cp * 0.5;
+      const maxGap = cp * 1.0;
+      if (lane.objects.length > 0) {
+        const last = lane.objects[lane.objects.length - 1];
+        const lastEnd = lane.dir > 0 ? last.x + last.w * cp : last.x;
+        const spawnEdge = lane.dir > 0 ? 0 : totalW;
+        const gap = lane.dir > 0 ? (spawnEdge - lastEnd) : (lastEnd - spawnEdge);
+        if (gap < minGap) return;
+      }
       const isPad = Math.random() < (lane.padChance || 0.2);
       const w = isPad ? 1 : LOG_WIDTHS[Math.floor(Math.random() * LOG_WIDTHS.length)];
       const x = lane.dir > 0 ? -w * cp : totalW;
@@ -1247,7 +1260,11 @@
         type: isPad ? "pad" : "log", row: lane.row, x, w,
         dir: lane.dir, speed: lane.speed,
       });
-      lane.nextSpawn = time + lane.interval + this.randRange(-200, 400);
+      // Schedule next spawn so objects stay close enough to jump between
+      // but never overlap. Tighter intervals than cars.
+      const gapCells = this.randRange(0.5, maxGap / cp);
+      const timeForGap = (gapCells * cp + w * cp) / (lane.speed * cp);
+      lane.nextSpawn = time + Math.max(timeForGap * 1000, 400);
     },
 
     update(dt, time) {
