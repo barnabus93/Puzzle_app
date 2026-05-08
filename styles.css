@@ -378,6 +378,7 @@ body {
   border-radius: 12px;
   box-shadow: var(--shadow);
   touch-action: none;
+  overflow: hidden;
   background-image:
     radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
   background-size: var(--acell) var(--acell);
@@ -408,8 +409,9 @@ body {
   z-index: 2;
 }
 .arrow-piece.exiting {
-  transition: transform 350ms ease-in;
+  transition: transform 400ms ease-in, opacity 250ms ease-in 200ms;
   opacity: 0;
+  pointer-events: none;
 }
 
 @keyframes shake {

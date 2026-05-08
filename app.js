@@ -786,14 +786,23 @@
     for (const c of piece.cells) { c[0] += steps * dr; c[1] += steps * dc; }
 
     if (exits) {
-      const { r0: newR0, c0: newC0 } = arrowPieceBounds(piece.cells);
-      el.style.transform = "translate(" + (newC0 * cp) + "px, " + (newR0 * cp) + "px)";
+      const { r0: bndR, c0: bndC, r1: bndR1, c1: bndC1 } = arrowPieceBounds(piece.cells);
+      const pieceW = (bndC1 - bndC + 1) * cp;
+      const pieceH = (bndR1 - bndR + 1) * cp;
+      const boardW = this.state.gridW * cp;
+      const boardH = this.state.gridH * cp;
+      let exitX, exitY;
+      if (piece.dir === "e") { exitX = boardW + pieceW; exitY = bndR * cp; }
+      else if (piece.dir === "w") { exitX = -pieceW * 2; exitY = bndR * cp; }
+      else if (piece.dir === "s") { exitX = bndC * cp; exitY = boardH + pieceH; }
+      else { exitX = bndC * cp; exitY = -pieceH * 2; }
+      el.style.transform = "translate(" + exitX + "px, " + exitY + "px)";
       el.classList.add("exiting");
       setTimeout(() => {
         el.remove();
         this.state.pieces = this.state.pieces.filter((p) => p.id !== id);
         if (piece.isTarget) this.onWin();
-      }, 380);
+      }, 450);
     } else {
       const { r0: newR0, c0: newC0 } = arrowPieceBounds(piece.cells);
       const posTransform = "translate(" + (newC0 * cp) + "px, " + (newR0 * cp) + "px)";
