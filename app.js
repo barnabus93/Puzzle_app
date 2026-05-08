@@ -1213,14 +1213,26 @@
 
     spawnCar(lane, time) {
       const cp = this.cellPx;
-      const vt = VEHICLE_TYPES[Math.floor(Math.random() * VEHICLE_TYPES.length)];
       const totalW = HEN_COLS * cp;
+      // Ensure minimum gap from the last car in this lane so they
+      // never clip into each other and the hen always has a gap to
+      // cross through.
+      const minGap = cp * 1.8;
+      if (lane.objects.length > 0) {
+        const last = lane.objects[lane.objects.length - 1];
+        if (lane.dir > 0) {
+          if (last.x + last.w * cp + minGap > 0) return;
+        } else {
+          if (last.x - minGap < totalW) return;
+        }
+      }
+      const vt = VEHICLE_TYPES[Math.floor(Math.random() * VEHICLE_TYPES.length)];
       const x = lane.dir > 0 ? -vt.w * cp : totalW;
       const colors = ["#3a6dbf","#d14b3c","#4bae55","#8b4fc5","#e8801a","#dcdcdc","#555"];
       lane.objects.push({
         type: "car", row: lane.row, x, w: vt.w, name: vt.name,
         color: vt.name === "bus" ? "#e8a020" : vt.name === "motorcycle" ? "#555" : colors[Math.floor(Math.random() * colors.length)],
-        dir: lane.dir, speed: lane.speed + this.randRange(-0.3, 0.3),
+        dir: lane.dir, speed: lane.speed,
       });
       lane.nextSpawn = time + lane.interval + this.randRange(-200, 200);
     },
@@ -1404,24 +1416,30 @@
     },
   };
 
-  // Swipe + keyboard controls
-  let henTouchStart = null;
+  // Swipe + keyboard controls.
+  // Uses pointer events only (covers touch, mouse, and stylus in one
+  // code path). Touch events are NOT registered — on mobile they would
+  // fire BEFORE pointer events and cause duplicate moves.
+  let henPointerStart = null;
+  let henSwipeCooldown = 0;
 
-  function henSwipeHandler(e) {
-    if (e.type === "touchstart" || e.type === "pointerdown") {
-      henTouchStart = { x: e.clientX || (e.touches && e.touches[0].clientX),
-                        y: e.clientY || (e.touches && e.touches[0].clientY) };
-      e.preventDefault();
-      return;
-    }
-    if (!henTouchStart) return;
-    const ex = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
-    const ey = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
-    const dx = ex - henTouchStart.x, dy = ey - henTouchStart.y;
-    henTouchStart = null;
-    if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
-    if (Math.abs(dx) > Math.abs(dy)) hen.moveHen(dx > 0 ? "right" : "left");
+  function henPointerDown(e) {
+    e.preventDefault();
+    henPointerStart = { x: e.clientX, y: e.clientY, id: e.pointerId };
+  }
+
+  function henPointerUp(e) {
+    if (!henPointerStart || e.pointerId !== henPointerStart.id) return;
+    const now = performance.now();
+    if (now < henSwipeCooldown) { henPointerStart = null; return; }
+    const dx = e.clientX - henPointerStart.x;
+    const dy = e.clientY - henPointerStart.y;
+    henPointerStart = null;
+    const absDx = Math.abs(dx), absDy = Math.abs(dy);
+    if (Math.max(absDx, absDy) < 10) return;
+    if (absDx > absDy) hen.moveHen(dx > 0 ? "right" : "left");
     else hen.moveHen(dy > 0 ? "down" : "up");
+    henSwipeCooldown = now + 80;
   }
 
   function henKeyHandler(e) {
@@ -1501,10 +1519,8 @@
           hen.state.paused = false;
         });
 
-        hen.canvas.addEventListener("touchstart", henSwipeHandler, { passive: false });
-        hen.canvas.addEventListener("touchend", henSwipeHandler);
-        hen.canvas.addEventListener("pointerdown", henSwipeHandler);
-        hen.canvas.addEventListener("pointerup", henSwipeHandler);
+        hen.canvas.addEventListener("pointerdown", henPointerDown, { passive: false });
+        hen.canvas.addEventListener("pointerup", henPointerUp);
         document.addEventListener("keydown", henKeyHandler);
 
         window.addEventListener("resize", () => {
