@@ -1290,6 +1290,7 @@
 
       const henRow = this.state.henRow;
       const rowType = HEN_ROW_TYPES[henRow];
+      const inGrace = this.state.graceUntil && performance.now() < this.state.graceUntil;
 
       if (rowType === "river") {
         const lane = this.lanes.find((l) => l.row === henRow);
@@ -1303,7 +1304,7 @@
               break;
             }
           }
-          if (!onPlatform) { this.loseLife(); return; }
+          if (!onPlatform && !inGrace) { this.loseLife(); return; }
           if (this.state.henX < -cp || this.state.henX > totalW) { this.loseLife(); return; }
         }
       }
@@ -1312,9 +1313,11 @@
         const lane = this.lanes.find((l) => l.row === henRow);
         if (lane) {
           const hx = this.state.henX, hw = cp * 0.8;
-          for (const car of lane.objects) {
-            if (hx + hw > car.x + 2 && hx < car.x + car.w * cp - 2) {
-              this.loseLife(); return;
+          if (!inGrace) {
+            for (const car of lane.objects) {
+              if (hx + hw > car.x + 2 && hx < car.x + car.w * cp - 2) {
+                this.loseLife(); return;
+              }
             }
           }
         }
@@ -1339,6 +1342,35 @@
       this.state.henRow = henRow;
       this.state.henX = henCol * cp;
       this.state.henY = henRow * cp;
+
+      // When landing on a river row, snap the hen's X onto the nearest
+      // platform so she doesn't immediately die because the log/pad
+      // has drifted a few pixels from the grid column she aimed for.
+      const rowType = HEN_ROW_TYPES[henRow];
+      if (rowType === "river") {
+        const lane = this.lanes.find((l) => l.row === henRow);
+        if (lane) {
+          const targetCx = this.state.henX + cp * 0.5;
+          let bestObj = null, bestDist = Infinity;
+          for (const obj of lane.objects) {
+            const objLeft = obj.x, objRight = obj.x + obj.w * cp;
+            if (targetCx >= objLeft - cp * 0.6 && targetCx <= objRight + cp * 0.6) {
+              const objCx = (objLeft + objRight) / 2;
+              const dist = Math.abs(targetCx - objCx);
+              if (dist < bestDist) { bestDist = dist; bestObj = obj; }
+            }
+          }
+          if (bestObj) {
+            // Clamp hen onto the platform bounds
+            const clampedX = Math.max(bestObj.x, Math.min(bestObj.x + bestObj.w * cp - cp, this.state.henX));
+            this.state.henX = clampedX;
+          }
+        }
+      }
+
+      // Brief grace period so collision detection doesn't kill the hen
+      // mid-hop (the very next frame after moving).
+      this.state.graceUntil = performance.now() + 250;
     },
 
     loseLife() {
