@@ -1615,7 +1615,334 @@
   };
 
   // ================================================================
-  // 16. INIT & LOCALSTORAGE MIGRATION
+  // 16. ONE FILL LINE — Hamiltonian path puzzle
+  // ================================================================
+  const onefillStore = makeStore("onefill");
+  const OF_SIZE = 6;
+
+  function ofPickPuzzle(difficulty) {
+    const pool = (window.ONEFILL_PUZZLES && window.ONEFILL_PUZZLES[difficulty]) ||
+                 (window.ONEFILL_PUZZLES && window.ONEFILL_PUZZLES.moderate) || null;
+    if (!pool || !pool.length) return { start: [0, 0], obstacles: [], pathLen: 36 };
+    const src = pool[Math.floor(Math.random() * pool.length)];
+    return {
+      start: [src.start[0], src.start[1]],
+      obstacles: src.obstacles.map((o) => [o[0], o[1]]),
+      pathLen: src.pathLen,
+    };
+  }
+
+  const onefill = {
+    boardEl: null, svgEl: null,
+    state: {
+      grid: [], currentPath: [], start: [0, 0],
+      nonObstacleCount: 0, completed: 0, difficulty: "moderate",
+      drawing: false, won: false,
+    },
+    cellEls: [],
+    els: {},
+    cellPx: 48,
+
+    sizeBoard() {
+      const wrap = this.boardEl.parentElement;
+      const r = wrap.getBoundingClientRect();
+      const avail = Math.min(r.width, r.height) - 24;
+      let cp = Math.floor((avail - OF_SIZE * 3 - 16) / OF_SIZE);
+      cp = Math.max(32, Math.min(64, cp));
+      this.cellPx = cp;
+      this.boardEl.style.setProperty("--fcell", cp + "px");
+    },
+
+    buildGrid(puzzle) {
+      const g = Array.from({ length: OF_SIZE }, () => new Array(OF_SIZE).fill(0));
+      for (const [r, c] of puzzle.obstacles) g[r][c] = 1;
+      this.state.grid = g;
+      this.state.start = puzzle.start;
+      this.state.nonObstacleCount = OF_SIZE * OF_SIZE - puzzle.obstacles.length;
+      this.state.currentPath = [puzzle.start.slice()];
+      this.state.drawing = false;
+      this.state.won = false;
+      g[puzzle.start[0]][puzzle.start[1]] = 2;
+    },
+
+    renderBoard() {
+      this.boardEl.querySelectorAll(".onefill-cell").forEach((c) => c.remove());
+      this.svgEl.innerHTML = "";
+      this.cellEls = [];
+      const g = this.state.grid;
+      for (let r = 0; r < OF_SIZE; r++) {
+        for (let c = 0; c < OF_SIZE; c++) {
+          const el = document.createElement("div");
+          el.className = "onefill-cell";
+          el.dataset.row = String(r);
+          el.dataset.col = String(c);
+          if (g[r][c] === 1) el.classList.add("onefill-cell--obstacle");
+          if (r === this.state.start[0] && c === this.state.start[1]) {
+            el.classList.add("onefill-cell--start", "onefill-cell--filled");
+          }
+          this.boardEl.insertBefore(el, this.svgEl);
+          this.cellEls.push(el);
+        }
+      }
+      this.updateProgress();
+    },
+
+    getCellAt(x, y) {
+      const rect = this.boardEl.getBoundingClientRect();
+      const pad = 8;
+      const gap = 3;
+      const cp = this.cellPx;
+      const step = cp + gap;
+      const col = Math.floor((x - rect.left - pad) / step);
+      const row = Math.floor((y - rect.top - pad) / step);
+      if (row < 0 || row >= OF_SIZE || col < 0 || col >= OF_SIZE) return null;
+      return [row, col];
+    },
+
+    getCellEl(r, c) {
+      return this.cellEls[r * OF_SIZE + c] || null;
+    },
+
+    cellCenter(r, c) {
+      const pad = 8, gap = 3, cp = this.cellPx;
+      const step = cp + gap;
+      return { x: pad + c * step + cp / 2, y: pad + r * step + cp / 2 };
+    },
+
+    addLineSeg(fromR, fromC, toR, toC) {
+      const from = this.cellCenter(fromR, fromC);
+      const to = this.cellCenter(toR, toC);
+      const ns = "http://www.w3.org/2000/svg";
+      const line = document.createElementNS(ns, "line");
+      line.setAttribute("x1", from.x);
+      line.setAttribute("y1", from.y);
+      line.setAttribute("x2", to.x);
+      line.setAttribute("y2", to.y);
+      this.svgEl.appendChild(line);
+    },
+
+    removeLastLine() {
+      const last = this.svgEl.lastElementChild;
+      if (last) last.remove();
+    },
+
+    isAdjacent(a, b) {
+      return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) === 1;
+    },
+
+    tryExtend(r, c) {
+      const path = this.state.currentPath;
+      const last = path[path.length - 1];
+
+      // Backtrack: moving onto the second-to-last cell
+      if (path.length >= 2) {
+        const prev = path[path.length - 2];
+        if (r === prev[0] && c === prev[1]) {
+          const popped = path.pop();
+          this.state.grid[popped[0]][popped[1]] = 0;
+          const el = this.getCellEl(popped[0], popped[1]);
+          if (el) { el.classList.remove("onefill-cell--filled", "onefill-cell--start"); }
+          this.removeLastLine();
+          this.updateProgress();
+          return;
+        }
+      }
+
+      // Extend: target must be empty and adjacent to last
+      if (this.state.grid[r][c] !== 0) return;
+      if (!this.isAdjacent(last, [r, c])) return;
+
+      path.push([r, c]);
+      this.state.grid[r][c] = 2;
+      const el = this.getCellEl(r, c);
+      if (el) el.classList.add("onefill-cell--filled");
+      this.addLineSeg(last[0], last[1], r, c);
+      this.updateProgress();
+
+      if (path.length === this.state.nonObstacleCount) {
+        this.onWin();
+      }
+    },
+
+    updateProgress() {
+      const prog = document.getElementById("onefill-progress");
+      const tot = document.getElementById("onefill-total");
+      if (prog) prog.textContent = String(this.state.currentPath.length);
+      if (tot) tot.textContent = String(this.state.nonObstacleCount);
+    },
+
+    onPointerDown(e) {
+      if (this.state.won) return;
+      const pos = this.getCellAt(e.clientX, e.clientY);
+      if (!pos) return;
+      const path = this.state.currentPath;
+      const last = path[path.length - 1];
+      // Can only start drawing from the last cell in the path
+      if (pos[0] !== last[0] || pos[1] !== last[1]) return;
+      this.state.drawing = true;
+      try { this.boardEl.setPointerCapture(e.pointerId); } catch {}
+      e.preventDefault();
+    },
+
+    onPointerMove(e) {
+      if (!this.state.drawing || this.state.won) return;
+      const pos = this.getCellAt(e.clientX, e.clientY);
+      if (!pos) return;
+      const last = this.state.currentPath[this.state.currentPath.length - 1];
+      if (pos[0] === last[0] && pos[1] === last[1]) return;
+      this.tryExtend(pos[0], pos[1]);
+    },
+
+    onPointerUp() {
+      this.state.drawing = false;
+    },
+
+    onWin() {
+      this.state.won = true;
+      this.state.drawing = false;
+      this.svgEl.classList.add("win-glow");
+      setTimeout(() => {
+        this.state.completed += 1;
+        onefillStore.setInt("completedCount", this.state.completed);
+        this.els.completedCount.textContent = String(this.state.completed);
+        this.els.winTotal.textContent = String(this.state.completed);
+        showModal(this.els.winModal);
+      }, 800);
+    },
+
+    newPuzzle() {
+      this.svgEl.classList.remove("win-glow");
+      const puzzle = ofPickPuzzle(this.state.difficulty);
+      this.buildGrid(puzzle);
+      this.sizeBoard();
+      this.renderBoard();
+      this.updateHeader();
+    },
+
+    resetPuzzle() {
+      this.svgEl.classList.remove("win-glow");
+      const puzzle = ofPickPuzzle(this.state.difficulty);
+      // Reuse current puzzle by re-building from scratch with same data
+      // Actually we want to reset the CURRENT puzzle. Store original puzzle data.
+      if (this._currentPuzzle) {
+        this.buildGrid(this._currentPuzzle);
+        this.renderBoard();
+        this.updateProgress();
+      }
+    },
+
+    updateHeader() {
+      this.els.completedCount.textContent = String(this.state.completed);
+      this.els.difficultyLabel.textContent = DIFFICULTIES[this.state.difficulty] || "Moderate";
+    },
+  };
+
+  modules.onefill = {
+    _wired: false,
+    _ptrDown: null, _ptrMove: null, _ptrUp: null,
+
+    onEnter() {
+      onefill.boardEl = document.getElementById("onefill-board");
+      onefill.svgEl = document.getElementById("onefill-svg");
+      onefill.els = {
+        completedCount: document.getElementById("onefill-completed-count"),
+        difficultyLabel: document.getElementById("onefill-difficulty-label"),
+        winModal: document.getElementById("onefill-win-modal"),
+        winTotal: document.getElementById("onefill-win-total"),
+        settingsModal: document.getElementById("onefill-settings-modal"),
+      };
+
+      onefill.state.completed = onefillStore.getInt("completedCount", 0);
+      onefill.state.difficulty = onefillStore.getString("difficulty", "moderate", DIFFICULTIES);
+
+      if (!this._wired) {
+        this._wired = true;
+        wireModal(onefill.els.settingsModal);
+        wireModal(onefill.els.winModal);
+
+        document.getElementById("onefill-settings-btn").addEventListener("click", () => {
+          const m = onefill.els.settingsModal;
+          m.querySelectorAll('input[name="onefill-difficulty"]').forEach((r) => { r.checked = r.value === onefill.state.difficulty; });
+          showModal(m);
+        });
+
+        onefill.els.settingsModal.querySelectorAll('input[name="onefill-difficulty"]').forEach((r) => r.addEventListener("change", (e) => {
+          if (!DIFFICULTIES[e.target.value] || e.target.value === onefill.state.difficulty) return;
+          onefill.state.difficulty = e.target.value;
+          onefillStore.setString("difficulty", e.target.value);
+          onefill.newPuzzle();
+        }));
+
+        document.getElementById("onefill-new-btn").addEventListener("click", () => {
+          hideModal(onefill.els.winModal);
+          onefill.newPuzzle();
+        });
+        document.getElementById("onefill-reset-btn").addEventListener("click", () => {
+          onefill.resetPuzzle();
+        });
+        document.getElementById("onefill-next-btn").addEventListener("click", () => {
+          hideModal(onefill.els.winModal);
+          onefill.newPuzzle();
+        });
+        document.getElementById("onefill-reset-count-btn").addEventListener("click", () => {
+          if (!window.confirm("Reset the number of completed puzzles back to 0?")) return;
+          onefill.state.completed = 0; onefillStore.setInt("completedCount", 0);
+          onefill.els.completedCount.textContent = "0";
+        });
+        document.getElementById("onefill-tutorial-btn").addEventListener("click", () => {
+          onefillStore.setBool("tutorialSeen", true);
+          hideModal(document.getElementById("onefill-tutorial-modal"));
+        });
+
+        this._ptrDown = (e) => onefill.onPointerDown(e);
+        this._ptrMove = (e) => onefill.onPointerMove(e);
+        this._ptrUp = () => onefill.onPointerUp();
+        onefill.boardEl.addEventListener("pointerdown", this._ptrDown);
+        onefill.boardEl.addEventListener("pointermove", this._ptrMove);
+        onefill.boardEl.addEventListener("pointerup", this._ptrUp);
+        onefill.boardEl.addEventListener("pointercancel", this._ptrUp);
+
+        window.addEventListener("resize", () => {
+          if (router.current !== "onefill") return;
+          onefill.sizeBoard();
+        });
+      }
+
+      // Fix: store puzzle reference for reset
+      const puzzle = ofPickPuzzle(onefill.state.difficulty);
+      onefill._currentPuzzle = puzzle;
+      onefill.buildGrid(puzzle);
+      onefill.sizeBoard();
+      onefill.renderBoard();
+      onefill.updateHeader();
+
+      // Override newPuzzle to also store the reference
+      const origNew = onefill.newPuzzle.bind(onefill);
+      onefill.newPuzzle = function () {
+        this.svgEl.classList.remove("win-glow");
+        const p = ofPickPuzzle(this.state.difficulty);
+        this._currentPuzzle = p;
+        this.buildGrid(p);
+        this.sizeBoard();
+        this.renderBoard();
+        this.updateHeader();
+      };
+
+      if (!onefillStore.getBool("tutorialSeen")) {
+        showModal(document.getElementById("onefill-tutorial-modal"));
+      }
+    },
+
+    onLeave() {
+      onefill.state.drawing = false;
+      hideModal(onefill.els.winModal);
+      hideModal(onefill.els.settingsModal);
+      hideModal(document.getElementById("onefill-tutorial-modal"));
+    },
+  };
+
+  // ================================================================
+  // 17. INIT & LOCALSTORAGE MIGRATION
   // ================================================================
   function migrateStorage() {
     try {
