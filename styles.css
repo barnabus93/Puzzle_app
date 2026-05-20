@@ -783,8 +783,8 @@ fieldset.field legend {
 .onefill-board {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(6, var(--fcell));
-  grid-template-rows: repeat(6, var(--fcell));
+  grid-template-columns: repeat(5, var(--fcell));
+  grid-template-rows: repeat(5, var(--fcell));
   --fcell: 48px;
   gap: 3px;
   padding: 8px;

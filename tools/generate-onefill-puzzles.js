@@ -12,8 +12,8 @@
 const fs = require("fs");
 const path = require("path");
 
-const ROWS = 6;
-const COLS = 6;
+const ROWS = 5;
+const COLS = 5;
 const TOTAL_CELLS = ROWS * COLS;
 
 const DIRS = [
@@ -24,9 +24,9 @@ const DIRS = [
 ];
 
 const TIERS = {
-  simple: { minObs: 2, maxObs: 4 },
-  moderate: { minObs: 5, maxObs: 8 },
-  difficult: { minObs: 9, maxObs: 14 },
+  simple: { minObs: 1, maxObs: 3 },
+  moderate: { minObs: 4, maxObs: 6 },
+  difficult: { minObs: 7, maxObs: 10 },
 };
 
 const PUZZLES_PER_TIER = 30;

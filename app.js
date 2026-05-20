@@ -1618,7 +1618,7 @@
   // 16. ONE FILL LINE — Hamiltonian path puzzle
   // ================================================================
   const onefillStore = makeStore("onefill");
-  const OF_SIZE = 6;
+  const OF_SIZE = 5;
 
   function ofPickPuzzle(difficulty) {
     const pool = (window.ONEFILL_PUZZLES && window.ONEFILL_PUZZLES[difficulty]) ||
