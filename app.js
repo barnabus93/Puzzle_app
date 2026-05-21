@@ -1588,6 +1588,15 @@
         hen.canvas.addEventListener("pointerup", henPointerUp);
         document.addEventListener("keydown", henKeyHandler);
 
+        // D-pad buttons
+        document.querySelectorAll("#screen-hen .dpad-btn").forEach((btn) => {
+          btn.addEventListener("pointerdown", (e) => {
+            e.preventDefault();
+            const dir = btn.dataset.dir;
+            if (dir) hen.moveHen(dir);
+          });
+        });
+
         window.addEventListener("resize", () => {
           if (router.current !== "hen") return;
           hen.sizeCanvas();

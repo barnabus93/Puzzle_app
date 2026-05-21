@@ -353,9 +353,26 @@
         </button>
       </header>
 
-      <main class="app-main">
+      <main class="app-main hen-main">
         <div class="hen-canvas-wrap">
           <canvas id="hen-canvas"></canvas>
+        </div>
+        <div class="hen-dpad">
+          <button class="dpad-btn dpad-up" data-dir="up" aria-label="Move up">
+            <svg viewBox="0 0 24 24"><path d="M12 4l8 8h-5v8h-6v-8H4z" fill="currentColor"/></svg>
+          </button>
+          <div class="dpad-mid">
+            <button class="dpad-btn dpad-left" data-dir="left" aria-label="Move left">
+              <svg viewBox="0 0 24 24"><path d="M4 12l8-8v5h8v6h-8v5z" fill="currentColor"/></svg>
+            </button>
+            <div class="dpad-center"></div>
+            <button class="dpad-btn dpad-right" data-dir="right" aria-label="Move right">
+              <svg viewBox="0 0 24 24"><path d="M20 12l-8 8v-5H4v-6h8V4z" fill="currentColor"/></svg>
+            </button>
+          </div>
+          <button class="dpad-btn dpad-down" data-dir="down" aria-label="Move down">
+            <svg viewBox="0 0 24 24"><path d="M12 20l-8-8h5V4h6v8h5z" fill="currentColor"/></svg>
+          </button>
         </div>
         <div class="status-bar">
           <div class="difficulty-label">

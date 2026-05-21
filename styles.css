@@ -735,13 +735,16 @@ fieldset.field legend {
 /* ================================================================
    HEN CROSSING
    ================================================================ */
+.hen-main {
+  justify-content: flex-start;
+  padding-top: 4px;
+}
 .hen-canvas-wrap {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 0;
 }
 .hen-canvas-wrap canvas {
   border-radius: 8px;
@@ -749,6 +752,50 @@ fieldset.field legend {
   touch-action: none;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+}
+
+/* D-pad controls */
+.hen-dpad {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 12px 0 4px;
+}
+.dpad-mid {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.dpad-btn {
+  width: 56px;
+  height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  color: var(--fg);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.dpad-btn:active {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+.dpad-btn svg {
+  width: 28px;
+  height: 28px;
+}
+.dpad-center {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(255, 255, 255, 0.06);
 }
 .hen-lives {
   display: flex;
