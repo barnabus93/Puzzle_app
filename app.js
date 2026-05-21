@@ -1064,7 +1064,7 @@
       const r = wrap.getBoundingClientRect();
       const maxW = r.width - 8, maxH = r.height - 8;
       let cp = Math.floor(Math.min(maxW / HEN_COLS, maxH / HEN_ROWS));
-      cp = Math.max(24, Math.min(56, cp));
+      cp = Math.max(24, Math.min(72, cp));
       this.cellPx = cp;
       const w = cp * HEN_COLS, h = cp * HEN_ROWS;
       this.canvas.width = w;

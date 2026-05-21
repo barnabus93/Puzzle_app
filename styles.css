@@ -737,14 +737,15 @@ fieldset.field legend {
    ================================================================ */
 .hen-main {
   justify-content: flex-start;
-  padding-top: 4px;
+  padding-top: 6px;
 }
 .hen-canvas-wrap {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
+  min-height: 0;
 }
 .hen-canvas-wrap canvas {
   border-radius: 8px;
@@ -760,8 +761,8 @@ fieldset.field legend {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  margin: 12px 0 4px;
+  gap: 2px;
+  margin: 6px 0 2px;
 }
 .dpad-mid {
   display: flex;
