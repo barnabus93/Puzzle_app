@@ -2237,31 +2237,59 @@
 
       const isHuman = !(s.mode === "cpu" && s.currentTeam === "B");
       if (isHuman) {
-        // Auto-rearrange non-carrier players to fresh random positions
-        const myTeam = this.getTeamPlayers(s.currentTeam);
-        const w = this.pitchW, h = this.pitchH, margin = this.playerR + 4;
-        for (const p of myTeam) {
-          const idx = s.players.indexOf(p);
-          if (idx === s.ballCarrier) continue;
-          if (p.label === "GK") {
-            p.x = w * (0.35 + Math.random() * 0.3);
-            p.y = s.currentTeam === "A" ? h * (0.86 + Math.random() * 0.08) : h * (0.04 + Math.random() * 0.08);
-          } else if (p.label.startsWith("D")) {
-            p.x = margin + Math.random() * (w - margin * 2);
-            p.y = s.currentTeam === "A" ? h * (0.68 + Math.random() * 0.14) : h * (0.15 + Math.random() * 0.14);
-          } else {
-            p.x = margin + Math.random() * (w - margin * 2);
-            p.y = s.currentTeam === "A" ? h * (0.45 + Math.random() * 0.20) : h * (0.35 + Math.random() * 0.20);
-          }
-        }
-        s.arranging = true;
-        s.draggingPlayer = -1;
-        this.showMessage("Move players, then tap ball to kick off", 3000);
-        this.draw();
+        this.humanArrange();
       } else {
         s.arranging = false;
         this.cpuArrange();
       }
+    },
+
+    humanArrange() {
+      const s = this.state;
+      const myTeam = this.getTeamPlayers(s.currentTeam);
+      const w = this.pitchW, h = this.pitchH, margin = this.playerR + 4;
+      const isA = s.currentTeam === "A";
+
+      const targets = [];
+      const startPositions = myTeam.map((p) => ({ x: p.x, y: p.y }));
+      for (const p of myTeam) {
+        const idx = s.players.indexOf(p);
+        if (idx === s.ballCarrier) { targets.push(null); continue; }
+        let tx, ty;
+        if (p.label === "GK") {
+          tx = w * (0.35 + Math.random() * 0.3);
+          ty = isA ? h * (0.86 + Math.random() * 0.08) : h * (0.04 + Math.random() * 0.08);
+        } else if (p.label.startsWith("D")) {
+          tx = margin + Math.random() * (w - margin * 2);
+          ty = isA ? h * (0.68 + Math.random() * 0.14) : h * (0.15 + Math.random() * 0.14);
+        } else {
+          tx = margin + Math.random() * (w - margin * 2);
+          ty = isA ? h * (0.45 + Math.random() * 0.20) : h * (0.35 + Math.random() * 0.20);
+        }
+        targets.push({ x: tx, y: ty });
+      }
+
+      const dur = 400;
+      const t0 = performance.now();
+      const step = (now) => {
+        const t = Math.min((now - t0) / dur, 1);
+        const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        for (let i = 0; i < myTeam.length; i++) {
+          if (!targets[i]) continue;
+          myTeam[i].x = startPositions[i].x + (targets[i].x - startPositions[i].x) * ease;
+          myTeam[i].y = startPositions[i].y + (targets[i].y - startPositions[i].y) * ease;
+        }
+        this.draw();
+        if (t < 1) {
+          requestAnimationFrame(step);
+        } else {
+          s.arranging = true;
+          s.draggingPlayer = -1;
+          this.showMessage("Move players, then tap ball to kick off", 3000);
+          this.draw();
+        }
+      };
+      requestAnimationFrame(step);
     },
 
     cpuArrange() {
