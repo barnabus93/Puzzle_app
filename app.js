@@ -2583,43 +2583,68 @@
 
     onBadgeClick(team) {
       const s = this.state;
-      if (!s.teamA) {
+      if (s.mode === "cpu") {
+        // Every tap (re)picks the user's team; CPU auto-picks a new opponent
         s.teamA = team;
+        let opp;
+        do { opp = TEAMS[Math.floor(Math.random() * TEAMS.length)]; } while (opp.code === team.code || opp.p === team.p);
+        s.teamB = opp;
         document.querySelectorAll(".soccer-badge").forEach((b) => {
-          b.classList.toggle("selected", b.dataset.code === team.code);
+          b.classList.remove("selected", "selected-cpu");
+          if (b.dataset.code === team.code) b.classList.add("selected");
+          if (b.dataset.code === opp.code) b.classList.add("selected-cpu");
         });
-        if (s.mode === "cpu") {
-          let opp;
-          do { opp = TEAMS[Math.floor(Math.random() * TEAMS.length)]; } while (opp.code === team.code || opp.p === team.p);
-          s.teamB = opp;
-          const btn = document.getElementById("soccer-start-btn");
-          btn.hidden = false;
+        this.updateMatchup();
+        document.getElementById("soccer-start-btn").hidden = false;
+      } else {
+        // Friend mode: first tap = player 1, second = player 2
+        if (!s.teamA || s.teamB) {
+          s.teamA = team; s.teamB = null;
+          document.querySelectorAll(".soccer-badge").forEach((b) => {
+            b.classList.remove("selected", "selected-cpu");
+            if (b.dataset.code === team.code) b.classList.add("selected");
+          });
           document.querySelector(".soccer-select-title").textContent =
-            s.teamA.code + " vs " + s.teamB.code;
-          setTimeout(() => btn.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
-        } else {
-          document.querySelector(".soccer-select-title").textContent =
-            s.teamA.code + " selected — Player 2, pick your team!";
+            team.code + " selected — Player 2, pick your team!";
+          document.getElementById("soccer-start-btn").hidden = true;
+          document.getElementById("soccer-matchup").hidden = true;
+        } else if (!s.teamB && team.code !== s.teamA.code) {
+          s.teamB = team;
+          document.querySelectorAll(".soccer-badge").forEach((b) => {
+            if (b.dataset.code === team.code) b.classList.add("selected-cpu");
+          });
+          this.updateMatchup();
+          document.getElementById("soccer-start-btn").hidden = false;
         }
-      } else if (s.mode === "friend" && !s.teamB) {
-        if (team.code === s.teamA.code) return;
-        s.teamB = team;
-        document.querySelectorAll(".soccer-badge").forEach((b) => {
-          b.classList.toggle("selected", b.dataset.code === team.code || b.dataset.code === s.teamA.code);
-        });
-        const btn = document.getElementById("soccer-start-btn");
-        btn.hidden = false;
-        document.querySelector(".soccer-select-title").textContent =
-          s.teamA.code + " vs " + s.teamB.code;
-        setTimeout(() => btn.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
       }
+    },
+
+    updateMatchup() {
+      const s = this.state;
+      if (!s.teamA || !s.teamB) return;
+      const mu = document.getElementById("soccer-matchup");
+      mu.hidden = false;
+      const bA = document.getElementById("matchup-badge-a");
+      bA.style.background = s.teamA.p;
+      bA.style.borderColor = s.teamA.s;
+      bA.style.color = this.contrastText(s.teamA.p);
+      bA.textContent = s.teamA.code;
+      document.getElementById("matchup-name-a").textContent = s.teamA.name;
+      const bB = document.getElementById("matchup-badge-b");
+      bB.style.background = s.teamB.p;
+      bB.style.borderColor = s.teamB.s;
+      bB.style.color = this.contrastText(s.teamB.p);
+      bB.textContent = s.teamB.code;
+      document.getElementById("matchup-name-b").textContent = s.teamB.name;
+      document.querySelector(".soccer-select-title").textContent = "Tap a team to change";
     },
 
     resetSelection() {
       this.state.teamA = null; this.state.teamB = null;
-      document.querySelectorAll(".soccer-badge").forEach((b) => b.classList.remove("selected"));
+      document.querySelectorAll(".soccer-badge").forEach((b) => b.classList.remove("selected", "selected-cpu"));
       document.querySelector(".soccer-select-title").textContent = "Choose Your Team";
       document.getElementById("soccer-start-btn").hidden = true;
+      document.getElementById("soccer-matchup").hidden = true;
     },
   };
 

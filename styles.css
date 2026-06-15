@@ -976,6 +976,49 @@ fieldset.field legend {
   border-color: var(--accent);
   background: rgba(233,163,74,0.1);
 }
+.soccer-badge.selected-cpu {
+  border-color: #0ff;
+  background: rgba(0,255,255,0.08);
+}
+/* Matchup display */
+.soccer-matchup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px 0;
+  width: 100%;
+}
+.soccer-matchup[hidden] { display: none !important; }
+.matchup-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.matchup-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--pixel-font);
+  font-size: 0.5rem;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  border: 3px solid rgba(0,0,0,0.3);
+}
+.matchup-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+.matchup-vs {
+  font-family: var(--pixel-font);
+  font-size: 0.7rem;
+  color: var(--muted);
+}
 .soccer-badge-circle {
   width: 40px;
   height: 40px;

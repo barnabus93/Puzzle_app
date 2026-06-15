@@ -566,8 +566,19 @@
             <button id="soccer-mode-cpu" class="soccer-mode-btn active" type="button">vs CPU</button>
             <button id="soccer-mode-friend" class="soccer-mode-btn" type="button">vs Friend</button>
           </div>
-          <div id="soccer-badges" class="soccer-badges"></div>
+          <div id="soccer-matchup" class="soccer-matchup" hidden>
+            <div class="matchup-team" id="matchup-a">
+              <div class="matchup-badge" id="matchup-badge-a"></div>
+              <span class="matchup-name" id="matchup-name-a"></span>
+            </div>
+            <span class="matchup-vs">VS</span>
+            <div class="matchup-team" id="matchup-b">
+              <div class="matchup-badge" id="matchup-badge-b"></div>
+              <span class="matchup-name" id="matchup-name-b"></span>
+            </div>
+          </div>
           <button id="soccer-start-btn" class="primary-btn" type="button" hidden>Start Match</button>
+          <div id="soccer-badges" class="soccer-badges"></div>
         </div>
         <!-- Match canvas (hidden during team select) -->
         <div id="soccer-canvas-wrap" class="soccer-canvas-wrap" hidden>
