@@ -2006,6 +2006,9 @@
       currentTeam: "A",
       ballCarrier: 4,
       actionsLeft: 4,
+      selectedTarget: -1,
+      arranging: false,
+      draggingPlayer: -1,
       players: [],
       ballX: 0, ballY: 0,
       animating: false,
@@ -2077,6 +2080,10 @@
         if (isBallCarrier) {
           ctx.beginPath(); ctx.arc(p.x, p.y, r + 4, 0, Math.PI * 2);
           ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
+        }
+        if (s.players.indexOf(p) === s.selectedTarget) {
+          ctx.beginPath(); ctx.arc(p.x, p.y, r + 6, 0, Math.PI * 2);
+          ctx.strokeStyle = "#0f0"; ctx.lineWidth = 2.5; ctx.stroke();
         }
         ctx.fillStyle = this.contrastText(team.p); ctx.font = "bold " + Math.round(r * 0.65) + "px system-ui";
         ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -2150,14 +2157,23 @@
       const s = this.state;
       if (s.possession >= s.totalPossessions) { this.endMatch(); return; }
       s.actionsLeft = 4;
+      s.selectedTarget = -1;
       const team = this.getTeamPlayers(s.currentTeam);
       const attackers = team.filter((p) => p.label.startsWith("A"));
       const carrier = attackers[Math.floor(Math.random() * attackers.length)];
       s.ballCarrier = s.players.indexOf(carrier);
       s.ballX = carrier.x; s.ballY = carrier.y;
       this.updateScore();
-      this.draw();
-      if (s.mode === "cpu" && s.currentTeam === "B") {
+
+      const isHuman = !(s.mode === "cpu" && s.currentTeam === "B");
+      if (isHuman) {
+        s.arranging = true;
+        s.draggingPlayer = -1;
+        this.showMessage("Drag players to rearrange, then tap the ball carrier to kick off", 3000);
+        this.draw();
+      } else {
+        s.arranging = false;
+        this.draw();
         setTimeout(() => this.cpuTurn(), 600);
       }
     },
@@ -2303,25 +2319,75 @@
       }
     },
 
-    onCanvasTap(e) {
+    hitTestPlayer(tx, ty) {
+      const r = this.playerR;
+      for (let i = 0; i < this.state.players.length; i++) {
+        const p = this.state.players[i];
+        if (Math.abs(tx - p.x) < r * 1.8 && Math.abs(ty - p.y) < r * 1.8) return i;
+      }
+      return -1;
+    },
+
+    screenToCanvas(e) {
+      const rect = this.canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left) * (this.pitchW / rect.width),
+        y: (e.clientY - rect.top) * (this.pitchH / rect.height),
+      };
+    },
+
+    isInOwnHalf(player, y) {
+      if (player.team === "A") return y >= this.pitchH * 0.5;
+      return y <= this.pitchH * 0.5;
+    },
+
+    onCanvasDown(e) {
       const s = this.state;
       if (s.animating || s.won) return;
       if (s.mode === "cpu" && s.currentTeam === "B") return;
-      if (s.mode === "friend" && s.phase !== "play") return;
-      const rect = this.canvas.getBoundingClientRect();
-      const tx = (e.clientX - rect.left) * (this.pitchW / rect.width);
-      const ty = (e.clientY - rect.top) * (this.pitchH / rect.height);
-      const r = this.playerR;
-      const carrier = s.players[s.ballCarrier];
+      const { x: tx, y: ty } = this.screenToCanvas(e);
 
-      // Check if tapped on a teammate
-      const myTeam = this.getTeamPlayers(s.currentTeam);
-      for (const p of myTeam) {
-        if (s.players.indexOf(p) === s.ballCarrier) continue;
-        if (Math.abs(tx - p.x) < r * 1.8 && Math.abs(ty - p.y) < r * 1.8) {
-          this.tryPass(s.players.indexOf(p));
-          return;
+      // Arrange phase: start dragging a player
+      if (s.arranging) {
+        const hit = this.hitTestPlayer(tx, ty);
+        if (hit >= 0) {
+          const p = s.players[hit];
+          if (p.team === s.currentTeam && hit !== s.ballCarrier) {
+            s.draggingPlayer = hit;
+            try { this.canvas.setPointerCapture(e.pointerId); } catch {}
+          } else if (hit === s.ballCarrier) {
+            // Tapped the ball carrier = kick off
+            s.arranging = false;
+            s.draggingPlayer = -1;
+            this.state.message = "";
+            this.draw();
+          }
         }
+        return;
+      }
+
+      // Play phase: tap-to-select, tap-to-confirm
+      const hit = this.hitTestPlayer(tx, ty);
+      const myTeam = this.getTeamPlayers(s.currentTeam);
+
+      if (hit >= 0 && s.players[hit].team === s.currentTeam && hit !== s.ballCarrier) {
+        if (s.selectedTarget === hit) {
+          // Second tap on same player = confirm pass
+          s.selectedTarget = -1;
+          this.tryPass(hit);
+        } else {
+          // First tap = select target
+          s.selectedTarget = hit;
+          this.draw();
+        }
+        return;
+      }
+
+      // Tapped somewhere else = deselect
+      if (s.selectedTarget >= 0) {
+        s.selectedTarget = -1;
+        this.draw();
+        return;
       }
 
       // Check if tapped near the goal
@@ -2329,6 +2395,26 @@
       if (Math.abs(ty - goalY) < this.pitchH * 0.12 && Math.abs(tx - this.pitchW / 2) < this.pitchW * 0.35) {
         this.tryShoot();
       }
+    },
+
+    onCanvasMove(e) {
+      const s = this.state;
+      if (s.draggingPlayer < 0 || !s.arranging) return;
+      const { x: tx, y: ty } = this.screenToCanvas(e);
+      const p = s.players[s.draggingPlayer];
+      // Clamp to own half and within pitch bounds
+      const margin = this.playerR;
+      const clampedX = Math.max(margin, Math.min(this.pitchW - margin, tx));
+      let clampedY = Math.max(margin, Math.min(this.pitchH - margin, ty));
+      if (p.team === "A") clampedY = Math.max(this.pitchH * 0.5 + margin, clampedY);
+      else clampedY = Math.min(this.pitchH * 0.5 - margin, clampedY);
+      p.x = clampedX;
+      p.y = clampedY;
+      this.draw();
+    },
+
+    onCanvasUp(e) {
+      this.state.draggingPlayer = -1;
     },
 
     showTeamSelect() {
@@ -2427,7 +2513,13 @@
 
         soccer.canvas.addEventListener("pointerdown", (e) => {
           e.preventDefault();
-          soccer.onCanvasTap(e);
+          soccer.onCanvasDown(e);
+        });
+        soccer.canvas.addEventListener("pointermove", (e) => {
+          soccer.onCanvasMove(e);
+        });
+        soccer.canvas.addEventListener("pointerup", (e) => {
+          soccer.onCanvasUp(e);
         });
 
         document.getElementById("soccer-play-again-btn").addEventListener("click", () => {
