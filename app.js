@@ -2255,10 +2255,10 @@
           ty = h * (0.04 + Math.random() * 0.08);
         } else if (p.label.startsWith("D")) {
           tx = margin + Math.random() * (w - margin * 2);
-          ty = h * (0.12 + Math.random() * 0.14);
+          ty = h * (0.15 + Math.random() * 0.25);
         } else {
           tx = margin + Math.random() * (w - margin * 2);
-          ty = h * (0.28 + Math.random() * 0.18);
+          ty = h * (0.35 + Math.random() * 0.30);
         }
         targets.push({ x: tx, y: ty });
       }
@@ -2364,27 +2364,29 @@
       const goalY = shooter.team === "A" ? 0 : this.pitchH;
       const goalX = this.pitchW / 2;
 
-      // Base chance: higher when closer to goal
       const distToGoal = Math.abs(shooter.y - goalY) / this.pitchH;
-      let chance = 0.75 - distToGoal * 0.6;
+      let chance = 0.80 - distToGoal * 0.5;
 
-      // Defenders in the shooting lane reduce chance
       const opponents = this.getTeamPlayers(shooter.team === "A" ? "B" : "A");
       for (const opp of opponents) {
         if (opp.label === "GK") continue;
         const d = this.pointToLineDist(opp.x, opp.y, shooter.x, shooter.y, goalX, goalY);
-        if (d < this.playerR * 4) chance -= 0.12;
+        if (d < this.playerR * 4) chance -= 0.10;
       }
 
-      // Goalie save: depends on how close the GK is to the goal center
+      // Goalie save: ONLY if GK is close to the goal. If they're
+      // far away, no save at all. Max save chance is 5%.
       const gk = opponents.find((p) => p.label === "GK");
+      let gkNearGoal = false;
       if (gk) {
-        const gkDist = Math.sqrt((gk.x - goalX) ** 2 + (gk.y - goalY) ** 2) / this.pitchW;
-        const saveChance = gkDist < 0.2 ? 0.30 : gkDist < 0.4 ? 0.15 : 0.05;
-        chance *= (1 - saveChance);
+        const gkDistToGoal = Math.abs(gk.y - goalY) / this.pitchH;
+        if (gkDistToGoal < 0.12) {
+          chance *= 0.95;
+          gkNearGoal = true;
+        }
       }
 
-      chance = Math.max(0.10, Math.min(0.85, chance));
+      chance = Math.max(0.15, Math.min(0.90, chance));
       const scores = Math.random() < chance;
 
       this.animateBall(goalX, goalY, 300, () => {
@@ -2394,7 +2396,7 @@
           this.updateScore();
           setTimeout(() => this.nextPossession(), 1400);
         } else {
-          this.showMessage("Saved!", 800);
+          this.showMessage(gkNearGoal ? "Saved!" : "Missed!", 800);
           setTimeout(() => this.nextPossession(), 1000);
         }
       });
@@ -2434,11 +2436,16 @@
       const myTeam = this.getTeamPlayers("B");
       const goalY = this.pitchH;
       const distToGoal = Math.abs(carrier.y - goalY) / this.pitchH;
-      if (carrier.label.startsWith("A") && distToGoal < 0.4 && Math.random() < 0.6) {
+
+      // Aggressive: shoot from further out, higher probability
+      const shootChance = distToGoal < 0.35 ? 0.80 : distToGoal < 0.55 ? 0.50 : 0.15;
+      if (Math.random() < shootChance) {
         this.tryShoot();
       } else {
+        // Pass toward the player closest to the opponent's goal
         const others = myTeam.filter((p) => s.players.indexOf(p) !== s.ballCarrier);
-        const target = others[Math.floor(Math.random() * others.length)];
+        others.sort((a, b) => Math.abs(a.y - goalY) - Math.abs(b.y - goalY));
+        const target = Math.random() < 0.7 ? others[0] : others[Math.floor(Math.random() * others.length)];
         this.tryPass(s.players.indexOf(target));
       }
     },
