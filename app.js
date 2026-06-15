@@ -2526,12 +2526,10 @@
       if (s.draggingPlayer < 0 || !s.arranging) return;
       const { x: tx, y: ty } = this.screenToCanvas(e);
       const p = s.players[s.draggingPlayer];
-      // Clamp to own half and within pitch bounds
+      // Clamp within pitch bounds (full field, not just own half)
       const margin = this.playerR;
       const clampedX = Math.max(margin, Math.min(this.pitchW - margin, tx));
-      let clampedY = Math.max(margin, Math.min(this.pitchH - margin, ty));
-      if (p.team === "A") clampedY = Math.max(this.pitchH * 0.5 + margin, clampedY);
-      else clampedY = Math.min(this.pitchH * 0.5 - margin, clampedY);
+      const clampedY = Math.max(margin, Math.min(this.pitchH - margin, ty));
       p.x = clampedX;
       p.y = clampedY;
       this.draw();
