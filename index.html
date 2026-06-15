@@ -604,14 +604,33 @@
       <!-- Soccer tutorial modal -->
       <div id="soccer-tutorial-modal" class="modal" role="dialog" aria-modal="true" hidden>
         <div class="modal-backdrop"></div>
-        <div class="modal-card tutorial-card">
-          <h2>Soccer Challenge</h2>
-          <p class="tutorial-caption">Tap a teammate to pass the ball.</p>
-          <p class="tutorial-caption">Tap the goal to shoot!</p>
-          <p class="tutorial-caption">Each team gets 5 possessions.</p>
-          <p class="tutorial-caption">Most goals wins. Good luck!</p>
-          <div class="modal-actions tutorial-actions">
-            <button id="soccer-tutorial-btn" type="button" class="primary-btn">Let's play!</button>
+        <div class="modal-card tutorial-card" style="max-width:360px;">
+          <h2 style="text-align:center;">How to Play</h2>
+          <div id="soccer-tutorial-steps">
+            <div class="soccer-tut-step" data-step="0">
+              <div class="soccer-tut-icon">&#9917;</div>
+              <p class="tutorial-caption"><strong>Arrange your team</strong></p>
+              <p class="tutorial-caption">Drag your players anywhere on the field before each possession. Tap the player with the ball (yellow ring) to kick off.</p>
+            </div>
+            <div class="soccer-tut-step" data-step="1" hidden>
+              <div class="soccer-tut-icon">&#128073;</div>
+              <p class="tutorial-caption"><strong>Pass the ball</strong></p>
+              <p class="tutorial-caption">Tap a teammate <em>once</em> to select them (green ring). Tap them <em>again</em> to confirm the pass.</p>
+            </div>
+            <div class="soccer-tut-step" data-step="2" hidden>
+              <div class="soccer-tut-icon">&#9918;</div>
+              <p class="tutorial-caption"><strong>Shoot!</strong></p>
+              <p class="tutorial-caption">Tap the goal area to take a shot. The closer your player is to the goal, the better the chance of scoring.</p>
+            </div>
+            <div class="soccer-tut-step" data-step="3" hidden>
+              <div class="soccer-tut-icon">&#127942;</div>
+              <p class="tutorial-caption"><strong>Win the match</strong></p>
+              <p class="tutorial-caption">Each team gets 5 possessions. Score the most goals to win! Watch out for interceptions by defenders.</p>
+            </div>
+          </div>
+          <div class="modal-actions" style="justify-content:space-between;">
+            <button id="soccer-tut-prev" type="button" class="danger-btn" hidden>&larr; Back</button>
+            <button id="soccer-tut-next" type="button" class="primary-btn">Next &rarr;</button>
           </div>
         </div>
       </div>

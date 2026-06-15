@@ -2285,7 +2285,7 @@
         } else {
           s.arranging = true;
           s.draggingPlayer = -1;
-          this.showMessage("Move players, then tap ball to kick off", 3000);
+          this.showMessage("Drag to reposition. Tap ball carrier to kick off!", 3000);
           this.draw();
         }
       };
@@ -2744,9 +2744,22 @@
           soccer.showTeamSelect();
         });
 
-        document.getElementById("soccer-tutorial-btn").addEventListener("click", () => {
-          soccerStore.setBool("tutorialSeen", true);
-          hideModal(document.getElementById("soccer-tutorial-modal"));
+        // Step-by-step tutorial navigation
+        let tutStep = 0;
+        const tutSteps = document.querySelectorAll(".soccer-tut-step");
+        const tutPrev = document.getElementById("soccer-tut-prev");
+        const tutNext = document.getElementById("soccer-tut-next");
+        function showTutStep() {
+          tutSteps.forEach((s, i) => { s.hidden = i !== tutStep; });
+          tutPrev.hidden = tutStep === 0;
+          tutNext.textContent = tutStep === tutSteps.length - 1 ? "Let's play!" : "Next →";
+        }
+        tutNext.addEventListener("click", () => {
+          if (tutStep < tutSteps.length - 1) { tutStep++; showTutStep(); }
+          else { soccerStore.setBool("tutorialSeen", true); hideModal(document.getElementById("soccer-tutorial-modal")); }
+        });
+        tutPrev.addEventListener("click", () => {
+          if (tutStep > 0) { tutStep--; showTutStep(); }
         });
 
         window.addEventListener("resize", () => {
