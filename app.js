@@ -2235,9 +2235,59 @@
         this.draw();
       } else {
         s.arranging = false;
-        this.draw();
-        setTimeout(() => this.cpuTurn(), 600);
+        this.cpuArrange();
       }
+    },
+
+    cpuArrange() {
+      const s = this.state;
+      const w = this.pitchW, h = this.pitchH, margin = this.playerR + 4;
+      const team = this.getTeamPlayers("B");
+
+      // Pick new random positions for each non-carrier CPU player
+      const targets = [];
+      for (const p of team) {
+        const idx = s.players.indexOf(p);
+        if (idx === s.ballCarrier) { targets.push(null); continue; }
+        let tx, ty;
+        if (p.label === "GK") {
+          tx = w * (0.3 + Math.random() * 0.4);
+          ty = h * (0.04 + Math.random() * 0.08);
+        } else if (p.label.startsWith("D")) {
+          tx = margin + Math.random() * (w - margin * 2);
+          ty = h * (0.12 + Math.random() * 0.14);
+        } else {
+          tx = margin + Math.random() * (w - margin * 2);
+          ty = h * (0.28 + Math.random() * 0.18);
+        }
+        targets.push({ x: tx, y: ty });
+      }
+
+      // Animate the CPU players moving to their new positions
+      this.showMessage(s.teamB.code + " rearranging...", 1200);
+      const dur = 500;
+      const startPositions = team.map((p) => ({ x: p.x, y: p.y }));
+      const t0 = performance.now();
+      const step = (now) => {
+        const t = Math.min((now - t0) / dur, 1);
+        const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        for (let i = 0; i < team.length; i++) {
+          if (!targets[i]) continue;
+          team[i].x = startPositions[i].x + (targets[i].x - startPositions[i].x) * ease;
+          team[i].y = startPositions[i].y + (targets[i].y - startPositions[i].y) * ease;
+        }
+        this.draw();
+        if (t < 1) {
+          requestAnimationFrame(step);
+        } else {
+          // Update ball position to carrier
+          const carrier = s.players[s.ballCarrier];
+          s.ballX = carrier.x; s.ballY = carrier.y;
+          this.draw();
+          setTimeout(() => this.cpuTurn(), 500);
+        }
+      };
+      requestAnimationFrame(step);
     },
 
     animateBall(toX, toY, dur, cb) {
