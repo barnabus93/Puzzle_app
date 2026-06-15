@@ -2008,15 +2008,17 @@
     {code:"UZB",name:"Uzbekistan",p:"#0099cc",s:"#ffffff"},
   ];
 
-  // Player positions on the pitch (normalized 0-1 coordinates).
-  // Team A attacks upward (goal at top), Team B attacks downward.
+  // Player positions as fractions of pitch width/height.
+  // Defined for Team A (bottom half, attacks upward toward top goal).
+  // Team B is mirrored vertically.
+  // ny=0 is the top edge, ny=1 is the bottom edge.
   const FORMATION = [
-    { label: "GK", nx: 0.5, ny: 0.88 },
-    { label: "D1", nx: 0.3, ny: 0.72 },
-    { label: "D2", nx: 0.7, ny: 0.72 },
-    { label: "A1", nx: 0.2, ny: 0.55 },
-    { label: "A2", nx: 0.5, ny: 0.50 },
-    { label: "A3", nx: 0.8, ny: 0.55 },
+    { label: "GK", nx: 0.50, ny: 0.92 },  // right in front of own goal
+    { label: "D1", nx: 0.30, ny: 0.78 },  // left defender
+    { label: "D2", nx: 0.70, ny: 0.78 },  // right defender
+    { label: "A1", nx: 0.20, ny: 0.58 },  // left attacker
+    { label: "A2", nx: 0.50, ny: 0.58 },  // center attacker
+    { label: "A3", nx: 0.80, ny: 0.58 },  // right attacker
   ];
 
   const soccer = {
@@ -2062,14 +2064,16 @@
     },
 
     buildPlayers() {
-      const p = [];
+      const p = [], w = this.pitchW, h = this.pitchH;
+      // Team A: bottom half (ny values are 0.5–1.0 range)
       for (let i = 0; i < 6; i++) {
         const f = FORMATION[i];
-        p.push({ team: "A", idx: i, label: f.label, x: f.nx * this.pitchW, y: (1 - f.ny + 0.5) * this.pitchH / 2 + this.pitchH / 2 });
+        p.push({ team: "A", idx: i, label: f.label, x: f.nx * w, y: f.ny * h });
       }
+      // Team B: mirrored vertically (top half)
       for (let i = 0; i < 6; i++) {
         const f = FORMATION[i];
-        p.push({ team: "B", idx: i, label: f.label, x: (1 - f.nx) * this.pitchW, y: f.ny * this.pitchH / 2 });
+        p.push({ team: "B", idx: i, label: f.label, x: f.nx * w, y: (1 - f.ny) * h });
       }
       this.state.players = p;
     },
