@@ -75,6 +75,19 @@
             </svg>
             <span class="tile-label">ONE FILL LINE</span>
           </button>
+          <button class="game-tile" data-game="soccer">
+            <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
+              <rect width="64" height="64" rx="6" fill="#2d6e3a"/>
+              <line x1="0" y1="32" x2="64" y2="32" stroke="#fff" stroke-width="1" opacity="0.5"/>
+              <circle cx="32" cy="32" r="10" fill="none" stroke="#fff" stroke-width="1" opacity="0.5"/>
+              <circle cx="20" cy="20" r="5" fill="#3a6dbf"/><circle cx="44" cy="20" r="5" fill="#3a6dbf"/>
+              <circle cx="32" cy="12" r="5" fill="#3a6dbf"/>
+              <circle cx="32" cy="44" r="5" fill="#d03020"/><circle cx="20" cy="52" r="5" fill="#d03020"/>
+              <circle cx="44" cy="52" r="5" fill="#d03020"/>
+              <circle cx="32" cy="28" r="3" fill="#fff"/>
+            </svg>
+            <span class="tile-label">FOOSBALL KICKOFF</span>
+          </button>
           <div class="game-tile game-tile--disabled">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="6" fill="#1f1c19" opacity="0.5"/>
@@ -523,6 +536,71 @@
           <p class="tutorial-caption">Fill them all to win!</p>
           <div class="modal-actions tutorial-actions">
             <button id="onefill-tutorial-btn" type="button" class="primary-btn">Start playing!</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- FOOSBALL KICKOFF SCREEN                                       -->
+    <!-- ============================================================ -->
+    <div id="screen-soccer" class="screen" hidden>
+      <header class="app-header">
+        <button class="menu-btn" type="button" data-back aria-label="Back to menu">&larr; MENU</button>
+        <div id="soccer-score" class="soccer-score"></div>
+        <div class="counter" aria-live="polite">
+          Played: <span id="soccer-completed-count">0</span>
+        </div>
+        <button id="soccer-settings-btn" class="icon-btn" type="button" aria-label="Settings" style="visibility:hidden">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M19.14 12.94a7.49 7.49 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.88 2h-3.84a.5.5 0 0 0-.5.43l-.36 2.54c-.58.24-1.13.55-1.63.94l-2.39-.96a.5.5 0 0 0-.61.22L2.63 8.49a.5.5 0 0 0 .12.64l2.03 1.58a7.49 7.49 0 0 0 0 1.88L2.75 14.17a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.34.67.24l2.39-.96c.5.39 1.05.7 1.63.94l.36 2.54c.05.25.26.43.5.43h3.84c.25 0 .46-.18.5-.43l.36-2.54c.58-.24 1.13-.55 1.63-.94l2.39.96c.25.1.53 0 .67-.24l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </header>
+
+      <main class="app-main">
+        <!-- Team selection overlay -->
+        <div id="soccer-team-select" class="soccer-select">
+          <h2 class="soccer-select-title">Choose Your Team</h2>
+          <div class="soccer-mode-toggle">
+            <button id="soccer-mode-cpu" class="soccer-mode-btn active" type="button">vs CPU</button>
+            <button id="soccer-mode-friend" class="soccer-mode-btn" type="button">vs Friend</button>
+          </div>
+          <div id="soccer-badges" class="soccer-badges"></div>
+          <button id="soccer-start-btn" class="primary-btn" type="button" hidden>Start Match</button>
+        </div>
+        <!-- Match canvas (hidden during team select) -->
+        <div id="soccer-canvas-wrap" class="soccer-canvas-wrap" hidden>
+          <canvas id="soccer-canvas"></canvas>
+        </div>
+        <div id="soccer-info" class="soccer-info" hidden></div>
+      </main>
+
+      <!-- Soccer end-of-match modal -->
+      <div id="soccer-end-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-card">
+          <h2 id="soccer-end-title">Full Time!</h2>
+          <p id="soccer-end-score" style="font-size:1.4rem;text-align:center;"></p>
+          <p>Matches played: <strong><span id="soccer-end-total">0</span></strong></p>
+          <div class="modal-actions" style="flex-direction:column;gap:8px;">
+            <button id="soccer-play-again-btn" type="button" class="primary-btn" style="width:100%">Play Again</button>
+            <button id="soccer-new-teams-btn" type="button" class="danger-btn" style="width:100%">New Teams</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Soccer tutorial modal -->
+      <div id="soccer-tutorial-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-card tutorial-card">
+          <h2>Foosball Kickoff</h2>
+          <p class="tutorial-caption">Tap a teammate to pass the ball.</p>
+          <p class="tutorial-caption">Tap the goal to shoot!</p>
+          <p class="tutorial-caption">Each team gets 5 possessions.</p>
+          <p class="tutorial-caption">Most goals wins. Good luck!</p>
+          <div class="modal-actions tutorial-actions">
+            <button id="soccer-tutorial-btn" type="button" class="primary-btn">Let's play!</button>
           </div>
         </div>
       </div>

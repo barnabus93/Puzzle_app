@@ -1951,7 +1951,529 @@
   };
 
   // ================================================================
-  // 17. INIT & LOCALSTORAGE MIGRATION
+  // ================================================================
+  // 17. FOOSBALL KICKOFF — Turn-based 5v5 soccer
+  // ================================================================
+  const soccerStore = makeStore("soccer");
+
+  const TEAMS = [
+    {code:"USA",name:"USA",p:"#002868",s:"#bf0a30"},{code:"MEX",name:"Mexico",p:"#006847",s:"#ce1126"},
+    {code:"CAN",name:"Canada",p:"#ff0000",s:"#ffffff"},{code:"BRA",name:"Brazil",p:"#f4e500",s:"#009739"},
+    {code:"ARG",name:"Argentina",p:"#75aadb",s:"#ffffff"},{code:"URU",name:"Uruguay",p:"#5cbfeb",s:"#ffffff"},
+    {code:"COL",name:"Colombia",p:"#fcd116",s:"#003893"},{code:"ECU",name:"Ecuador",p:"#ffd100",s:"#003da5"},
+    {code:"PAR",name:"Paraguay",p:"#d52b1e",s:"#0038a8"},{code:"CRC",name:"Costa Rica",p:"#d21034",s:"#ffffff"},
+    {code:"JAM",name:"Jamaica",p:"#009b3a",s:"#fed100"},{code:"HON",name:"Honduras",p:"#0051ab",s:"#ffffff"},
+    {code:"GER",name:"Germany",p:"#ffffff",s:"#000000"},{code:"ESP",name:"Spain",p:"#aa151b",s:"#f1bf00"},
+    {code:"FRA",name:"France",p:"#002395",s:"#ffffff"},{code:"ENG",name:"England",p:"#ffffff",s:"#cf081f"},
+    {code:"POR",name:"Portugal",p:"#006600",s:"#ff0000"},{code:"NED",name:"Netherlands",p:"#ff6600",s:"#ffffff"},
+    {code:"BEL",name:"Belgium",p:"#ed2939",s:"#fae042"},{code:"ITA",name:"Italy",p:"#0066cc",s:"#ffffff"},
+    {code:"CRO",name:"Croatia",p:"#ff0000",s:"#ffffff"},{code:"DEN",name:"Denmark",p:"#c60c30",s:"#ffffff"},
+    {code:"SUI",name:"Switzerland",p:"#ff0000",s:"#ffffff"},{code:"AUT",name:"Austria",p:"#ed2939",s:"#ffffff"},
+    {code:"UKR",name:"Ukraine",p:"#005bbb",s:"#ffd500"},{code:"SRB",name:"Serbia",p:"#c6363c",s:"#0c4076"},
+    {code:"SCO",name:"Scotland",p:"#003399",s:"#ffffff"},{code:"TUR",name:"Turkey",p:"#e30a17",s:"#ffffff"},
+    {code:"JPN",name:"Japan",p:"#000080",s:"#ffffff"},{code:"KOR",name:"S. Korea",p:"#cd2e3a",s:"#0047a0"},
+    {code:"AUS",name:"Australia",p:"#00843d",s:"#ffcd00"},{code:"KSA",name:"Saudi Arabia",p:"#006c35",s:"#ffffff"},
+    {code:"IRN",name:"Iran",p:"#ffffff",s:"#da0000"},{code:"QAT",name:"Qatar",p:"#8b1a2b",s:"#ffffff"},
+    {code:"IRQ",name:"Iraq",p:"#007a3d",s:"#ffffff"},{code:"UZB",name:"Uzbekistan",p:"#0099cc",s:"#ffffff"},
+    {code:"MAR",name:"Morocco",p:"#c1272d",s:"#006233"},{code:"SEN",name:"Senegal",p:"#009639",s:"#fdef42"},
+    {code:"NGA",name:"Nigeria",p:"#008751",s:"#ffffff"},{code:"CMR",name:"Cameroon",p:"#007a5e",s:"#ce1126"},
+    {code:"GHA",name:"Ghana",p:"#ffffff",s:"#006b3f"},{code:"CIV",name:"Ivory Coast",p:"#ff8200",s:"#009e60"},
+    {code:"TUN",name:"Tunisia",p:"#e70013",s:"#ffffff"},{code:"EGY",name:"Egypt",p:"#c8102e",s:"#ffffff"},
+    {code:"RSA",name:"S. Africa",p:"#007749",s:"#ffb81c"},{code:"NZL",name:"New Zealand",p:"#000000",s:"#ffffff"},
+    {code:"CHI",name:"Chile",p:"#d52b1e",s:"#ffffff"},{code:"BOL",name:"Bolivia",p:"#007a33",s:"#f4e400"},
+  ];
+
+  // Player positions on the pitch (normalized 0-1 coordinates).
+  // Team A attacks upward (goal at top), Team B attacks downward.
+  const FORMATION = [
+    { label: "GK", nx: 0.5, ny: 0.88 },
+    { label: "D1", nx: 0.3, ny: 0.72 },
+    { label: "D2", nx: 0.7, ny: 0.72 },
+    { label: "A1", nx: 0.2, ny: 0.55 },
+    { label: "A2", nx: 0.5, ny: 0.50 },
+    { label: "A3", nx: 0.8, ny: 0.55 },
+  ];
+
+  const soccer = {
+    canvas: null, ctx: null,
+    state: {
+      phase: "select",
+      mode: "cpu",
+      teamA: null, teamB: null,
+      scoreA: 0, scoreB: 0,
+      possession: 0,
+      totalPossessions: 10,
+      currentTeam: "A",
+      ballCarrier: 4,
+      actionsLeft: 4,
+      players: [],
+      ballX: 0, ballY: 0,
+      animating: false,
+      completed: 0,
+      won: false,
+      message: "",
+      messageTimer: null,
+    },
+    els: {},
+    pitchW: 300, pitchH: 450,
+    playerR: 16,
+
+    sizeCanvas() {
+      const wrap = document.getElementById("soccer-canvas-wrap");
+      const r = wrap.getBoundingClientRect();
+      const maxW = r.width - 16, maxH = r.height - 16;
+      const aspect = 2 / 3;
+      let w = Math.min(maxW, maxH * aspect);
+      let h = w / aspect;
+      if (h > maxH) { h = maxH; w = h * aspect; }
+      w = Math.floor(w); h = Math.floor(h);
+      this.pitchW = w; this.pitchH = h;
+      this.playerR = Math.max(12, Math.min(22, w * 0.055));
+      this.canvas.width = w; this.canvas.height = h;
+      this.canvas.style.width = w + "px"; this.canvas.style.height = h + "px";
+    },
+
+    buildPlayers() {
+      const p = [];
+      for (let i = 0; i < 6; i++) {
+        const f = FORMATION[i];
+        p.push({ team: "A", idx: i, label: f.label, x: f.nx * this.pitchW, y: (1 - f.ny + 0.5) * this.pitchH / 2 + this.pitchH / 2 });
+      }
+      for (let i = 0; i < 6; i++) {
+        const f = FORMATION[i];
+        p.push({ team: "B", idx: i, label: f.label, x: (1 - f.nx) * this.pitchW, y: f.ny * this.pitchH / 2 });
+      }
+      this.state.players = p;
+    },
+
+    getTeamPlayers(team) { return this.state.players.filter((p) => p.team === team); },
+
+    drawPitch() {
+      const ctx = this.ctx, w = this.pitchW, h = this.pitchH;
+      ctx.fillStyle = "#2d6e3a"; ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 1.5;
+      ctx.strokeRect(4, 4, w - 8, h - 8);
+      ctx.beginPath(); ctx.moveTo(4, h / 2); ctx.lineTo(w - 4, h / 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(w / 2, h / 2, h * 0.08, 0, Math.PI * 2); ctx.stroke();
+      const gw = w * 0.4, gh = h * 0.06;
+      ctx.strokeRect((w - gw) / 2, 4, gw, gh);
+      ctx.strokeRect((w - gw) / 2, h - 4 - gh, gw, gh);
+      const pw = w * 0.55, ph = h * 0.12;
+      ctx.strokeRect((w - pw) / 2, 4, pw, ph);
+      ctx.strokeRect((w - pw) / 2, h - 4 - ph, pw, ph);
+      ctx.fillStyle = "#fff"; ctx.fillRect((w - gw + 10) / 2, 0, gw - 10, 5);
+      ctx.fillRect((w - gw + 10) / 2, h - 5, gw - 10, 5);
+    },
+
+    drawPlayers() {
+      const ctx = this.ctx, r = this.playerR, s = this.state;
+      const tA = s.teamA, tB = s.teamB;
+      for (const p of s.players) {
+        const team = p.team === "A" ? tA : tB;
+        const isBallCarrier = (s.players.indexOf(p) === s.ballCarrier);
+        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = team.p; ctx.fill();
+        ctx.strokeStyle = team.s; ctx.lineWidth = 2.5; ctx.stroke();
+        if (isBallCarrier) {
+          ctx.beginPath(); ctx.arc(p.x, p.y, r + 4, 0, Math.PI * 2);
+          ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
+        }
+        ctx.fillStyle = this.contrastText(team.p); ctx.font = "bold " + Math.round(r * 0.65) + "px system-ui";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(p.label, p.x, p.y + 1);
+      }
+    },
+
+    contrastText(hex) {
+      const c = parseInt(hex.replace("#", ""), 16);
+      const r = (c >> 16) & 0xff, g = (c >> 8) & 0xff, b = c & 0xff;
+      return (r * 0.299 + g * 0.587 + b * 0.114) > 150 ? "#111" : "#fff";
+    },
+
+    drawBall() {
+      const ctx = this.ctx;
+      ctx.beginPath(); ctx.arc(this.state.ballX, this.state.ballY, 6, 0, Math.PI * 2);
+      ctx.fillStyle = "#fff"; ctx.fill();
+      ctx.strokeStyle = "#333"; ctx.lineWidth = 1; ctx.stroke();
+    },
+
+    drawMessage() {
+      if (!this.state.message) return;
+      const ctx = this.ctx, w = this.pitchW, h = this.pitchH;
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.fillRect(0, h / 2 - 30, w, 60);
+      ctx.fillStyle = "#fff"; ctx.font = "bold " + Math.round(w * 0.07) + "px system-ui";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(this.state.message, w / 2, h / 2);
+    },
+
+    draw() {
+      this.ctx.clearRect(0, 0, this.pitchW, this.pitchH);
+      this.drawPitch();
+      this.drawPlayers();
+      this.drawBall();
+      this.drawMessage();
+    },
+
+    updateScore() {
+      const s = this.state;
+      if (!s.teamA || !s.teamB) return;
+      document.getElementById("soccer-score").textContent =
+        s.teamA.code + " " + s.scoreA + " - " + s.scoreB + " " + s.teamB.code;
+      const info = document.getElementById("soccer-info");
+      const posLeft = s.totalPossessions - s.possession;
+      info.textContent = "Possession " + (s.possession + 1) + "/" + s.totalPossessions +
+        " • " + (s.currentTeam === "A" ? s.teamA.code : s.teamB.code) + "'s ball";
+    },
+
+    showMessage(msg, ms) {
+      this.state.message = msg;
+      this.draw();
+      if (this.state.messageTimer) clearTimeout(this.state.messageTimer);
+      this.state.messageTimer = setTimeout(() => { this.state.message = ""; this.draw(); }, ms || 1200);
+    },
+
+    startMatch() {
+      const s = this.state;
+      s.scoreA = 0; s.scoreB = 0; s.possession = 0;
+      s.currentTeam = Math.random() < 0.5 ? "A" : "B";
+      s.won = false; s.animating = false;
+      document.getElementById("soccer-team-select").hidden = true;
+      document.getElementById("soccer-canvas-wrap").hidden = false;
+      document.getElementById("soccer-info").hidden = false;
+      this.sizeCanvas();
+      this.buildPlayers();
+      this.startPossession();
+    },
+
+    startPossession() {
+      const s = this.state;
+      if (s.possession >= s.totalPossessions) { this.endMatch(); return; }
+      s.actionsLeft = 4;
+      const team = this.getTeamPlayers(s.currentTeam);
+      const attackers = team.filter((p) => p.label.startsWith("A"));
+      const carrier = attackers[Math.floor(Math.random() * attackers.length)];
+      s.ballCarrier = s.players.indexOf(carrier);
+      s.ballX = carrier.x; s.ballY = carrier.y;
+      this.updateScore();
+      this.draw();
+      if (s.mode === "cpu" && s.currentTeam === "B") {
+        setTimeout(() => this.cpuTurn(), 600);
+      }
+    },
+
+    animateBall(toX, toY, dur, cb) {
+      this.state.animating = true;
+      const fromX = this.state.ballX, fromY = this.state.ballY;
+      const start = performance.now();
+      const step = (now) => {
+        const t = Math.min((now - start) / dur, 1);
+        this.state.ballX = fromX + (toX - fromX) * t;
+        this.state.ballY = fromY + (toY - fromY) * t;
+        this.draw();
+        if (t < 1) requestAnimationFrame(step);
+        else { this.state.animating = false; cb(); }
+      };
+      requestAnimationFrame(step);
+    },
+
+    distBetween(a, b) {
+      return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+    },
+
+    pointToLineDist(px, py, x1, y1, x2, y2) {
+      const A = px - x1, B = py - y1, C = x2 - x1, D = y2 - y1;
+      const dot = A * C + B * D, lenSq = C * C + D * D;
+      let t = lenSq > 0 ? dot / lenSq : -1;
+      t = Math.max(0, Math.min(1, t));
+      const nx = x1 + t * C, ny = y1 + t * D;
+      return Math.sqrt((px - nx) ** 2 + (py - ny) ** 2);
+    },
+
+    tryPass(targetIdx) {
+      const s = this.state;
+      if (s.animating || s.won) return;
+      const from = s.players[s.ballCarrier];
+      const to = s.players[targetIdx];
+      if (from.team !== to.team || s.ballCarrier === targetIdx) return;
+
+      const opponents = this.getTeamPlayers(from.team === "A" ? "B" : "A");
+      let interceptors = 0;
+      for (const opp of opponents) {
+        const d = this.pointToLineDist(opp.x, opp.y, from.x, from.y, to.x, to.y);
+        if (d < this.playerR * 3) interceptors++;
+      }
+
+      const chance = Math.max(0.2, 0.85 - interceptors * 0.2);
+      const success = Math.random() < chance;
+
+      if (success) {
+        this.animateBall(to.x, to.y, 200, () => {
+          s.ballCarrier = targetIdx;
+          s.actionsLeft--;
+          if (s.actionsLeft <= 0) { this.turnover("Out of passes!"); return; }
+          this.draw();
+          if (s.mode === "cpu" && s.currentTeam === "B") setTimeout(() => this.cpuTurn(), 500);
+        });
+      } else {
+        const intc = opponents.reduce((best, opp) => {
+          const d = this.pointToLineDist(opp.x, opp.y, from.x, from.y, to.x, to.y);
+          return d < (best ? best.d : Infinity) ? { p: opp, d } : best;
+        }, null);
+        const ix = intc ? intc.p.x : (from.x + to.x) / 2;
+        const iy = intc ? intc.p.y : (from.y + to.y) / 2;
+        this.animateBall(ix, iy, 200, () => {
+          this.showMessage("Intercepted!", 800);
+          setTimeout(() => this.turnover(), 900);
+        });
+      }
+    },
+
+    tryShoot() {
+      const s = this.state;
+      if (s.animating || s.won) return;
+      const shooter = s.players[s.ballCarrier];
+      const goalY = shooter.team === "A" ? 0 : this.pitchH;
+      const goalX = this.pitchW / 2;
+
+      const distToGoal = Math.abs(shooter.y - goalY) / this.pitchH;
+      let chance = distToGoal < 0.35 ? 0.45 : 0.20;
+
+      const opponents = this.getTeamPlayers(shooter.team === "A" ? "B" : "A");
+      for (const opp of opponents) {
+        const d = this.pointToLineDist(opp.x, opp.y, shooter.x, shooter.y, goalX, goalY);
+        if (d < this.playerR * 3 && opp.label !== "GK") chance -= 0.10;
+      }
+      chance = Math.max(0.05, chance);
+      const saved = Math.random() > chance;
+
+      this.animateBall(goalX, goalY, 300, () => {
+        if (!saved) {
+          if (s.currentTeam === "A") s.scoreA++; else s.scoreB++;
+          this.showMessage("GOAL!", 1200);
+          this.updateScore();
+          setTimeout(() => this.nextPossession(), 1400);
+        } else {
+          this.showMessage("Saved!", 800);
+          setTimeout(() => this.nextPossession(), 1000);
+        }
+      });
+    },
+
+    turnover(msg) {
+      if (msg) this.showMessage(msg, 800);
+      setTimeout(() => this.nextPossession(), msg ? 900 : 200);
+    },
+
+    nextPossession() {
+      const s = this.state;
+      s.possession++;
+      s.currentTeam = s.currentTeam === "A" ? "B" : "A";
+      this.startPossession();
+    },
+
+    endMatch() {
+      const s = this.state;
+      s.won = true;
+      s.completed++;
+      soccerStore.setInt("completedCount", s.completed);
+      document.getElementById("soccer-completed-count").textContent = String(s.completed);
+      const result = s.scoreA > s.scoreB ? s.teamA.code + " wins!" :
+                     s.scoreB > s.scoreA ? s.teamB.code + " wins!" : "Draw!";
+      document.getElementById("soccer-end-title").textContent = result;
+      document.getElementById("soccer-end-score").textContent =
+        s.teamA.code + "  " + s.scoreA + " - " + s.scoreB + "  " + s.teamB.code;
+      document.getElementById("soccer-end-total").textContent = String(s.completed);
+      showModal(document.getElementById("soccer-end-modal"));
+    },
+
+    cpuTurn() {
+      const s = this.state;
+      if (s.animating || s.won || s.currentTeam !== "B" || s.mode !== "cpu") return;
+      const carrier = s.players[s.ballCarrier];
+      const myTeam = this.getTeamPlayers("B");
+      const goalY = this.pitchH;
+      const distToGoal = Math.abs(carrier.y - goalY) / this.pitchH;
+      if (carrier.label.startsWith("A") && distToGoal < 0.4 && Math.random() < 0.6) {
+        this.tryShoot();
+      } else {
+        const others = myTeam.filter((p) => s.players.indexOf(p) !== s.ballCarrier);
+        const target = others[Math.floor(Math.random() * others.length)];
+        this.tryPass(s.players.indexOf(target));
+      }
+    },
+
+    onCanvasTap(e) {
+      const s = this.state;
+      if (s.animating || s.won) return;
+      if (s.mode === "cpu" && s.currentTeam === "B") return;
+      if (s.mode === "friend" && s.phase !== "play") return;
+      const rect = this.canvas.getBoundingClientRect();
+      const tx = (e.clientX - rect.left) * (this.pitchW / rect.width);
+      const ty = (e.clientY - rect.top) * (this.pitchH / rect.height);
+      const r = this.playerR;
+      const carrier = s.players[s.ballCarrier];
+
+      // Check if tapped on a teammate
+      const myTeam = this.getTeamPlayers(s.currentTeam);
+      for (const p of myTeam) {
+        if (s.players.indexOf(p) === s.ballCarrier) continue;
+        if (Math.abs(tx - p.x) < r * 1.8 && Math.abs(ty - p.y) < r * 1.8) {
+          this.tryPass(s.players.indexOf(p));
+          return;
+        }
+      }
+
+      // Check if tapped near the goal
+      const goalY = s.currentTeam === "A" ? 0 : this.pitchH;
+      if (Math.abs(ty - goalY) < this.pitchH * 0.12 && Math.abs(tx - this.pitchW / 2) < this.pitchW * 0.35) {
+        this.tryShoot();
+      }
+    },
+
+    showTeamSelect() {
+      const s = this.state;
+      s.phase = "select";
+      document.getElementById("soccer-team-select").hidden = false;
+      document.getElementById("soccer-canvas-wrap").hidden = true;
+      document.getElementById("soccer-info").hidden = true;
+      document.getElementById("soccer-start-btn").hidden = true;
+      document.getElementById("soccer-score").textContent = "";
+      this.renderBadges();
+    },
+
+    renderBadges() {
+      const el = document.getElementById("soccer-badges");
+      el.innerHTML = "";
+      for (const t of TEAMS) {
+        const badge = document.createElement("div");
+        badge.className = "soccer-badge";
+        badge.dataset.code = t.code;
+        badge.innerHTML =
+          "<div class='soccer-badge-circle' style='background:" + t.p + ";border-color:" + t.s + ";color:" + this.contrastText(t.p) + "'>" + t.code + "</div>" +
+          "<span class='soccer-badge-name'>" + t.name + "</span>";
+        badge.addEventListener("click", () => this.onBadgeClick(t));
+        el.appendChild(badge);
+      }
+    },
+
+    onBadgeClick(team) {
+      const s = this.state;
+      if (!s.teamA) {
+        s.teamA = team;
+        document.querySelectorAll(".soccer-badge").forEach((b) => {
+          b.classList.toggle("selected", b.dataset.code === team.code);
+        });
+        if (s.mode === "cpu") {
+          let opp;
+          do { opp = TEAMS[Math.floor(Math.random() * TEAMS.length)]; } while (opp.code === team.code);
+          s.teamB = opp;
+          document.getElementById("soccer-start-btn").hidden = false;
+          document.querySelector(".soccer-select-title").textContent =
+            s.teamA.code + " vs " + s.teamB.code;
+        } else {
+          document.querySelector(".soccer-select-title").textContent =
+            s.teamA.code + " selected — Player 2, pick your team!";
+        }
+      } else if (s.mode === "friend" && !s.teamB) {
+        if (team.code === s.teamA.code) return;
+        s.teamB = team;
+        document.querySelectorAll(".soccer-badge").forEach((b) => {
+          b.classList.toggle("selected", b.dataset.code === team.code || b.dataset.code === s.teamA.code);
+        });
+        document.getElementById("soccer-start-btn").hidden = false;
+        document.querySelector(".soccer-select-title").textContent =
+          s.teamA.code + " vs " + s.teamB.code;
+      }
+    },
+
+    resetSelection() {
+      this.state.teamA = null; this.state.teamB = null;
+      document.querySelectorAll(".soccer-badge").forEach((b) => b.classList.remove("selected"));
+      document.querySelector(".soccer-select-title").textContent = "Choose Your Team";
+      document.getElementById("soccer-start-btn").hidden = true;
+    },
+  };
+
+  modules.soccer = {
+    _wired: false,
+
+    onEnter() {
+      soccer.canvas = document.getElementById("soccer-canvas");
+      soccer.ctx = soccer.canvas.getContext("2d");
+      soccer.state.completed = soccerStore.getInt("completedCount", 0);
+      document.getElementById("soccer-completed-count").textContent = String(soccer.state.completed);
+
+      if (!this._wired) {
+        this._wired = true;
+
+        document.getElementById("soccer-mode-cpu").addEventListener("click", () => {
+          soccer.state.mode = "cpu";
+          document.getElementById("soccer-mode-cpu").classList.add("active");
+          document.getElementById("soccer-mode-friend").classList.remove("active");
+          soccer.resetSelection();
+        });
+        document.getElementById("soccer-mode-friend").addEventListener("click", () => {
+          soccer.state.mode = "friend";
+          document.getElementById("soccer-mode-friend").classList.add("active");
+          document.getElementById("soccer-mode-cpu").classList.remove("active");
+          soccer.resetSelection();
+        });
+
+        document.getElementById("soccer-start-btn").addEventListener("click", () => {
+          soccer.state.phase = "play";
+          soccer.startMatch();
+        });
+
+        soccer.canvas.addEventListener("pointerdown", (e) => {
+          e.preventDefault();
+          soccer.onCanvasTap(e);
+        });
+
+        document.getElementById("soccer-play-again-btn").addEventListener("click", () => {
+          hideModal(document.getElementById("soccer-end-modal"));
+          soccer.startMatch();
+        });
+        document.getElementById("soccer-new-teams-btn").addEventListener("click", () => {
+          hideModal(document.getElementById("soccer-end-modal"));
+          soccer.resetSelection();
+          soccer.showTeamSelect();
+        });
+
+        document.getElementById("soccer-tutorial-btn").addEventListener("click", () => {
+          soccerStore.setBool("tutorialSeen", true);
+          hideModal(document.getElementById("soccer-tutorial-modal"));
+        });
+
+        window.addEventListener("resize", () => {
+          if (router.current !== "soccer" || soccer.state.phase !== "play") return;
+          soccer.sizeCanvas();
+          soccer.buildPlayers();
+          const carrier = soccer.state.players[soccer.state.ballCarrier];
+          if (carrier) { soccer.state.ballX = carrier.x; soccer.state.ballY = carrier.y; }
+          soccer.draw();
+        });
+      }
+
+      soccer.showTeamSelect();
+
+      if (!soccerStore.getBool("tutorialSeen")) {
+        showModal(document.getElementById("soccer-tutorial-modal"));
+      }
+    },
+
+    onLeave() {
+      soccer.state.animating = false;
+      soccer.state.won = true;
+      if (soccer.state.messageTimer) clearTimeout(soccer.state.messageTimer);
+      hideModal(document.getElementById("soccer-end-modal"));
+      hideModal(document.getElementById("soccer-tutorial-modal"));
+    },
+  };
+
+  // ================================================================
+  // 18. INIT & LOCALSTORAGE MIGRATION
+  // ================================================================
   // ================================================================
   function migrateStorage() {
     try {
