@@ -2065,15 +2065,27 @@
 
     buildPlayers() {
       const p = [], w = this.pitchW, h = this.pitchH;
-      // Team A: bottom half (ny values are 0.5–1.0 range)
+      // Team A: bottom half — standard formation
       for (let i = 0; i < 6; i++) {
         const f = FORMATION[i];
         p.push({ team: "A", idx: i, label: f.label, x: f.nx * w, y: f.ny * h });
       }
-      // Team B: mirrored vertically (top half)
+      // Team B: top half — randomized positions within their half
+      const margin = this.playerR + 4;
       for (let i = 0; i < 6; i++) {
         const f = FORMATION[i];
-        p.push({ team: "B", idx: i, label: f.label, x: f.nx * w, y: (1 - f.ny) * h });
+        let rx, ry;
+        if (f.label === "GK") {
+          rx = w * (0.35 + Math.random() * 0.3);
+          ry = h * (0.04 + Math.random() * 0.06);
+        } else if (f.label.startsWith("D")) {
+          rx = margin + Math.random() * (w - margin * 2);
+          ry = h * (0.14 + Math.random() * 0.12);
+        } else {
+          rx = margin + Math.random() * (w - margin * 2);
+          ry = h * (0.30 + Math.random() * 0.16);
+        }
+        p.push({ team: "B", idx: i, label: f.label, x: rx, y: ry });
       }
       this.state.players = p;
     },
@@ -2504,9 +2516,11 @@
           let opp;
           do { opp = TEAMS[Math.floor(Math.random() * TEAMS.length)]; } while (opp.code === team.code);
           s.teamB = opp;
-          document.getElementById("soccer-start-btn").hidden = false;
+          const btn = document.getElementById("soccer-start-btn");
+          btn.hidden = false;
           document.querySelector(".soccer-select-title").textContent =
             s.teamA.code + " vs " + s.teamB.code;
+          setTimeout(() => btn.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
         } else {
           document.querySelector(".soccer-select-title").textContent =
             s.teamA.code + " selected — Player 2, pick your team!";
@@ -2517,9 +2531,11 @@
         document.querySelectorAll(".soccer-badge").forEach((b) => {
           b.classList.toggle("selected", b.dataset.code === team.code || b.dataset.code === s.teamA.code);
         });
-        document.getElementById("soccer-start-btn").hidden = false;
+        const btn = document.getElementById("soccer-start-btn");
+        btn.hidden = false;
         document.querySelector(".soccer-select-title").textContent =
           s.teamA.code + " vs " + s.teamB.code;
+        setTimeout(() => btn.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
       }
     },
 
