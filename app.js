@@ -2237,6 +2237,23 @@
 
       const isHuman = !(s.mode === "cpu" && s.currentTeam === "B");
       if (isHuman) {
+        // Auto-rearrange non-carrier players to fresh random positions
+        const myTeam = this.getTeamPlayers(s.currentTeam);
+        const w = this.pitchW, h = this.pitchH, margin = this.playerR + 4;
+        for (const p of myTeam) {
+          const idx = s.players.indexOf(p);
+          if (idx === s.ballCarrier) continue;
+          if (p.label === "GK") {
+            p.x = w * (0.35 + Math.random() * 0.3);
+            p.y = s.currentTeam === "A" ? h * (0.86 + Math.random() * 0.08) : h * (0.04 + Math.random() * 0.08);
+          } else if (p.label.startsWith("D")) {
+            p.x = margin + Math.random() * (w - margin * 2);
+            p.y = s.currentTeam === "A" ? h * (0.68 + Math.random() * 0.14) : h * (0.15 + Math.random() * 0.14);
+          } else {
+            p.x = margin + Math.random() * (w - margin * 2);
+            p.y = s.currentTeam === "A" ? h * (0.45 + Math.random() * 0.20) : h * (0.35 + Math.random() * 0.20);
+          }
+        }
         s.arranging = true;
         s.draggingPlayer = -1;
         this.showMessage("Move players, then tap ball to kick off", 3000);
