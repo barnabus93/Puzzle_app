@@ -2107,8 +2107,8 @@
         ctx.fillStyle = team.p; ctx.fill();
         ctx.strokeStyle = team.s; ctx.lineWidth = 2.5; ctx.stroke();
         if (isBallCarrier) {
-          ctx.beginPath(); ctx.arc(p.x, p.y, r + 4, 0, Math.PI * 2);
-          ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
+          ctx.beginPath(); ctx.arc(p.x, p.y, r + 5, 0, Math.PI * 2);
+          ctx.strokeStyle = "#ffd700"; ctx.lineWidth = 3; ctx.stroke();
         }
         if (s.players.indexOf(p) === s.selectedTarget) {
           ctx.beginPath(); ctx.arc(p.x, p.y, r + 6, 0, Math.PI * 2);
@@ -2198,7 +2198,7 @@
       if (isHuman) {
         s.arranging = true;
         s.draggingPlayer = -1;
-        this.showMessage("Drag players to rearrange, then tap the ball carrier to kick off", 3000);
+        this.showMessage("Move players, then tap ball to kick off", 3000);
         this.draw();
       } else {
         s.arranging = false;
