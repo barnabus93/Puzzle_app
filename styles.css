@@ -914,6 +914,15 @@ fieldset.field legend {
   overflow-y: auto;
   padding: 8px 0;
 }
+.soccer-select[hidden] {
+  display: none !important;
+}
+.soccer-canvas-wrap[hidden] {
+  display: none !important;
+}
+.soccer-info[hidden] {
+  display: none !important;
+}
 .soccer-select-title {
   font-family: var(--pixel-font);
   font-size: clamp(0.7rem, 3vw, 0.9rem);
