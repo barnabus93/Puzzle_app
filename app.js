@@ -2215,15 +2215,23 @@
       this.startPossession();
     },
 
-    startPossession() {
+    startPossession(startWithPlayerIdx) {
       const s = this.state;
       if (s.possession >= s.totalPossessions) { this.endMatch(); return; }
       s.actionsLeft = 4;
       s.selectedTarget = -1;
-      const team = this.getTeamPlayers(s.currentTeam);
-      const attackers = team.filter((p) => p.label.startsWith("A"));
-      const carrier = attackers[Math.floor(Math.random() * attackers.length)];
-      s.ballCarrier = s.players.indexOf(carrier);
+
+      // If a specific player intercepted, they start with the ball
+      if (startWithPlayerIdx >= 0 && startWithPlayerIdx < s.players.length &&
+          s.players[startWithPlayerIdx].team === s.currentTeam) {
+        s.ballCarrier = startWithPlayerIdx;
+      } else {
+        const team = this.getTeamPlayers(s.currentTeam);
+        const attackers = team.filter((p) => p.label.startsWith("A"));
+        const carrier = attackers[Math.floor(Math.random() * attackers.length)];
+        s.ballCarrier = s.players.indexOf(carrier);
+      }
+      const carrier = s.players[s.ballCarrier];
       s.ballX = carrier.x; s.ballY = carrier.y;
       this.updateScore();
 
@@ -2348,11 +2356,12 @@
           const d = this.pointToLineDist(opp.x, opp.y, from.x, from.y, to.x, to.y);
           return d < (best ? best.d : Infinity) ? { p: opp, d } : best;
         }, null);
+        const interceptor = intc ? this.state.players.indexOf(intc.p) : -1;
         const ix = intc ? intc.p.x : (from.x + to.x) / 2;
         const iy = intc ? intc.p.y : (from.y + to.y) / 2;
         this.animateBall(ix, iy, 200, () => {
           this.showMessage("Intercepted!", 800);
-          setTimeout(() => this.turnover(), 900);
+          setTimeout(() => this.turnover(null, interceptor), 900);
         });
       }
     },
@@ -2402,16 +2411,16 @@
       });
     },
 
-    turnover(msg) {
+    turnover(msg, interceptorIdx) {
       if (msg) this.showMessage(msg, 800);
-      setTimeout(() => this.nextPossession(), msg ? 900 : 200);
+      setTimeout(() => this.nextPossession(interceptorIdx), msg ? 900 : 200);
     },
 
-    nextPossession() {
+    nextPossession(startWithPlayerIdx) {
       const s = this.state;
       s.possession++;
       s.currentTeam = s.currentTeam === "A" ? "B" : "A";
-      this.startPossession();
+      this.startPossession(startWithPlayerIdx);
     },
 
     endMatch() {
