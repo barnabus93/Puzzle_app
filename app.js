@@ -2136,11 +2136,32 @@
     drawMessage() {
       if (!this.state.message) return;
       const ctx = this.ctx, w = this.pitchW, h = this.pitchH;
-      ctx.fillStyle = "rgba(0,0,0,0.6)";
-      ctx.fillRect(0, h / 2 - 30, w, 60);
-      ctx.fillStyle = "#fff"; ctx.font = "bold " + Math.round(w * 0.07) + "px system-ui";
+      const fontSize = Math.round(w * 0.055);
+      ctx.font = "bold " + fontSize + "px system-ui";
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText(this.state.message, w / 2, h / 2);
+      const maxW = w - 20;
+      const words = this.state.message.split(" ");
+      const lines = [];
+      let line = "";
+      for (const word of words) {
+        const test = line ? line + " " + word : word;
+        if (ctx.measureText(test).width > maxW && line) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = test;
+        }
+      }
+      if (line) lines.push(line);
+      const lineH = fontSize * 1.3;
+      const boxH = lines.length * lineH + 16;
+      const boxY = h / 2 - boxH / 2;
+      ctx.fillStyle = "rgba(0,0,0,0.65)";
+      ctx.fillRect(0, boxY, w, boxH);
+      ctx.fillStyle = "#fff";
+      for (let i = 0; i < lines.length; i++) {
+        ctx.fillText(lines[i], w / 2, boxY + 8 + lineH * (i + 0.5));
+      }
     },
 
     draw() {
