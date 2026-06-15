@@ -2590,7 +2590,7 @@
         });
         if (s.mode === "cpu") {
           let opp;
-          do { opp = TEAMS[Math.floor(Math.random() * TEAMS.length)]; } while (opp.code === team.code);
+          do { opp = TEAMS[Math.floor(Math.random() * TEAMS.length)]; } while (opp.code === team.code || opp.p === team.p);
           s.teamB = opp;
           const btn = document.getElementById("soccer-start-btn");
           btn.hidden = false;
