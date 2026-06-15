@@ -2314,19 +2314,31 @@
       const goalY = shooter.team === "A" ? 0 : this.pitchH;
       const goalX = this.pitchW / 2;
 
+      // Base chance: higher when closer to goal
       const distToGoal = Math.abs(shooter.y - goalY) / this.pitchH;
-      let chance = distToGoal < 0.35 ? 0.45 : 0.20;
+      let chance = 0.75 - distToGoal * 0.6;
 
+      // Defenders in the shooting lane reduce chance
       const opponents = this.getTeamPlayers(shooter.team === "A" ? "B" : "A");
       for (const opp of opponents) {
+        if (opp.label === "GK") continue;
         const d = this.pointToLineDist(opp.x, opp.y, shooter.x, shooter.y, goalX, goalY);
-        if (d < this.playerR * 3 && opp.label !== "GK") chance -= 0.10;
+        if (d < this.playerR * 4) chance -= 0.12;
       }
-      chance = Math.max(0.05, chance);
-      const saved = Math.random() > chance;
+
+      // Goalie save: depends on how close the GK is to the goal center
+      const gk = opponents.find((p) => p.label === "GK");
+      if (gk) {
+        const gkDist = Math.sqrt((gk.x - goalX) ** 2 + (gk.y - goalY) ** 2) / this.pitchW;
+        const saveChance = gkDist < 0.2 ? 0.30 : gkDist < 0.4 ? 0.15 : 0.05;
+        chance *= (1 - saveChance);
+      }
+
+      chance = Math.max(0.10, Math.min(0.85, chance));
+      const scores = Math.random() < chance;
 
       this.animateBall(goalX, goalY, 300, () => {
-        if (!saved) {
+        if (scores) {
           if (s.currentTeam === "A") s.scoreA++; else s.scoreB++;
           this.showMessage("GOAL!", 1200);
           this.updateScore();
