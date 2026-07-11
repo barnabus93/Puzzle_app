@@ -2463,18 +2463,33 @@
     onBadgeClick(team) {
       const s = this.state;
       if (s.mode === "cpu") {
-        s.teamA = team;
-        let opp;
-        do { opp = TEAMS[Math.floor(Math.random() * TEAMS.length)]; } while (opp.code === team.code || opp.p === team.p);
-        s.teamB = opp;
-        document.querySelectorAll(".soccer-badge").forEach((b) => {
-          b.classList.remove("selected", "selected-cpu");
-          if (b.dataset.code === team.code) b.classList.add("selected");
-          if (b.dataset.code === opp.code) b.classList.add("selected-cpu");
-        });
-        this.updateMatchup();
-        document.getElementById("soccer-start-btn").hidden = false;
+        if (s.pickingOpponent) {
+          // Phase 2: picking opponent
+          if (team.code === s.teamA.code) return;
+          s.teamB = team;
+          s.pickingOpponent = false;
+          document.querySelectorAll(".soccer-badge").forEach((b) => {
+            b.classList.remove("selected-cpu");
+            if (b.dataset.code === team.code) b.classList.add("selected-cpu");
+          });
+          document.getElementById("soccer-opp-choice").hidden = true;
+          this.updateMatchup();
+          document.getElementById("soccer-start-btn").hidden = false;
+        } else {
+          // Phase 1: picking own team
+          s.teamA = team; s.teamB = null; s.pickingOpponent = false;
+          document.querySelectorAll(".soccer-badge").forEach((b) => {
+            b.classList.remove("selected", "selected-cpu");
+            if (b.dataset.code === team.code) b.classList.add("selected");
+          });
+          document.querySelector(".soccer-select-title").textContent =
+            team.code + " selected";
+          document.getElementById("soccer-opp-choice").hidden = false;
+          document.getElementById("soccer-start-btn").hidden = true;
+          document.getElementById("soccer-matchup").hidden = true;
+        }
       } else {
+        // Friend mode: unchanged
         if (!s.teamA || s.teamB) {
           s.teamA = team; s.teamB = null;
           document.querySelectorAll(".soccer-badge").forEach((b) => {
@@ -2496,6 +2511,31 @@
       }
     },
 
+    pickRandomOpponent() {
+      const s = this.state;
+      if (!s.teamA) return;
+      let opp;
+      do { opp = TEAMS[Math.floor(Math.random() * TEAMS.length)]; } while (opp.code === s.teamA.code || opp.p === s.teamA.p);
+      s.teamB = opp; s.pickingOpponent = false;
+      document.querySelectorAll(".soccer-badge").forEach((b) => {
+        b.classList.remove("selected-cpu");
+        if (b.dataset.code === opp.code) b.classList.add("selected-cpu");
+      });
+      document.getElementById("soccer-opp-choice").hidden = true;
+      this.updateMatchup();
+      document.getElementById("soccer-start-btn").hidden = false;
+    },
+
+    startPickingOpponent() {
+      this.state.pickingOpponent = true;
+      this.state.teamB = null;
+      document.querySelectorAll(".soccer-badge").forEach((b) => b.classList.remove("selected-cpu"));
+      document.querySelector(".soccer-select-title").textContent = "Pick your opponent";
+      document.getElementById("soccer-opp-choice").hidden = true;
+      document.getElementById("soccer-matchup").hidden = true;
+      document.getElementById("soccer-start-btn").hidden = true;
+    },
+
     updateMatchup() {
       const s = this.state;
       if (!s.teamA || !s.teamB) return;
@@ -2513,11 +2553,12 @@
     },
 
     resetSelection() {
-      this.state.teamA = null; this.state.teamB = null;
+      this.state.teamA = null; this.state.teamB = null; this.state.pickingOpponent = false;
       document.querySelectorAll(".soccer-badge").forEach((b) => b.classList.remove("selected", "selected-cpu"));
       document.querySelector(".soccer-select-title").textContent = "Choose Your Team";
       document.getElementById("soccer-start-btn").hidden = true;
       document.getElementById("soccer-matchup").hidden = true;
+      document.getElementById("soccer-opp-choice").hidden = true;
     },
   };
 
@@ -2549,6 +2590,13 @@
         document.getElementById("soccer-start-btn").addEventListener("click", () => {
           soccer.state.phase = "play";
           soccer.startMatch();
+        });
+
+        document.getElementById("soccer-random-opp").addEventListener("click", () => {
+          soccer.pickRandomOpponent();
+        });
+        document.getElementById("soccer-pick-opp").addEventListener("click", () => {
+          soccer.startPickingOpponent();
         });
 
         soccer.canvas.addEventListener("pointerdown", (e) => { e.preventDefault(); soccer.onCanvasDown(e); });

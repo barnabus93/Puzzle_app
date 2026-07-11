@@ -990,6 +990,29 @@ fieldset.field legend {
   width: 100%;
 }
 .soccer-matchup[hidden] { display: none !important; }
+.soccer-opp-choice {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.soccer-opp-choice[hidden] { display: none !important; }
+.soccer-opp-btn {
+  flex: 1;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-height: 42px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.06);
+  color: var(--fg);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.soccer-opp-btn:active {
+  background: rgba(255,255,255,0.15);
+}
 .matchup-team {
   display: flex;
   flex-direction: column;
