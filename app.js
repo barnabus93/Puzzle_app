@@ -2021,32 +2021,97 @@
     { label: "A3", nx: 0.80, ny: 0.58 },  // right attacker
   ];
 
+  // ---------------------------------------------------------------
+  // Soccer Pool — physics-based billiards soccer
+  // ---------------------------------------------------------------
+  const BALL_R = 8, PLAYER_R = 16, GOAL_W_FRAC = 0.40;
+  const FRICTION_PLAYER = 0.975, FRICTION_BALL = 0.988;
+  const RESTITUTION = 0.82, MAX_POWER = 14, SPEED_STOP = 0.15;
+  const SHOTS_PER_TEAM = 5;
+
   const soccer = {
     canvas: null, ctx: null,
     state: {
-      phase: "select",
-      mode: "cpu",
+      phase: "select", mode: "cpu",
       teamA: null, teamB: null,
       scoreA: 0, scoreB: 0,
-      possession: 0,
-      totalPossessions: 10,
       currentTeam: "A",
-      ballCarrier: 4,
-      actionsLeft: 4,
-      selectedTarget: -1,
-      arranging: false,
-      draggingPlayer: -1,
-      players: [],
-      ballX: 0, ballY: 0,
-      animating: false,
-      completed: 0,
-      won: false,
-      message: "",
-      messageTimer: null,
+      shotsA: 0, shotsB: 0,
+      bodies: [],   // all physics bodies (players + ball)
+      ball: null,   // ref to ball body
+      selected: -1, // index of selected player body
+      aiming: false, aimX: 0, aimY: 0,
+      simulating: false, completed: 0, won: false,
+      message: "", messageTimer: null,
     },
     els: {},
-    pitchW: 300, pitchH: 450,
-    playerR: 16,
+    pitchW: 300, pitchH: 450, animId: null,
+
+    // --- Physics helpers ---
+    makeBody(x, y, r, mass, fric, team, label, isBall) {
+      return { x, y, vx: 0, vy: 0, r, mass, fric, team: team || null, label: label || "", isBall: !!isBall };
+    },
+    allStopped() {
+      for (const b of this.state.bodies) if (Math.abs(b.vx) > SPEED_STOP || Math.abs(b.vy) > SPEED_STOP) return false;
+      return true;
+    },
+    stopAll() { for (const b of this.state.bodies) { b.vx = 0; b.vy = 0; } },
+
+    collideCircles(a, b) {
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const minD = a.r + b.r;
+      if (dist >= minD || dist === 0) return;
+      const nx = dx / dist, ny = dy / dist;
+      const overlap = minD - dist;
+      const totalM = a.mass + b.mass;
+      a.x -= nx * overlap * (b.mass / totalM);
+      a.y -= ny * overlap * (b.mass / totalM);
+      b.x += nx * overlap * (a.mass / totalM);
+      b.y += ny * overlap * (a.mass / totalM);
+      const dvx = a.vx - b.vx, dvy = a.vy - b.vy;
+      const dvDotN = dvx * nx + dvy * ny;
+      if (dvDotN <= 0) return;
+      const j = (1 + RESTITUTION) * dvDotN / totalM;
+      a.vx -= j * b.mass * nx; a.vy -= j * b.mass * ny;
+      b.vx += j * a.mass * nx; b.vy += j * a.mass * ny;
+    },
+
+    wallBounce(b) {
+      const w = this.pitchW, h = this.pitchH;
+      const gw = w * GOAL_W_FRAC, gLeft = (w - gw) / 2, gRight = gLeft + gw;
+      if (b.x - b.r < 0) { b.x = b.r; b.vx = Math.abs(b.vx) * 0.8; }
+      if (b.x + b.r > w) { b.x = w - b.r; b.vx = -Math.abs(b.vx) * 0.8; }
+      if (b.y - b.r < 0) {
+        if (b.isBall && b.x > gLeft && b.x < gRight) return "goalTop";
+        b.y = b.r; b.vy = Math.abs(b.vy) * 0.8;
+      }
+      if (b.y + b.r > h) {
+        if (b.isBall && b.x > gLeft && b.x < gRight) return "goalBot";
+        b.y = h - b.r; b.vy = -Math.abs(b.vy) * 0.8;
+      }
+      return null;
+    },
+
+    stepPhysics() {
+      const bodies = this.state.bodies;
+      for (const b of bodies) {
+        b.vx *= b.fric; b.vy *= b.fric;
+        b.x += b.vx; b.y += b.vy;
+        if (Math.abs(b.vx) < SPEED_STOP * 0.5 && Math.abs(b.vy) < SPEED_STOP * 0.5) { b.vx = 0; b.vy = 0; }
+      }
+      for (let i = 0; i < bodies.length; i++) {
+        for (let j = i + 1; j < bodies.length; j++) {
+          this.collideCircles(bodies[i], bodies[j]);
+        }
+      }
+      let goal = null;
+      for (const b of bodies) {
+        const g = this.wallBounce(b);
+        if (g) goal = g;
+      }
+      return goal;
+    },
 
     sizeCanvas() {
       const wrap = document.getElementById("soccer-canvas-wrap");
@@ -2063,34 +2128,21 @@
       this.canvas.style.width = w + "px"; this.canvas.style.height = h + "px";
     },
 
-    buildPlayers() {
-      const p = [], w = this.pitchW, h = this.pitchH;
-      // Team A: bottom half — standard formation
+    buildBodies() {
+      const w = this.pitchW, h = this.pitchH, bodies = [];
       for (let i = 0; i < 6; i++) {
         const f = FORMATION[i];
-        p.push({ team: "A", idx: i, label: f.label, x: f.nx * w, y: f.ny * h });
+        bodies.push(this.makeBody(f.nx * w, f.ny * h, PLAYER_R, 1.0, FRICTION_PLAYER, "A", f.label));
       }
-      // Team B: top half — randomized positions within their half
-      const margin = this.playerR + 4;
       for (let i = 0; i < 6; i++) {
         const f = FORMATION[i];
-        let rx, ry;
-        if (f.label === "GK") {
-          rx = w * (0.35 + Math.random() * 0.3);
-          ry = h * (0.04 + Math.random() * 0.06);
-        } else if (f.label.startsWith("D")) {
-          rx = margin + Math.random() * (w - margin * 2);
-          ry = h * (0.14 + Math.random() * 0.12);
-        } else {
-          rx = margin + Math.random() * (w - margin * 2);
-          ry = h * (0.30 + Math.random() * 0.16);
-        }
-        p.push({ team: "B", idx: i, label: f.label, x: rx, y: ry });
+        bodies.push(this.makeBody(f.nx * w, (1 - f.ny) * h, PLAYER_R, 1.0, FRICTION_PLAYER, "B", f.label));
       }
-      this.state.players = p;
+      const ball = this.makeBody(w / 2, h / 2, BALL_R, 0.5, FRICTION_BALL, null, "ball", true);
+      bodies.push(ball);
+      this.state.bodies = bodies;
+      this.state.ball = ball;
     },
-
-    getTeamPlayers(team) { return this.state.players.filter((p) => p.team === team); },
 
     drawPitch() {
       const ctx = this.ctx, w = this.pitchW, h = this.pitchH;
@@ -2099,50 +2151,74 @@
       ctx.strokeRect(4, 4, w - 8, h - 8);
       ctx.beginPath(); ctx.moveTo(4, h / 2); ctx.lineTo(w - 4, h / 2); ctx.stroke();
       ctx.beginPath(); ctx.arc(w / 2, h / 2, h * 0.08, 0, Math.PI * 2); ctx.stroke();
-      const gw = w * 0.4, gh = h * 0.06;
-      ctx.strokeRect((w - gw) / 2, 4, gw, gh);
-      ctx.strokeRect((w - gw) / 2, h - 4 - gh, gw, gh);
-      const pw = w * 0.55, ph = h * 0.12;
-      ctx.strokeRect((w - pw) / 2, 4, pw, ph);
-      ctx.strokeRect((w - pw) / 2, h - 4 - ph, pw, ph);
-      ctx.fillStyle = "#fff"; ctx.fillRect((w - gw + 10) / 2, 0, gw - 10, 5);
-      ctx.fillRect((w - gw + 10) / 2, h - 5, gw - 10, 5);
+      const gw = w * GOAL_W_FRAC, gLeft = (w - gw) / 2, gRight = gLeft + gw;
+      const ph = h * 0.10;
+      ctx.strokeRect((w - gw - 20) / 2, 4, gw + 20, ph);
+      ctx.strokeRect((w - gw - 20) / 2, h - 4 - ph, gw + 20, ph);
+      // Goal openings
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(gLeft, 0, gw, 5);
+      ctx.fillRect(gLeft, h - 5, gw, 5);
+      // Goal nets
+      ctx.fillStyle = "rgba(255,255,255,0.15)";
+      ctx.fillRect(gLeft, 0, gw, -15);
+      ctx.fillRect(gLeft, h, gw, 15);
+      // Side wall emphasis
+      ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(1, 0); ctx.lineTo(1, h); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(w - 1, 0); ctx.lineTo(w - 1, h); ctx.stroke();
     },
 
-    drawPlayers() {
-      const ctx = this.ctx, r = this.playerR, s = this.state;
+    drawBodies() {
+      const ctx = this.ctx, s = this.state;
       const tA = s.teamA, tB = s.teamB;
-      for (const p of s.players) {
-        const team = p.team === "A" ? tA : tB;
-        const isBallCarrier = (s.players.indexOf(p) === s.ballCarrier);
-        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      for (let i = 0; i < s.bodies.length; i++) {
+        const b = s.bodies[i];
+        if (b.isBall) continue;
+        const team = b.team === "A" ? tA : tB;
+        const isSelected = i === s.selected;
+        ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
         ctx.fillStyle = team.p; ctx.fill();
         ctx.strokeStyle = team.s; ctx.lineWidth = 2.5; ctx.stroke();
-        if (isBallCarrier) {
-          ctx.beginPath(); ctx.arc(p.x, p.y, r + 5, 0, Math.PI * 2);
+        if (isSelected) {
+          ctx.beginPath(); ctx.arc(b.x, b.y, b.r + 5, 0, Math.PI * 2);
           ctx.strokeStyle = "#ffd700"; ctx.lineWidth = 3; ctx.stroke();
         }
-        if (s.players.indexOf(p) === s.selectedTarget) {
-          ctx.beginPath(); ctx.arc(p.x, p.y, r + 6, 0, Math.PI * 2);
-          ctx.strokeStyle = "#0f0"; ctx.lineWidth = 2.5; ctx.stroke();
-        }
-        ctx.fillStyle = this.contrastText(team.p); ctx.font = "bold " + Math.round(r * 0.65) + "px system-ui";
+        ctx.fillStyle = this.contrastText(team.p);
+        ctx.font = "bold " + Math.round(b.r * 0.65) + "px system-ui";
         ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        ctx.fillText(p.label, p.x, p.y + 1);
+        ctx.fillText(b.label, b.x, b.y + 1);
       }
-    },
-
-    contrastText(hex) {
-      const c = parseInt(hex.replace("#", ""), 16);
-      const r = (c >> 16) & 0xff, g = (c >> 8) & 0xff, b = c & 0xff;
-      return (r * 0.299 + g * 0.587 + b * 0.114) > 150 ? "#111" : "#fff";
-    },
-
-    drawBall() {
-      const ctx = this.ctx;
-      ctx.beginPath(); ctx.arc(this.state.ballX, this.state.ballY, 6, 0, Math.PI * 2);
+      // Ball
+      const ball = s.ball;
+      ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
       ctx.fillStyle = "#fff"; ctx.fill();
       ctx.strokeStyle = "#333"; ctx.lineWidth = 1; ctx.stroke();
+    },
+
+    drawAimLine() {
+      const s = this.state;
+      if (!s.aiming || s.selected < 0) return;
+      const p = s.bodies[s.selected];
+      const dx = p.x - s.aimX, dy = p.y - s.aimY;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      if (len < 5) return;
+      const power = Math.min(len, MAX_POWER * 12);
+      const nx = dx / len, ny = dy / len;
+      const endX = p.x + nx * power, endY = p.y + ny * power;
+      const ctx = this.ctx;
+      ctx.setLineDash([6, 4]);
+      ctx.strokeStyle = "rgba(255,255,200,0.7)"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(endX, endY); ctx.stroke();
+      ctx.setLineDash([]);
+      // Arrow head
+      const aLen = 8, aAng = 0.4;
+      ctx.beginPath();
+      ctx.moveTo(endX, endY);
+      ctx.lineTo(endX - aLen * Math.cos(Math.atan2(ny, nx) - aAng), endY - aLen * Math.sin(Math.atan2(ny, nx) - aAng));
+      ctx.moveTo(endX, endY);
+      ctx.lineTo(endX - aLen * Math.cos(Math.atan2(ny, nx) + aAng), endY - aLen * Math.sin(Math.atan2(ny, nx) + aAng));
+      ctx.stroke();
     },
 
     drawMessage() {
@@ -2153,35 +2229,31 @@
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
       const maxW = w - 20;
       const words = this.state.message.split(" ");
-      const lines = [];
-      let line = "";
+      const lines = []; let line = "";
       for (const word of words) {
         const test = line ? line + " " + word : word;
-        if (ctx.measureText(test).width > maxW && line) {
-          lines.push(line);
-          line = word;
-        } else {
-          line = test;
-        }
+        if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = word; }
+        else line = test;
       }
       if (line) lines.push(line);
-      const lineH = fontSize * 1.3;
-      const boxH = lines.length * lineH + 16;
-      const boxY = h / 2 - boxH / 2;
-      ctx.fillStyle = "rgba(0,0,0,0.65)";
-      ctx.fillRect(0, boxY, w, boxH);
+      const lineH = fontSize * 1.3, boxH = lines.length * lineH + 16, boxY = h / 2 - boxH / 2;
+      ctx.fillStyle = "rgba(0,0,0,0.65)"; ctx.fillRect(0, boxY, w, boxH);
       ctx.fillStyle = "#fff";
-      for (let i = 0; i < lines.length; i++) {
-        ctx.fillText(lines[i], w / 2, boxY + 8 + lineH * (i + 0.5));
-      }
+      for (let i = 0; i < lines.length; i++) ctx.fillText(lines[i], w / 2, boxY + 8 + lineH * (i + 0.5));
     },
 
     draw() {
       this.ctx.clearRect(0, 0, this.pitchW, this.pitchH);
       this.drawPitch();
-      this.drawPlayers();
-      this.drawBall();
+      this.drawBodies();
+      this.drawAimLine();
       this.drawMessage();
+    },
+
+    contrastText(hex) {
+      const c = parseInt(hex.replace("#", ""), 16);
+      const r = (c >> 16) & 0xff, g = (c >> 8) & 0xff, b = c & 0xff;
+      return (r * 0.299 + g * 0.587 + b * 0.114) > 150 ? "#111" : "#fff";
     },
 
     updateScore() {
@@ -2190,288 +2262,85 @@
       document.getElementById("soccer-score").textContent =
         s.teamA.code + " " + s.scoreA + " - " + s.scoreB + " " + s.teamB.code;
       const info = document.getElementById("soccer-info");
-      const posLeft = s.totalPossessions - s.possession;
-      info.textContent = "Possession " + (s.possession + 1) + "/" + s.totalPossessions +
-        " • " + (s.currentTeam === "A" ? s.teamA.code : s.teamB.code) + "'s ball";
+      const shotsLeft = SHOTS_PER_TEAM - (s.currentTeam === "A" ? s.shotsA : s.shotsB);
+      info.textContent = s.currentTeam === "A"
+        ? s.teamA.code + "'s shot (" + shotsLeft + " left)"
+        : s.teamB.code + "'s shot (" + shotsLeft + " left)";
     },
 
     showMessage(msg, ms) {
-      this.state.message = msg;
-      this.draw();
+      this.state.message = msg; this.draw();
       if (this.state.messageTimer) clearTimeout(this.state.messageTimer);
       this.state.messageTimer = setTimeout(() => { this.state.message = ""; this.draw(); }, ms || 1200);
     },
 
     startMatch() {
       const s = this.state;
-      s.scoreA = 0; s.scoreB = 0; s.possession = 0;
-      s.currentTeam = Math.random() < 0.5 ? "A" : "B";
-      s.won = false; s.animating = false;
+      s.scoreA = 0; s.scoreB = 0; s.shotsA = 0; s.shotsB = 0;
+      s.currentTeam = "A"; s.won = false; s.simulating = false;
+      s.selected = -1; s.aiming = false;
       document.getElementById("soccer-team-select").hidden = true;
       document.getElementById("soccer-canvas-wrap").hidden = false;
       document.getElementById("soccer-info").hidden = false;
       this.sizeCanvas();
-      this.buildPlayers();
-      this.startPossession();
-    },
-
-    startPossession(startWithPlayerIdx) {
-      const s = this.state;
-      if (s.possession >= s.totalPossessions) { this.endMatch(); return; }
-      s.actionsLeft = 4;
-      s.selectedTarget = -1;
-
-      // If a specific player intercepted, they start with the ball
-      if (startWithPlayerIdx >= 0 && startWithPlayerIdx < s.players.length &&
-          s.players[startWithPlayerIdx].team === s.currentTeam) {
-        s.ballCarrier = startWithPlayerIdx;
-      } else {
-        const team = this.getTeamPlayers(s.currentTeam);
-        const attackers = team.filter((p) => p.label.startsWith("A"));
-        const carrier = attackers[Math.floor(Math.random() * attackers.length)];
-        s.ballCarrier = s.players.indexOf(carrier);
-      }
-      const carrier = s.players[s.ballCarrier];
-      s.ballX = carrier.x; s.ballY = carrier.y;
+      this.buildBodies();
       this.updateScore();
+      this.draw();
+      this.showMessage("Tap a player, drag to aim, release to shoot!", 2500);
+    },
 
-      const isHuman = !(s.mode === "cpu" && s.currentTeam === "B");
-      if (isHuman) {
-        this.humanArrange();
+    // --- Simulation loop ---
+    simLoop() {
+      if (!this.state.simulating) return;
+      const goal = this.stepPhysics();
+      this.draw();
+      if (goal) {
+        this.stopAll();
+        this.state.simulating = false;
+        if (goal === "goalTop") { this.state.scoreA++; this.showMessage("GOAL!", 1200); }
+        else { this.state.scoreB++; this.showMessage("GOAL!", 1200); }
+        this.updateScore();
+        // Reset ball to center
+        const ball = this.state.ball;
+        ball.x = this.pitchW / 2; ball.y = this.pitchH / 2; ball.vx = 0; ball.vy = 0;
+        setTimeout(() => this.nextTurn(), 1400);
+        return;
+      }
+      if (this.allStopped()) {
+        this.state.simulating = false;
+        this.nextTurn();
+        return;
+      }
+      this.animId = requestAnimationFrame(() => this.simLoop());
+    },
+
+    nextTurn() {
+      const s = this.state;
+      s.selected = -1;
+      // Check match end
+      if (s.shotsA >= SHOTS_PER_TEAM && s.shotsB >= SHOTS_PER_TEAM) {
+        this.endMatch(); return;
+      }
+      // Switch teams
+      if (s.currentTeam === "A") {
+        if (s.shotsB < SHOTS_PER_TEAM) s.currentTeam = "B";
+        else if (s.shotsA < SHOTS_PER_TEAM) { /* stay A */ }
+        else { this.endMatch(); return; }
       } else {
-        s.arranging = false;
-        this.cpuArrange();
+        if (s.shotsA < SHOTS_PER_TEAM) s.currentTeam = "A";
+        else if (s.shotsB < SHOTS_PER_TEAM) { /* stay B */ }
+        else { this.endMatch(); return; }
       }
-    },
-
-    humanArrange() {
-      const s = this.state;
-      const myTeam = this.getTeamPlayers(s.currentTeam);
-      const w = this.pitchW, h = this.pitchH, margin = this.playerR + 4;
-      const isA = s.currentTeam === "A";
-
-      const targets = [];
-      const startPositions = myTeam.map((p) => ({ x: p.x, y: p.y }));
-      for (const p of myTeam) {
-        const idx = s.players.indexOf(p);
-        if (idx === s.ballCarrier) { targets.push(null); continue; }
-        let tx, ty;
-        if (p.label === "GK") {
-          tx = w * (0.35 + Math.random() * 0.3);
-          ty = isA ? h * (0.86 + Math.random() * 0.08) : h * (0.04 + Math.random() * 0.08);
-        } else if (p.label.startsWith("D")) {
-          tx = margin + Math.random() * (w - margin * 2);
-          ty = isA ? h * (0.68 + Math.random() * 0.14) : h * (0.15 + Math.random() * 0.14);
-        } else {
-          tx = margin + Math.random() * (w - margin * 2);
-          ty = isA ? h * (0.45 + Math.random() * 0.20) : h * (0.35 + Math.random() * 0.20);
-        }
-        targets.push({ x: tx, y: ty });
+      this.updateScore();
+      this.draw();
+      if (s.mode === "cpu" && s.currentTeam === "B") {
+        setTimeout(() => this.cpuShoot(), 600);
       }
-
-      const dur = 400;
-      const t0 = performance.now();
-      const step = (now) => {
-        const t = Math.min((now - t0) / dur, 1);
-        const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-        for (let i = 0; i < myTeam.length; i++) {
-          if (!targets[i]) continue;
-          myTeam[i].x = startPositions[i].x + (targets[i].x - startPositions[i].x) * ease;
-          myTeam[i].y = startPositions[i].y + (targets[i].y - startPositions[i].y) * ease;
-        }
-        this.draw();
-        if (t < 1) {
-          requestAnimationFrame(step);
-        } else {
-          s.arranging = true;
-          s.draggingPlayer = -1;
-          this.showMessage("Drag to reposition. Tap ball carrier to kick off!", 3000);
-          this.draw();
-        }
-      };
-      requestAnimationFrame(step);
-    },
-
-    cpuArrange() {
-      const s = this.state;
-      const w = this.pitchW, h = this.pitchH, margin = this.playerR + 4;
-      const team = this.getTeamPlayers("B");
-
-      // Pick new random positions for each non-carrier CPU player
-      const targets = [];
-      for (const p of team) {
-        const idx = s.players.indexOf(p);
-        if (idx === s.ballCarrier) { targets.push(null); continue; }
-        let tx, ty;
-        if (p.label === "GK") {
-          tx = w * (0.3 + Math.random() * 0.4);
-          ty = h * (0.04 + Math.random() * 0.08);
-        } else if (p.label.startsWith("D")) {
-          tx = margin + Math.random() * (w - margin * 2);
-          ty = h * (0.15 + Math.random() * 0.25);
-        } else {
-          tx = margin + Math.random() * (w - margin * 2);
-          ty = h * (0.35 + Math.random() * 0.30);
-        }
-        targets.push({ x: tx, y: ty });
-      }
-
-      // Animate the CPU players moving to their new positions
-      this.showMessage(s.teamB.code + " rearranging...", 1200);
-      const dur = 500;
-      const startPositions = team.map((p) => ({ x: p.x, y: p.y }));
-      const t0 = performance.now();
-      const step = (now) => {
-        const t = Math.min((now - t0) / dur, 1);
-        const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-        for (let i = 0; i < team.length; i++) {
-          if (!targets[i]) continue;
-          team[i].x = startPositions[i].x + (targets[i].x - startPositions[i].x) * ease;
-          team[i].y = startPositions[i].y + (targets[i].y - startPositions[i].y) * ease;
-        }
-        this.draw();
-        if (t < 1) {
-          requestAnimationFrame(step);
-        } else {
-          // Update ball position to carrier
-          const carrier = s.players[s.ballCarrier];
-          s.ballX = carrier.x; s.ballY = carrier.y;
-          this.draw();
-          setTimeout(() => this.cpuTurn(), 500);
-        }
-      };
-      requestAnimationFrame(step);
-    },
-
-    animateBall(toX, toY, dur, cb) {
-      this.state.animating = true;
-      const fromX = this.state.ballX, fromY = this.state.ballY;
-      const start = performance.now();
-      const step = (now) => {
-        const t = Math.min((now - start) / dur, 1);
-        this.state.ballX = fromX + (toX - fromX) * t;
-        this.state.ballY = fromY + (toY - fromY) * t;
-        this.draw();
-        if (t < 1) requestAnimationFrame(step);
-        else { this.state.animating = false; cb(); }
-      };
-      requestAnimationFrame(step);
-    },
-
-    distBetween(a, b) {
-      return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
-    },
-
-    pointToLineDist(px, py, x1, y1, x2, y2) {
-      const A = px - x1, B = py - y1, C = x2 - x1, D = y2 - y1;
-      const dot = A * C + B * D, lenSq = C * C + D * D;
-      let t = lenSq > 0 ? dot / lenSq : -1;
-      t = Math.max(0, Math.min(1, t));
-      const nx = x1 + t * C, ny = y1 + t * D;
-      return Math.sqrt((px - nx) ** 2 + (py - ny) ** 2);
-    },
-
-    tryPass(targetIdx) {
-      const s = this.state;
-      if (s.animating || s.won) return;
-      const from = s.players[s.ballCarrier];
-      const to = s.players[targetIdx];
-      if (from.team !== to.team || s.ballCarrier === targetIdx) return;
-
-      const opponents = this.getTeamPlayers(from.team === "A" ? "B" : "A");
-      let interceptors = 0;
-      for (const opp of opponents) {
-        const d = this.pointToLineDist(opp.x, opp.y, from.x, from.y, to.x, to.y);
-        if (d < this.playerR * 3) interceptors++;
-      }
-
-      const chance = Math.max(0.2, 0.85 - interceptors * 0.2);
-      const success = Math.random() < chance;
-
-      if (success) {
-        this.animateBall(to.x, to.y, 200, () => {
-          s.ballCarrier = targetIdx;
-          s.actionsLeft--;
-          if (s.actionsLeft <= 0) { this.turnover("Out of passes!"); return; }
-          this.draw();
-          if (s.mode === "cpu" && s.currentTeam === "B") setTimeout(() => this.cpuTurn(), 500);
-        });
-      } else {
-        const intc = opponents.reduce((best, opp) => {
-          const d = this.pointToLineDist(opp.x, opp.y, from.x, from.y, to.x, to.y);
-          return d < (best ? best.d : Infinity) ? { p: opp, d } : best;
-        }, null);
-        const interceptor = intc ? this.state.players.indexOf(intc.p) : -1;
-        const ix = intc ? intc.p.x : (from.x + to.x) / 2;
-        const iy = intc ? intc.p.y : (from.y + to.y) / 2;
-        this.animateBall(ix, iy, 200, () => {
-          this.showMessage("Intercepted!", 800);
-          setTimeout(() => this.turnover(null, interceptor), 900);
-        });
-      }
-    },
-
-    tryShoot() {
-      const s = this.state;
-      if (s.animating || s.won) return;
-      const shooter = s.players[s.ballCarrier];
-      const goalY = shooter.team === "A" ? 0 : this.pitchH;
-      const goalX = this.pitchW / 2;
-
-      const distToGoal = Math.abs(shooter.y - goalY) / this.pitchH;
-      let chance = 0.80 - distToGoal * 0.5;
-
-      const opponents = this.getTeamPlayers(shooter.team === "A" ? "B" : "A");
-      for (const opp of opponents) {
-        if (opp.label === "GK") continue;
-        const d = this.pointToLineDist(opp.x, opp.y, shooter.x, shooter.y, goalX, goalY);
-        if (d < this.playerR * 4) chance -= 0.10;
-      }
-
-      // Goalie save: ONLY if GK is close to the goal. If they're
-      // far away, no save at all. Max save chance is 5%.
-      const gk = opponents.find((p) => p.label === "GK");
-      let gkNearGoal = false;
-      if (gk) {
-        const gkDistToGoal = Math.abs(gk.y - goalY) / this.pitchH;
-        if (gkDistToGoal < 0.12) {
-          chance *= 0.95;
-          gkNearGoal = true;
-        }
-      }
-
-      chance = Math.max(0.15, Math.min(0.90, chance));
-      const scores = Math.random() < chance;
-
-      this.animateBall(goalX, goalY, 300, () => {
-        if (scores) {
-          if (s.currentTeam === "A") s.scoreA++; else s.scoreB++;
-          this.showMessage("GOAL!", 1200);
-          this.updateScore();
-          setTimeout(() => this.nextPossession(), 1400);
-        } else {
-          this.showMessage(gkNearGoal ? "Saved!" : "Missed!", 800);
-          setTimeout(() => this.nextPossession(), 1000);
-        }
-      });
-    },
-
-    turnover(msg, interceptorIdx) {
-      if (msg) this.showMessage(msg, 800);
-      setTimeout(() => this.nextPossession(interceptorIdx), msg ? 900 : 200);
-    },
-
-    nextPossession(startWithPlayerIdx) {
-      const s = this.state;
-      s.possession++;
-      s.currentTeam = s.currentTeam === "A" ? "B" : "A";
-      this.startPossession(startWithPlayerIdx);
     },
 
     endMatch() {
       const s = this.state;
-      s.won = true;
-      s.completed++;
+      s.won = true; s.completed++;
       soccerStore.setInt("completedCount", s.completed);
       document.getElementById("soccer-completed-count").textContent = String(s.completed);
       const result = s.scoreA > s.scoreB ? s.teamA.code + " wins!" :
@@ -2483,123 +2352,88 @@
       showModal(document.getElementById("soccer-end-modal"));
     },
 
-    cpuTurn() {
+    // --- CPU AI ---
+    cpuShoot() {
       const s = this.state;
-      if (s.animating || s.won || s.currentTeam !== "B" || s.mode !== "cpu") return;
-      const carrier = s.players[s.ballCarrier];
-      const myTeam = this.getTeamPlayers("B");
-      const goalY = this.pitchH;
-      const distToGoal = Math.abs(carrier.y - goalY) / this.pitchH;
-
-      // Aggressive: shoot from further out, higher probability
-      const shootChance = distToGoal < 0.35 ? 0.80 : distToGoal < 0.55 ? 0.50 : 0.15;
-      if (Math.random() < shootChance) {
-        this.tryShoot();
-      } else {
-        // Pass toward the player closest to the opponent's goal
-        const others = myTeam.filter((p) => s.players.indexOf(p) !== s.ballCarrier);
-        others.sort((a, b) => Math.abs(a.y - goalY) - Math.abs(b.y - goalY));
-        const target = Math.random() < 0.7 ? others[0] : others[Math.floor(Math.random() * others.length)];
-        this.tryPass(s.players.indexOf(target));
+      if (s.simulating || s.won) return;
+      const ball = s.ball;
+      const goalY = this.pitchH; // CPU (team B) attacks bottom goal
+      const goalX = this.pitchW / 2;
+      // Pick the player closest to the ball
+      let bestIdx = -1, bestDist = Infinity;
+      for (let i = 0; i < s.bodies.length; i++) {
+        const b = s.bodies[i];
+        if (b.team !== "B") continue;
+        const d = Math.sqrt((b.x - ball.x) ** 2 + (b.y - ball.y) ** 2);
+        if (d < bestDist) { bestDist = d; bestIdx = i; }
       }
+      if (bestIdx < 0) return;
+      const player = s.bodies[bestIdx];
+      // Aim: player → ball direction, extended toward goal
+      let dx = ball.x - player.x, dy = ball.y - player.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > 0) { dx /= dist; dy /= dist; }
+      // Add random error
+      const err = (Math.random() - 0.5) * 0.35;
+      const cos = Math.cos(err), sin = Math.sin(err);
+      const ndx = dx * cos - dy * sin, ndy = dx * sin + dy * cos;
+      const power = MAX_POWER * (0.7 + Math.random() * 0.3);
+      player.vx = ndx * power; player.vy = ndy * power;
+      s.shotsB++;
+      s.simulating = true;
+      this.updateScore();
+      this.simLoop();
     },
 
-    hitTestPlayer(tx, ty) {
-      const r = this.playerR;
-      for (let i = 0; i < this.state.players.length; i++) {
-        const p = this.state.players[i];
-        if (Math.abs(tx - p.x) < r * 1.8 && Math.abs(ty - p.y) < r * 1.8) return i;
-      }
-      return -1;
-    },
-
-    screenToCanvas(e) {
-      const rect = this.canvas.getBoundingClientRect();
-      return {
-        x: (e.clientX - rect.left) * (this.pitchW / rect.width),
-        y: (e.clientY - rect.top) * (this.pitchH / rect.height),
-      };
-    },
-
-    isInOwnHalf(player, y) {
-      if (player.team === "A") return y >= this.pitchH * 0.5;
-      return y <= this.pitchH * 0.5;
-    },
-
+    // --- Input handlers ---
     onCanvasDown(e) {
       const s = this.state;
-      if (s.animating || s.won) return;
+      if (s.simulating || s.won) return;
       if (s.mode === "cpu" && s.currentTeam === "B") return;
-      const { x: tx, y: ty } = this.screenToCanvas(e);
-
-      // Arrange phase: start dragging a player
-      if (s.arranging) {
-        const hit = this.hitTestPlayer(tx, ty);
-        if (hit >= 0) {
-          const p = s.players[hit];
-          if (p.team === s.currentTeam && hit !== s.ballCarrier) {
-            s.draggingPlayer = hit;
-            try { this.canvas.setPointerCapture(e.pointerId); } catch {}
-          } else if (hit === s.ballCarrier) {
-            // Tapped the ball carrier = kick off
-            s.arranging = false;
-            s.draggingPlayer = -1;
-            this.state.message = "";
-            this.draw();
-          }
-        }
-        return;
-      }
-
-      // Play phase: tap-to-select, tap-to-confirm
-      const hit = this.hitTestPlayer(tx, ty);
-      const myTeam = this.getTeamPlayers(s.currentTeam);
-
-      if (hit >= 0 && s.players[hit].team === s.currentTeam && hit !== s.ballCarrier) {
-        if (s.selectedTarget === hit) {
-          // Second tap on same player = confirm pass
-          s.selectedTarget = -1;
-          this.tryPass(hit);
-        } else {
-          // First tap = select target
-          s.selectedTarget = hit;
+      const rect = this.canvas.getBoundingClientRect();
+      const tx = (e.clientX - rect.left) * (this.pitchW / rect.width);
+      const ty = (e.clientY - rect.top) * (this.pitchH / rect.height);
+      // Hit test own players
+      for (let i = 0; i < s.bodies.length; i++) {
+        const b = s.bodies[i];
+        if (b.team !== s.currentTeam) continue;
+        const dx = tx - b.x, dy = ty - b.y;
+        if (dx * dx + dy * dy < (b.r + 8) * (b.r + 8)) {
+          s.selected = i; s.aiming = true; s.aimX = tx; s.aimY = ty;
           this.draw();
+          try { this.canvas.setPointerCapture(e.pointerId); } catch {}
+          e.preventDefault();
+          return;
         }
-        return;
-      }
-
-      // Tapped somewhere else = deselect
-      if (s.selectedTarget >= 0) {
-        s.selectedTarget = -1;
-        this.draw();
-        return;
-      }
-
-      // Check if tapped near the goal
-      const goalY = s.currentTeam === "A" ? 0 : this.pitchH;
-      if (Math.abs(ty - goalY) < this.pitchH * 0.12 && Math.abs(tx - this.pitchW / 2) < this.pitchW * 0.35) {
-        this.tryShoot();
       }
     },
 
     onCanvasMove(e) {
       const s = this.state;
-      if (s.draggingPlayer < 0 || !s.arranging) return;
-      const { x: tx, y: ty } = this.screenToCanvas(e);
-      const p = s.players[s.draggingPlayer];
-      // Clamp within pitch bounds (full field, not just own half)
-      const margin = this.playerR;
-      const clampedX = Math.max(margin, Math.min(this.pitchW - margin, tx));
-      const clampedY = Math.max(margin, Math.min(this.pitchH - margin, ty));
-      p.x = clampedX;
-      p.y = clampedY;
+      if (!s.aiming) return;
+      const rect = this.canvas.getBoundingClientRect();
+      s.aimX = (e.clientX - rect.left) * (this.pitchW / rect.width);
+      s.aimY = (e.clientY - rect.top) * (this.pitchH / rect.height);
       this.draw();
     },
 
     onCanvasUp(e) {
-      this.state.draggingPlayer = -1;
+      const s = this.state;
+      if (!s.aiming || s.selected < 0) return;
+      const p = s.bodies[s.selected];
+      const dx = p.x - s.aimX, dy = p.y - s.aimY;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      s.aiming = false;
+      if (len < 10) { s.selected = -1; this.draw(); return; }
+      const power = Math.min(len / 12, MAX_POWER);
+      p.vx = (dx / len) * power; p.vy = (dy / len) * power;
+      if (s.currentTeam === "A") s.shotsA++; else s.shotsB++;
+      s.simulating = true;
+      this.updateScore();
+      this.simLoop();
     },
 
+    // --- Team selection (kept from old version) ---
     showTeamSelect() {
       const s = this.state;
       s.phase = "select";
@@ -2608,6 +2442,7 @@
       document.getElementById("soccer-info").hidden = true;
       document.getElementById("soccer-start-btn").hidden = true;
       document.getElementById("soccer-score").textContent = "";
+      document.getElementById("soccer-matchup").hidden = true;
       this.renderBadges();
     },
 
@@ -2629,7 +2464,6 @@
     onBadgeClick(team) {
       const s = this.state;
       if (s.mode === "cpu") {
-        // Every tap (re)picks the user's team; CPU auto-picks a new opponent
         s.teamA = team;
         let opp;
         do { opp = TEAMS[Math.floor(Math.random() * TEAMS.length)]; } while (opp.code === team.code || opp.p === team.p);
@@ -2642,7 +2476,6 @@
         this.updateMatchup();
         document.getElementById("soccer-start-btn").hidden = false;
       } else {
-        // Friend mode: first tap = player 1, second = player 2
         if (!s.teamA || s.teamB) {
           s.teamA = team; s.teamB = null;
           document.querySelectorAll(".soccer-badge").forEach((b) => {
@@ -2670,16 +2503,12 @@
       const mu = document.getElementById("soccer-matchup");
       mu.hidden = false;
       const bA = document.getElementById("matchup-badge-a");
-      bA.style.background = s.teamA.p;
-      bA.style.borderColor = s.teamA.s;
-      bA.style.color = this.contrastText(s.teamA.p);
-      bA.textContent = s.teamA.code;
+      bA.style.background = s.teamA.p; bA.style.borderColor = s.teamA.s;
+      bA.style.color = this.contrastText(s.teamA.p); bA.textContent = s.teamA.code;
       document.getElementById("matchup-name-a").textContent = s.teamA.name;
       const bB = document.getElementById("matchup-badge-b");
-      bB.style.background = s.teamB.p;
-      bB.style.borderColor = s.teamB.s;
-      bB.style.color = this.contrastText(s.teamB.p);
-      bB.textContent = s.teamB.code;
+      bB.style.background = s.teamB.p; bB.style.borderColor = s.teamB.s;
+      bB.style.color = this.contrastText(s.teamB.p); bB.textContent = s.teamB.code;
       document.getElementById("matchup-name-b").textContent = s.teamB.name;
       document.querySelector(".soccer-select-title").textContent = "Tap a team to change";
     },
@@ -2723,16 +2552,9 @@
           soccer.startMatch();
         });
 
-        soccer.canvas.addEventListener("pointerdown", (e) => {
-          e.preventDefault();
-          soccer.onCanvasDown(e);
-        });
-        soccer.canvas.addEventListener("pointermove", (e) => {
-          soccer.onCanvasMove(e);
-        });
-        soccer.canvas.addEventListener("pointerup", (e) => {
-          soccer.onCanvasUp(e);
-        });
+        soccer.canvas.addEventListener("pointerdown", (e) => { e.preventDefault(); soccer.onCanvasDown(e); });
+        soccer.canvas.addEventListener("pointermove", (e) => { soccer.onCanvasMove(e); });
+        soccer.canvas.addEventListener("pointerup", (e) => { soccer.onCanvasUp(e); });
 
         document.getElementById("soccer-play-again-btn").addEventListener("click", () => {
           hideModal(document.getElementById("soccer-end-modal"));
@@ -2765,9 +2587,6 @@
         window.addEventListener("resize", () => {
           if (router.current !== "soccer" || soccer.state.phase !== "play") return;
           soccer.sizeCanvas();
-          soccer.buildPlayers();
-          const carrier = soccer.state.players[soccer.state.ballCarrier];
-          if (carrier) { soccer.state.ballX = carrier.x; soccer.state.ballY = carrier.y; }
           soccer.draw();
         });
       }
@@ -2780,8 +2599,9 @@
     },
 
     onLeave() {
-      soccer.state.animating = false;
+      soccer.state.simulating = false;
       soccer.state.won = true;
+      if (soccer.animId) { cancelAnimationFrame(soccer.animId); soccer.animId = null; }
       if (soccer.state.messageTimer) clearTimeout(soccer.state.messageTimer);
       hideModal(document.getElementById("soccer-end-modal"));
       hideModal(document.getElementById("soccer-tutorial-modal"));
