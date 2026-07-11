@@ -2300,9 +2300,8 @@
         if (goal === "goalTop") { this.state.scoreA++; this.showMessage("GOAL!", 1200); }
         else { this.state.scoreB++; this.showMessage("GOAL!", 1200); }
         this.updateScore();
-        // Reset ball to center
-        const ball = this.state.ball;
-        ball.x = this.pitchW / 2; ball.y = this.pitchH / 2; ball.vx = 0; ball.vy = 0;
+        // Reset all players and ball to starting positions
+        this.buildBodies();
         setTimeout(() => this.nextTurn(), 1400);
         return;
       }
