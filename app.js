@@ -2025,7 +2025,7 @@
   // Soccer Pool — physics-based billiards soccer
   // ---------------------------------------------------------------
   const BALL_R = 8, PLAYER_R = 16, GOAL_W_FRAC = 0.40;
-  const FRICTION_PLAYER = 0.965, FRICTION_BALL = 0.983;
+  const FRICTION_PLAYER = 0.948, FRICTION_BALL = 0.975;
   const RESTITUTION = 0.82, MAX_POWER = 14, SPEED_STOP = 0.15;
   const SHOTS_PER_TEAM = 5;
 
