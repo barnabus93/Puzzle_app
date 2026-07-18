@@ -2656,8 +2656,673 @@
   };
 
   // ================================================================
-  // 18. INIT & LOCALSTORAGE MIGRATION
+  // 18. BUBBLE BLAST — Puzzle-Bobble style match-3 shooter
   // ================================================================
+  const bubbleStore = makeStore("bubble");
+
+  const BUBBLE_COLS = 8;
+  const BUBBLE_SPEED = 11;
+  const BUBBLE_COLORS = ["#e0455a", "#3ac7d6", "#f2c94c", "#5fd068", "#a95fe0", "#ff9f43"];
+  const BUBBLE_TIERS = {
+    simple: { colors: 3, rowInterval: 14000, initialRows: 4 },
+    moderate: { colors: 4, rowInterval: 10000, initialRows: 5 },
+    difficult: { colors: 5, rowInterval: 7000, initialRows: 6 },
+  };
+
+  const bub = {
+    canvas: null, ctx: null,
+    pitchW: 300, pitchH: 460,
+    cellR: 20, gridPadX: 20, gridPadY: 24, dangerY: 360,
+    shooterX: 150, shooterY: 430,
+    animId: null, lastFrame: 0,
+    els: {},
+    state: {
+      difficulty: "moderate",
+      grid: new Map(),   // "row,col" -> { color }
+      topRow: 0,
+      current: null, next: null,
+      flying: null,      // { x, y, vx, vy, r, color }
+      aiming: false, aimX: 0, aimY: 0,
+      popParticles: [], fallParticles: [],
+      nextRowTime: 0,
+      completed: 0, over: false, paused: false,
+      message: "", messageTimer: null,
+    },
+
+    // --- Setup ---
+    initCanvas() {
+      this.canvas = document.getElementById("bubble-canvas");
+      this.ctx = this.canvas.getContext("2d");
+      this.sizeCanvas();
+    },
+
+    sizeCanvas() {
+      const wrap = this.canvas.parentElement;
+      const rect = wrap.getBoundingClientRect();
+      const maxW = rect.width - 8, maxH = rect.height - 8;
+      const aspect = 0.62; // width / height (portrait)
+      let w = maxW, h = maxH;
+      if (w / h > aspect) w = h * aspect; else h = w / aspect;
+      w = Math.floor(w); h = Math.floor(h);
+      this.pitchW = w; this.pitchH = h;
+      this.canvas.width = w; this.canvas.height = h;
+      this.canvas.style.width = w + "px"; this.canvas.style.height = h + "px";
+      this.cellR = w / (BUBBLE_COLS * 2 + 1);
+      this.gridPadX = this.cellR;
+      this.gridPadY = this.cellR + 4;
+      this.dangerY = h * 0.78;
+      this.shooterX = w / 2;
+      this.shooterY = h - this.cellR * 1.5;
+    },
+
+    randomColor() {
+      const tier = BUBBLE_TIERS[this.state.difficulty] || BUBBLE_TIERS.moderate;
+      return BUBBLE_COLORS[Math.floor(Math.random() * tier.colors)];
+    },
+
+    newBoard() {
+      const s = this.state;
+      const tier = BUBBLE_TIERS[s.difficulty] || BUBBLE_TIERS.moderate;
+      s.grid = new Map();
+      s.topRow = 0;
+      for (let row = 0; row < tier.initialRows; row++) {
+        const isOddRow = ((row % 2) + 2) % 2 === 1;
+        const maxCol = BUBBLE_COLS - (isOddRow ? 2 : 1);
+        for (let c = 0; c <= maxCol; c++) {
+          s.grid.set(row + "," + c, { color: this.randomColor() });
+        }
+      }
+      s.current = { color: this.randomColor() };
+      s.next = { color: this.randomColor() };
+      s.flying = null;
+      s.aiming = false;
+      s.popParticles = []; s.fallParticles = [];
+      s.over = false;
+      s.nextRowTime = performance.now() + tier.rowInterval;
+      this.draw();
+    },
+
+    // --- Hex grid math ---
+    // Offset ("odd-r") layout: odd rows are shifted right by half a cell.
+    // `row` is a stable identity that never changes once assigned; the
+    // visual Y position is derived from (row - topRow), so adding a new
+    // row at the top only needs to decrement topRow — no reindexing of
+    // existing bubbles.
+    hexToPixel(row, col) {
+      const r = this.cellR;
+      const rowH = r * Math.sqrt(3);
+      const isOddRow = ((row % 2) + 2) % 2 === 1;
+      const x = col * (r * 2) + (isOddRow ? r : 0) + r + this.gridPadX;
+      const relRow = row - this.state.topRow;
+      const y = relRow * rowH + r + this.gridPadY;
+      return { x, y };
+    },
+
+    neighbors6(row, col) {
+      const isOddRow = ((row % 2) + 2) % 2 === 1;
+      if (!isOddRow) {
+        return [
+          [row, col - 1], [row, col + 1],
+          [row - 1, col - 1], [row - 1, col],
+          [row + 1, col - 1], [row + 1, col],
+        ];
+      }
+      return [
+        [row, col - 1], [row, col + 1],
+        [row - 1, col], [row - 1, col + 1],
+        [row + 1, col], [row + 1, col + 1],
+      ];
+    },
+
+    // Returns the nearest empty column in `row` to pixel-x `x`, or -1 if
+    // every column in that row is already occupied (caller must handle
+    // this — never returns an occupied column).
+    pixelToNearestColInRow(row, x) {
+      const isOddRow = ((row % 2) + 2) % 2 === 1;
+      const r = this.cellR;
+      const maxCol = BUBBLE_COLS - (isOddRow ? 2 : 1);
+      let col = Math.round((x - (isOddRow ? r : 0) - r - this.gridPadX) / (r * 2));
+      col = Math.max(0, Math.min(maxCol, col));
+      if (!this.state.grid.has(row + "," + col)) return col;
+      for (let d = 1; d <= BUBBLE_COLS; d++) {
+        const left = col - d, right = col + d;
+        if (left >= 0 && !this.state.grid.has(row + "," + left)) return left;
+        if (right <= maxCol && !this.state.grid.has(row + "," + right)) return right;
+      }
+      return -1;
+    },
+
+    // --- Aiming ---
+    getCanvasPoint(e) {
+      const rect = this.canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left) * (this.pitchW / rect.width),
+        y: (e.clientY - rect.top) * (this.pitchH / rect.height),
+      };
+    },
+
+    computeAimDir() {
+      const s = this.state;
+      let dx = s.aimX - this.shooterX, dy = s.aimY - this.shooterY;
+      let len = Math.hypot(dx, dy) || 1;
+      let nx = dx / len, ny = dy / len;
+      const minUp = 0.15; // clamp so the shot always points at least slightly upward
+      if (ny > -minUp) {
+        ny = -minUp;
+        const sign = nx >= 0 ? 1 : -1;
+        nx = sign * Math.sqrt(Math.max(0, 1 - ny * ny));
+      }
+      return { nx, ny };
+    },
+
+    onCanvasDown(e) {
+      const s = this.state;
+      if (s.over || s.paused || s.flying) return;
+      const p = this.getCanvasPoint(e);
+      s.aiming = true; s.aimX = p.x; s.aimY = p.y;
+      try { this.canvas.setPointerCapture(e.pointerId); } catch {}
+    },
+
+    onCanvasMove(e) {
+      const s = this.state;
+      if (!s.aiming) return;
+      const p = this.getCanvasPoint(e);
+      s.aimX = p.x; s.aimY = p.y;
+    },
+
+    onCanvasUp() {
+      const s = this.state;
+      if (!s.aiming) return;
+      s.aiming = false;
+      if (s.over || s.paused || s.flying) return;
+      this.fireShot();
+    },
+
+    fireShot() {
+      const s = this.state;
+      const dir = this.computeAimDir();
+      s.flying = {
+        x: this.shooterX, y: this.shooterY,
+        vx: dir.nx * BUBBLE_SPEED, vy: dir.ny * BUBBLE_SPEED,
+        r: this.cellR - 1, color: s.current.color,
+      };
+      s.current = s.next;
+      s.next = { color: this.randomColor() };
+    },
+
+    // --- Flight & collision ---
+    stepFlight() {
+      const f = this.state.flying;
+      if (!f) return;
+      f.x += f.vx; f.y += f.vy;
+      if (f.x - f.r < 0) { f.x = f.r; f.vx = Math.abs(f.vx); }
+      if (f.x + f.r > this.pitchW) { f.x = this.pitchW - f.r; f.vx = -Math.abs(f.vx); }
+      const hit = this.checkCollision();
+      if (hit) this.attachFlying(hit);
+    },
+
+    checkCollision() {
+      const f = this.state.flying;
+      if (!f) return null;
+      // Check existing bubbles BEFORE the ceiling: with per-frame stepping
+      // the flying bubble can cross the ceiling threshold in the same
+      // frame it also overlaps a row-0 bubble, and attaching to the
+      // bubble it actually touched is both more correct and avoids
+      // relying on the (rare) fully-packed-row ceiling fallback.
+      for (const key of this.state.grid.keys()) {
+        const parts = key.split(",");
+        const row = Number(parts[0]), col = Number(parts[1]);
+        const p = this.hexToPixel(row, col);
+        const dx = f.x - p.x, dy = f.y - p.y;
+        const minDist = f.r + this.cellR - 2;
+        if (dx * dx + dy * dy < minDist * minDist) return { type: "bubble", row, col };
+      }
+      if (f.y - f.r <= this.gridPadY) return { type: "ceiling" };
+      return null;
+    },
+
+    // Find an empty column at the ceiling row for pixel-x `x`. If the
+    // ceiling row is entirely full (rare, but possible on a packed
+    // board), climb to a brand-new row above it — a fresh row is always
+    // fully empty, so this is guaranteed to terminate.
+    findCeilingSpot(x) {
+      const s = this.state;
+      let row = s.topRow;
+      let col = this.pixelToNearestColInRow(row, x);
+      while (col === -1) {
+        row -= 1;
+        col = this.pixelToNearestColInRow(row, x);
+      }
+      if (row < s.topRow) s.topRow = row;
+      return { row, col };
+    },
+
+    attachFlying(hit) {
+      const s = this.state;
+      const f = s.flying;
+      let targetRow, targetCol;
+      if (hit.type === "ceiling") {
+        ({ row: targetRow, col: targetCol } = this.findCeilingSpot(f.x));
+      } else {
+        const candidates = this.neighbors6(hit.row, hit.col).filter(([r, c]) => {
+          if (r < s.topRow || c < 0 || s.grid.has(r + "," + c)) return false;
+          const p = this.hexToPixel(r, c);
+          return p.x >= 0 && p.x <= this.pitchW;
+        });
+        if (candidates.length === 0) {
+          ({ row: targetRow, col: targetCol } = this.findCeilingSpot(f.x));
+        } else {
+          let best = null, bestDist = Infinity;
+          for (const [r, c] of candidates) {
+            const p = this.hexToPixel(r, c);
+            const d = (f.x - p.x) ** 2 + (f.y - p.y) ** 2;
+            if (d < bestDist) { bestDist = d; best = [r, c]; }
+          }
+          [targetRow, targetCol] = best;
+        }
+      }
+      s.grid.set(targetRow + "," + targetCol, { color: f.color });
+      s.flying = null;
+      this.popMatches(targetRow, targetCol);
+      // findCeilingSpot can shift topRow (forcing a fresh row above a
+      // fully-packed ceiling), not just addRow() — re-check here too.
+      if (!s.over) this.checkDangerLine();
+    },
+
+    // --- Matching ---
+    popMatches(row, col) {
+      const s = this.state;
+      const startKey = row + "," + col;
+      const startCell = s.grid.get(startKey);
+      if (!startCell) return;
+      const color = startCell.color;
+      const seen = new Set([startKey]);
+      const stack = [[row, col]];
+      const group = [[row, col]];
+      while (stack.length) {
+        const [r, c] = stack.pop();
+        for (const [nr, nc] of this.neighbors6(r, c)) {
+          const k = nr + "," + nc;
+          if (seen.has(k)) continue;
+          const cell = s.grid.get(k);
+          if (cell && cell.color === color) {
+            seen.add(k); stack.push([nr, nc]); group.push([nr, nc]);
+          }
+        }
+      }
+      if (group.length >= 3) {
+        for (const [r, c] of group) {
+          const p = this.hexToPixel(r, c);
+          s.popParticles.push({ x: p.x, y: p.y, color, t: 0 });
+          s.grid.delete(r + "," + c);
+        }
+        this.dropFloating();
+        this.checkWin();
+      }
+    },
+
+    dropFloating() {
+      const s = this.state;
+      const seen = new Set();
+      const stack = [];
+      for (const key of s.grid.keys()) {
+        const parts = key.split(",");
+        if (Number(parts[0]) === s.topRow) { seen.add(key); stack.push([Number(parts[0]), Number(parts[1])]); }
+      }
+      while (stack.length) {
+        const [r, c] = stack.pop();
+        for (const [nr, nc] of this.neighbors6(r, c)) {
+          const k = nr + "," + nc;
+          if (seen.has(k)) continue;
+          if (s.grid.has(k)) { seen.add(k); stack.push([nr, nc]); }
+        }
+      }
+      for (const [key, cell] of s.grid) {
+        if (!seen.has(key)) {
+          const parts = key.split(",");
+          const p = this.hexToPixel(Number(parts[0]), Number(parts[1]));
+          s.fallParticles.push({ x: p.x, y: p.y, vy: 1, color: cell.color, alpha: 1 });
+          s.grid.delete(key);
+        }
+      }
+    },
+
+    checkWin() {
+      if (this.state.grid.size === 0 && !this.state.flying) this.onWin();
+    },
+
+    // --- Rows & danger line ---
+    addRow() {
+      const s = this.state;
+      s.topRow -= 1;
+      const newRow = s.topRow;
+      const isOddRow = ((newRow % 2) + 2) % 2 === 1;
+      const maxCol = BUBBLE_COLS - (isOddRow ? 2 : 1);
+      for (let c = 0; c <= maxCol; c++) s.grid.set(newRow + "," + c, { color: this.randomColor() });
+      this.checkDangerLine();
+    },
+
+    checkDangerLine() {
+      for (const key of this.state.grid.keys()) {
+        const parts = key.split(",");
+        const p = this.hexToPixel(Number(parts[0]), Number(parts[1]));
+        if (p.y + this.cellR > this.dangerY) { this.onGameOver(); return; }
+      }
+    },
+
+    // --- Win / lose ---
+    onWin() {
+      const s = this.state;
+      s.over = true;
+      s.completed++;
+      bubbleStore.setInt("completedCount", s.completed);
+      this.els.completedCount.textContent = String(s.completed);
+      document.getElementById("bubble-win-total").textContent = String(s.completed);
+      showModal(document.getElementById("bubble-win-modal"));
+    },
+
+    onGameOver() {
+      const s = this.state;
+      if (s.over) return;
+      s.over = true;
+      document.getElementById("bubble-gameover-total").textContent = String(s.completed);
+      showModal(document.getElementById("bubble-gameover-modal"));
+    },
+
+    updateHeader() {
+      this.els.completedCount.textContent = String(this.state.completed);
+      this.els.difficultyLabel.textContent = DIFFICULTIES[this.state.difficulty] || "Moderate";
+    },
+
+    showMessage(msg, ms) {
+      this.state.message = msg;
+      if (this.state.messageTimer) clearTimeout(this.state.messageTimer);
+      this.state.messageTimer = setTimeout(() => { this.state.message = ""; }, ms || 1200);
+    },
+
+    // --- Rendering ---
+    drawBackground() {
+      const ctx = this.ctx, w = this.pitchW, h = this.pitchH;
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, "#241a45");
+      grad.addColorStop(1, "#120c26");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+    },
+
+    drawDangerLine() {
+      const ctx = this.ctx;
+      ctx.setLineDash([8, 6]);
+      ctx.strokeStyle = "rgba(255,80,80,0.55)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, this.dangerY);
+      ctx.lineTo(this.pitchW, this.dangerY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    },
+
+    drawBubble(x, y, r, color) {
+      const ctx = this.ctx;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = color; ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.35)"; ctx.lineWidth = 1.5; ctx.stroke();
+      const grad = ctx.createRadialGradient(x - r * 0.3, y - r * 0.35, r * 0.1, x, y, r);
+      grad.addColorStop(0, "rgba(255,255,255,0.55)");
+      grad.addColorStop(0.5, "rgba(255,255,255,0.08)");
+      grad.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = grad; ctx.fill();
+    },
+
+    drawGrid() {
+      for (const key of this.state.grid.keys()) {
+        const parts = key.split(",");
+        const row = Number(parts[0]), col = Number(parts[1]);
+        const cell = this.state.grid.get(key);
+        const p = this.hexToPixel(row, col);
+        if (p.y > this.pitchH + this.cellR * 2) continue;
+        this.drawBubble(p.x, p.y, this.cellR - 1, cell.color);
+      }
+    },
+
+    drawShooter() {
+      const ctx = this.ctx, r = this.cellR;
+      ctx.fillStyle = "#333";
+      ctx.beginPath();
+      ctx.moveTo(this.shooterX - r * 0.9, this.shooterY + r * 0.8);
+      ctx.lineTo(this.shooterX + r * 0.9, this.shooterY + r * 0.8);
+      ctx.lineTo(this.shooterX, this.shooterY - r * 0.5);
+      ctx.closePath(); ctx.fill();
+      if (this.state.current) this.drawBubble(this.shooterX, this.shooterY, r - 1, this.state.current.color);
+      if (this.state.next) this.drawBubble(this.shooterX + r * 2.4, this.shooterY, r * 0.6, this.state.next.color);
+    },
+
+    drawAimLine() {
+      const s = this.state;
+      if (!s.aiming) return;
+      const dir = this.computeAimDir();
+      const ctx = this.ctx;
+      let x = this.shooterX, y = this.shooterY, vx = dir.nx, vy = dir.ny;
+      const points = [{ x, y }];
+      let remaining = this.pitchH * 1.6, bounces = 0;
+      while (remaining > 0 && bounces <= 2) {
+        let tX = Infinity;
+        if (vx > 0) tX = (this.pitchW - this.cellR - x) / vx;
+        else if (vx < 0) tX = (this.cellR - x) / vx;
+        const tY = vy < 0 ? (this.gridPadY + this.cellR - y) / vy : Infinity;
+        const t = Math.min(tX, tY, remaining);
+        if (!isFinite(t) || t <= 0) break;
+        x += vx * t; y += vy * t; remaining -= t;
+        points.push({ x, y });
+        if (t === tY) break;
+        vx = -vx; bounces++;
+      }
+      ctx.setLineDash([6, 4]);
+      ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    },
+
+    drawParticles() {
+      const ctx = this.ctx;
+      for (const p of this.state.popParticles) {
+        const scale = Math.max(0, 1 - p.t / 0.25);
+        ctx.globalAlpha = scale;
+        this.drawBubble(p.x, p.y, (this.cellR - 1) * scale, p.color);
+        ctx.globalAlpha = 1;
+      }
+      for (const p of this.state.fallParticles) {
+        ctx.globalAlpha = p.alpha;
+        this.drawBubble(p.x, p.y, this.cellR - 1, p.color);
+        ctx.globalAlpha = 1;
+      }
+    },
+
+    drawMessage() {
+      if (!this.state.message) return;
+      const ctx = this.ctx, w = this.pitchW, h = this.pitchH;
+      const fontSize = Math.round(w * 0.06);
+      ctx.font = "bold " + fontSize + "px system-ui";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.fillRect(0, h * 0.4, w, fontSize + 16);
+      ctx.fillStyle = "#fff";
+      ctx.fillText(this.state.message, w / 2, h * 0.4 + fontSize / 2 + 8);
+    },
+
+    draw() {
+      this.ctx.clearRect(0, 0, this.pitchW, this.pitchH);
+      this.drawBackground();
+      this.drawDangerLine();
+      this.drawGrid();
+      this.drawParticles();
+      if (this.state.flying) this.drawBubble(this.state.flying.x, this.state.flying.y, this.state.flying.r, this.state.flying.color);
+      this.drawShooter();
+      this.drawAimLine();
+      this.drawMessage();
+    },
+
+    // --- Loop ---
+    update(dt, now) {
+      const s = this.state;
+      if (s.paused || s.over) return;
+      if (s.flying) this.stepFlight();
+      if (s.popParticles.length) {
+        for (const p of s.popParticles) p.t += dt;
+        s.popParticles = s.popParticles.filter((p) => p.t < 0.25);
+      }
+      if (s.fallParticles.length) {
+        for (const p of s.fallParticles) {
+          p.vy += 45 * dt;
+          p.y += p.vy;
+          if (p.y - this.cellR > this.pitchH) p.alpha = 0;
+        }
+        s.fallParticles = s.fallParticles.filter((p) => p.alpha > 0);
+      }
+      if (now >= s.nextRowTime) {
+        this.addRow();
+        const tier = BUBBLE_TIERS[s.difficulty] || BUBBLE_TIERS.moderate;
+        s.nextRowTime = now + tier.rowInterval;
+      }
+    },
+
+    gameLoop(timestamp) {
+      if (!this.canvas) return;
+      const dt = Math.min((timestamp - this.lastFrame) / 1000, 0.1);
+      this.lastFrame = timestamp;
+      this.update(dt, timestamp);
+      this.draw();
+      this.animId = requestAnimationFrame((t) => this.gameLoop(t));
+    },
+
+    startLoop() {
+      this.lastFrame = performance.now();
+      if (this.animId) cancelAnimationFrame(this.animId);
+      this.animId = requestAnimationFrame((t) => this.gameLoop(t));
+    },
+
+    stopLoop() {
+      if (this.animId) { cancelAnimationFrame(this.animId); this.animId = null; }
+    },
+  };
+
+  modules.bubble = {
+    _wired: false,
+
+    onEnter() {
+      bub.initCanvas();
+      bub.els = {
+        completedCount: document.getElementById("bubble-completed-count"),
+        difficultyLabel: document.getElementById("bubble-difficulty-label"),
+        winModal: document.getElementById("bubble-win-modal"),
+        gameoverModal: document.getElementById("bubble-gameover-modal"),
+        settingsModal: document.getElementById("bubble-settings-modal"),
+      };
+
+      bub.state.completed = bubbleStore.getInt("completedCount", 0);
+      bub.state.difficulty = bubbleStore.getString("difficulty", "moderate", DIFFICULTIES);
+
+      if (!this._wired) {
+        this._wired = true;
+        wireModal(bub.els.settingsModal);
+        wireModal(bub.els.winModal);
+
+        document.getElementById("bubble-settings-btn").addEventListener("click", () => {
+          bub.state.paused = true;
+          const m = bub.els.settingsModal;
+          m.querySelectorAll('input[name="bubble-difficulty"]').forEach((r) => { r.checked = r.value === bub.state.difficulty; });
+          showModal(m);
+        });
+
+        bub.els.settingsModal.addEventListener("click", (e) => {
+          if (e.target instanceof HTMLElement && e.target.hasAttribute("data-close")) {
+            bub.state.paused = false;
+          }
+        });
+
+        bub.els.settingsModal.querySelectorAll('input[name="bubble-difficulty"]').forEach((r) => r.addEventListener("change", (e) => {
+          if (!DIFFICULTIES[e.target.value] || e.target.value === bub.state.difficulty) return;
+          bub.state.difficulty = e.target.value;
+          bubbleStore.setString("difficulty", e.target.value);
+          bub.updateHeader();
+          bub.newBoard();
+        }));
+
+        document.getElementById("bubble-reset-count-btn").addEventListener("click", () => {
+          if (!window.confirm("Reset the number of boards cleared back to 0?")) return;
+          bub.state.completed = 0; bubbleStore.setInt("completedCount", 0);
+          bub.els.completedCount.textContent = "0";
+        });
+
+        document.getElementById("bubble-next-btn").addEventListener("click", () => {
+          hideModal(bub.els.winModal);
+          bub.newBoard();
+        });
+
+        document.getElementById("bubble-retry-btn").addEventListener("click", () => {
+          hideModal(bub.els.gameoverModal);
+          bub.newBoard();
+        });
+
+        // Step-by-step tutorial navigation (same pattern as Soccer Pool)
+        let tutStep = 0;
+        const tutSteps = document.querySelectorAll(".bubble-tut-step");
+        const tutPrev = document.getElementById("bubble-tut-prev");
+        const tutNext = document.getElementById("bubble-tut-next");
+        function showTutStep() {
+          tutSteps.forEach((s, i) => { s.hidden = i !== tutStep; });
+          tutPrev.hidden = tutStep === 0;
+          tutNext.textContent = tutStep === tutSteps.length - 1 ? "Let's play!" : "Next →";
+        }
+        tutNext.addEventListener("click", () => {
+          if (tutStep < tutSteps.length - 1) { tutStep++; showTutStep(); }
+          else {
+            bubbleStore.setBool("tutorialSeen", true);
+            hideModal(document.getElementById("bubble-tutorial-modal"));
+            bub.state.paused = false;
+          }
+        });
+        tutPrev.addEventListener("click", () => {
+          if (tutStep > 0) { tutStep--; showTutStep(); }
+        });
+
+        bub.canvas.addEventListener("pointerdown", (e) => { e.preventDefault(); bub.onCanvasDown(e); });
+        bub.canvas.addEventListener("pointermove", (e) => { bub.onCanvasMove(e); });
+        bub.canvas.addEventListener("pointerup", () => { bub.onCanvasUp(); });
+
+        window.addEventListener("resize", () => {
+          if (router.current !== "bubble") return;
+          bub.sizeCanvas();
+          bub.draw();
+        });
+      }
+
+      bub.newBoard();
+      bub.updateHeader();
+      bub.startLoop();
+
+      if (!bubbleStore.getBool("tutorialSeen")) {
+        bub.state.paused = true;
+        showModal(document.getElementById("bubble-tutorial-modal"));
+      }
+    },
+
+    onLeave() {
+      bub.stopLoop();
+      bub.state.paused = true;
+      if (bub.state.messageTimer) clearTimeout(bub.state.messageTimer);
+      hideModal(bub.els.winModal);
+      hideModal(bub.els.gameoverModal);
+      hideModal(bub.els.settingsModal);
+      hideModal(document.getElementById("bubble-tutorial-modal"));
+    },
+  };
+
+  // ================================================================
+  // 19. INIT & LOCALSTORAGE MIGRATION
   // ================================================================
   function migrateStorage() {
     try {

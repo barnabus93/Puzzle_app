@@ -88,6 +88,19 @@
             </svg>
             <span class="tile-label">SOCCER CHALLENGE</span>
           </button>
+          <button class="game-tile" data-game="bubble">
+            <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
+              <rect width="64" height="64" rx="6" fill="#1a1633"/>
+              <circle cx="20" cy="18" r="9" fill="#e0455a"/>
+              <circle cx="38" cy="16" r="9" fill="#3ac7d6"/>
+              <circle cx="29" cy="32" r="9" fill="#f2c94c"/>
+              <circle cx="47" cy="30" r="9" fill="#5fd068"/>
+              <circle cx="16" cy="46" r="9" fill="#a95fe0"/>
+              <circle cx="34" cy="48" r="9" fill="#e0455a"/>
+              <polygon points="32,58 27,50 37,50" fill="#fff" opacity="0.85"/>
+            </svg>
+            <span class="tile-label">BUBBLE BLAST</span>
+          </button>
           <div class="game-tile game-tile--disabled">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="6" fill="#1f1c19" opacity="0.5"/>
@@ -635,6 +648,114 @@
           <div class="modal-actions" style="justify-content:space-between;">
             <button id="soccer-tut-prev" type="button" class="danger-btn" hidden>&larr; Back</button>
             <button id="soccer-tut-next" type="button" class="primary-btn">Next &rarr;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- BUBBLE BLAST SCREEN                                           -->
+    <!-- ============================================================ -->
+    <div id="screen-bubble" class="screen" hidden>
+      <header class="app-header">
+        <button class="menu-btn" type="button" data-back aria-label="Back to menu">&larr; MENU</button>
+        <div class="counter" aria-live="polite">
+          Cleared: <span id="bubble-completed-count">0</span>
+        </div>
+        <button id="bubble-settings-btn" class="icon-btn" type="button" aria-label="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M19.14 12.94a7.49 7.49 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.88 2h-3.84a.5.5 0 0 0-.5.43l-.36 2.54c-.58.24-1.13.55-1.63.94l-2.39-.96a.5.5 0 0 0-.61.22L2.63 8.49a.5.5 0 0 0 .12.64l2.03 1.58a7.49 7.49 0 0 0 0 1.88L2.75 14.17a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.34.67.24l2.39-.96c.5.39 1.05.7 1.63.94l.36 2.54c.05.25.26.43.5.43h3.84c.25 0 .46-.18.5-.43l.36-2.54c.58-.24 1.13-.55 1.63-.94l2.39.96c.25.1.53 0 .67-.24l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </header>
+
+      <main class="app-main bubble-main">
+        <div class="bubble-canvas-wrap">
+          <canvas id="bubble-canvas"></canvas>
+        </div>
+        <div class="status-bar">
+          <div class="difficulty-label">
+            <span id="bubble-difficulty-label">Moderate</span>
+          </div>
+        </div>
+      </main>
+
+      <!-- Bubble settings modal -->
+      <div id="bubble-settings-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card">
+          <h2>Settings</h2>
+          <fieldset class="field">
+            <legend>Difficulty</legend>
+            <label class="radio"><input type="radio" name="bubble-difficulty" value="simple" /><span>Simple</span></label>
+            <label class="radio"><input type="radio" name="bubble-difficulty" value="moderate" checked /><span>Moderate</span></label>
+            <label class="radio"><input type="radio" name="bubble-difficulty" value="difficult" /><span>Difficult</span></label>
+          </fieldset>
+          <div class="field">
+            <button id="bubble-reset-count-btn" type="button" class="danger-btn">Reset completed count</button>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="primary-btn" data-close>Close</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bubble win modal -->
+      <div id="bubble-win-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card">
+          <h2>Board Cleared!</h2>
+          <p>You popped every bubble!</p>
+          <p>Boards cleared: <strong><span id="bubble-win-total">0</span></strong></p>
+          <div class="modal-actions">
+            <button id="bubble-next-btn" type="button" class="primary-btn">Next Board</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bubble game-over modal -->
+      <div id="bubble-gameover-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-card">
+          <h2>Game Over!</h2>
+          <p>The bubbles reached the bottom.</p>
+          <p>Boards cleared: <strong><span id="bubble-gameover-total">0</span></strong></p>
+          <div class="modal-actions">
+            <button id="bubble-retry-btn" type="button" class="primary-btn">Try Again</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bubble tutorial modal -->
+      <div id="bubble-tutorial-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-card tutorial-card" style="max-width:360px;">
+          <h2 style="text-align:center;">How to Play</h2>
+          <div id="bubble-tutorial-steps">
+            <div class="bubble-tut-step" data-step="0">
+              <div class="soccer-tut-icon">&#127919;</div>
+              <p class="tutorial-caption"><strong>Aim &amp; shoot</strong></p>
+              <p class="tutorial-caption">Drag from the shooter to aim, release to fire a bubble. Watch the dotted line &mdash; it bounces off the walls!</p>
+            </div>
+            <div class="bubble-tut-step" data-step="1" hidden>
+              <div class="soccer-tut-icon">&#127775;</div>
+              <p class="tutorial-caption"><strong>Match 3 or more</strong></p>
+              <p class="tutorial-caption">Connect 3+ bubbles of the same color to pop them.</p>
+            </div>
+            <div class="bubble-tut-step" data-step="2" hidden>
+              <div class="soccer-tut-icon">&#11015;&#65039;</div>
+              <p class="tutorial-caption"><strong>Bonus drops</strong></p>
+              <p class="tutorial-caption">Popping bubbles can leave others floating with nothing attached above &mdash; those fall away too!</p>
+            </div>
+            <div class="bubble-tut-step" data-step="3" hidden>
+              <div class="soccer-tut-icon">&#128680;</div>
+              <p class="tutorial-caption"><strong>Don't get crowded</strong></p>
+              <p class="tutorial-caption">New rows appear over time. If bubbles reach the red line, it's game over. Clear the board to win!</p>
+            </div>
+          </div>
+          <div class="modal-actions" style="justify-content:space-between;">
+            <button id="bubble-tut-prev" type="button" class="danger-btn" hidden>&larr; Back</button>
+            <button id="bubble-tut-next" type="button" class="primary-btn">Next &rarr;</button>
           </div>
         </div>
       </div>

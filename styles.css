@@ -131,26 +131,28 @@ body {
 }
 
 .game-tiles {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
   width: 100%;
   margin-top: 10px;
 }
 
 .game-tile {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 14px 18px;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 10px;
   background: rgba(255, 255, 255, 0.04);
   border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   cursor: pointer;
-  min-height: 72px;
+  min-height: 96px;
   color: var(--fg);
   font: inherit;
-  text-align: left;
+  text-align: center;
   transition:
     border-color 180ms,
     box-shadow 180ms,
@@ -176,17 +178,17 @@ body {
 }
 
 .tile-icon {
-  width: 52px;
-  height: 52px;
-  flex: 0 0 52px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   border-radius: 6px;
 }
 
 .tile-label {
   font-family: var(--pixel-font);
-  font-size: clamp(0.55rem, 2.5vw, 0.72rem);
+  font-size: clamp(0.5rem, 2.2vw, 0.62rem);
   line-height: 1.4;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 /* CRT scanlines overlay */
@@ -716,13 +718,14 @@ fieldset.field legend {
     gap: 8px;
   }
   .game-tile {
-    padding: 10px 14px;
-    min-height: 56px;
+    padding: 8px 6px;
+    min-height: 72px;
+    gap: 5px;
   }
   .tile-icon {
-    width: 40px;
-    height: 40px;
-    flex: 0 0 40px;
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
   }
 }
 
@@ -1089,17 +1092,38 @@ fieldset.field legend {
   padding: 6px 0;
   min-height: 24px;
 }
-.soccer-tut-step[hidden] { display: none !important; }
+.soccer-tut-step[hidden], .bubble-tut-step[hidden] { display: none !important; }
 .soccer-tut-icon {
   font-size: 2.5rem;
   text-align: center;
   margin-bottom: 6px;
 }
-.soccer-tut-step .tutorial-caption {
+.soccer-tut-step .tutorial-caption, .bubble-tut-step .tutorial-caption {
   text-align: center;
   margin: 4px 0;
 }
-.soccer-tut-step .tutorial-caption strong {
+.soccer-tut-step .tutorial-caption strong, .bubble-tut-step .tutorial-caption strong {
   color: var(--fg);
   font-size: 1.05rem;
+}
+
+/* ================================================================
+   BUBBLE BLAST
+   ================================================================ */
+.bubble-main {
+  justify-content: flex-start;
+  padding-top: 6px;
+}
+.bubble-canvas-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+}
+.bubble-canvas-wrap canvas {
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  touch-action: none;
 }
