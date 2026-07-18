@@ -2662,11 +2662,18 @@
 
   const BUBBLE_COLS = 8;
   const BUBBLE_SPEED = 11;
+  // Each frame's movement is broken into this many equal sub-steps, with
+  // a collision check after each one, instead of one big per-frame jump.
+  // Without this, a shot aimed precisely at a gap between two bubbles can
+  // "tunnel" past the correct collision point (or clip a bubble a truly
+  // continuous path would have missed) because BUBBLE_SPEED is a sizeable
+  // fraction of a bubble's own diameter.
+  const FLIGHT_SUBSTEPS = 4;
   const BUBBLE_COLORS = ["#e0455a", "#3ac7d6", "#f2c94c", "#5fd068", "#a95fe0", "#ff9f43"];
   const BUBBLE_TIERS = {
-    simple: { colors: 3, rowInterval: 14000, initialRows: 4 },
-    moderate: { colors: 4, rowInterval: 10000, initialRows: 5 },
-    difficult: { colors: 5, rowInterval: 7000, initialRows: 6 },
+    simple: { colors: 3, rowInterval: 14000, initialRows: 4, shotsPerRow: 10 },
+    moderate: { colors: 4, rowInterval: 10000, initialRows: 5, shotsPerRow: 7 },
+    difficult: { colors: 5, rowInterval: 7000, initialRows: 6, shotsPerRow: 5 },
   };
 
   const bub = {
@@ -2684,7 +2691,7 @@
       flying: null,      // { x, y, vx, vy, r, color }
       aiming: false, aimX: 0, aimY: 0,
       popParticles: [], fallParticles: [],
-      nextRowTime: 0,
+      nextRowTime: 0, shotsSinceRow: 0,
       completed: 0, over: false, paused: false,
       message: "", messageTimer: null,
     },
@@ -2739,6 +2746,7 @@
       s.popParticles = []; s.fallParticles = [];
       s.over = false;
       s.nextRowTime = performance.now() + tier.rowInterval;
+      s.shotsSinceRow = 0;
       this.draw();
     },
 
@@ -2848,17 +2856,40 @@
       };
       s.current = s.next;
       s.next = { color: this.randomColor() };
+      s.shotsSinceRow++;
     },
 
     // --- Flight & collision ---
+    // Moves the flying bubble in FLIGHT_SUBSTEPS smaller increments,
+    // checking collision after each one. f.vx/f.vy are re-read fresh on
+    // every sub-step (not cached before the loop) so a wall bounce that
+    // happens mid-frame is respected by the remaining sub-steps.
     stepFlight() {
       const f = this.state.flying;
       if (!f) return;
-      f.x += f.vx; f.y += f.vy;
-      if (f.x - f.r < 0) { f.x = f.r; f.vx = Math.abs(f.vx); }
-      if (f.x + f.r > this.pitchW) { f.x = this.pitchW - f.r; f.vx = -Math.abs(f.vx); }
-      const hit = this.checkCollision();
-      if (hit) this.attachFlying(hit);
+      for (let i = 0; i < FLIGHT_SUBSTEPS; i++) {
+        f.x += f.vx / FLIGHT_SUBSTEPS;
+        f.y += f.vy / FLIGHT_SUBSTEPS;
+        if (f.x - f.r < 0) { f.x = f.r; f.vx = Math.abs(f.vx); }
+        if (f.x + f.r > this.pitchW) { f.x = this.pitchW - f.r; f.vx = -Math.abs(f.vx); }
+        const hit = this.checkCollision();
+        if (hit) { this.attachFlying(hit); return; }
+      }
+    },
+
+    // Distance at which a flying bubble is considered to have "reached"
+    // an existing bubble and should attach nearby. This is intentionally
+    // set to hex-neighbor spacing (2 * cellR), NOT raw visual circle-
+    // overlap (~2 * (cellR-1)) — a shot aimed into the notch between two
+    // touching bubbles is, BY DEFINITION, exactly one hex-neighbor-
+    // distance (2*cellR) from each of them. A tighter, overlap-based
+    // threshold never triggers for that shot at all: the ball just
+    // sails through the notch into open space beyond instead of
+    // stopping there, which is the "shots bounce off/miss real gaps"
+    // bug. A small +1 buffer avoids floating-point misses exactly at
+    // the boundary.
+    attachDist() {
+      return this.cellR * 2 + 1;
     },
 
     checkCollision() {
@@ -2869,12 +2900,12 @@
       // frame it also overlaps a row-0 bubble, and attaching to the
       // bubble it actually touched is both more correct and avoids
       // relying on the (rare) fully-packed-row ceiling fallback.
+      const minDist = this.attachDist();
       for (const key of this.state.grid.keys()) {
         const parts = key.split(",");
         const row = Number(parts[0]), col = Number(parts[1]);
         const p = this.hexToPixel(row, col);
         const dx = f.x - p.x, dy = f.y - p.y;
-        const minDist = f.r + this.cellR - 2;
         if (dx * dx + dy * dy < minDist * minDist) return { type: "bubble", row, col };
       }
       if (f.y - f.r <= this.gridPadY) return { type: "ceiling" };
@@ -3098,6 +3129,29 @@
       if (this.state.next) this.drawBubble(this.shooterX + r * 2.4, this.shooterY, r * 0.6, this.state.next.color);
     },
 
+    // Finds the smallest positive `t` (distance along the ray from
+    // (x,y) in direction (vx,vy), a unit vector) at which the ray comes
+    // within `hitDist` of ANY existing grid bubble. Returns Infinity if
+    // none. Used so the aim preview stops where a real shot actually
+    // would, instead of drawing straight through bubbles as if they
+    // weren't there.
+    nearestBubbleHitT(x, y, vx, vy, hitDist) {
+      let best = Infinity;
+      for (const key of this.state.grid.keys()) {
+        const parts = key.split(",");
+        const p = this.hexToPixel(Number(parts[0]), Number(parts[1]));
+        const wx = x - p.x, wy = y - p.y;
+        const b = wx * vx + wy * vy;
+        const c = wx * wx + wy * wy - hitDist * hitDist;
+        const disc = b * b - c;
+        if (disc < 0) continue;
+        const sq = Math.sqrt(disc);
+        const t = -b - sq;
+        if (t > 0.01 && t < best) best = t;
+      }
+      return best;
+    },
+
     drawAimLine() {
       const s = this.state;
       if (!s.aiming) return;
@@ -3106,20 +3160,30 @@
       let x = this.shooterX, y = this.shooterY, vx = dir.nx, vy = dir.ny;
       const points = [{ x, y }];
       let remaining = this.pitchH * 1.6, bounces = 0;
+      const hitDist = this.attachDist(); // matches checkCollision's minDist
+      let stoppedOnBubble = false;
       while (remaining > 0 && bounces <= 2) {
         let tX = Infinity;
         if (vx > 0) tX = (this.pitchW - this.cellR - x) / vx;
         else if (vx < 0) tX = (this.cellR - x) / vx;
         const tY = vy < 0 ? (this.gridPadY + this.cellR - y) / vy : Infinity;
-        const t = Math.min(tX, tY, remaining);
+        const tBubble = this.nearestBubbleHitT(x, y, vx, vy, hitDist);
+
+        let t = remaining, kind = "budget";
+        if (tX < t) { t = tX; kind = "wall"; }
+        if (tY < t) { t = tY; kind = "ceiling"; }
+        if (tBubble < t) { t = tBubble; kind = "bubble"; }
         if (!isFinite(t) || t <= 0) break;
+
         x += vx * t; y += vy * t; remaining -= t;
         points.push({ x, y });
-        if (t === tY) break;
-        vx = -vx; bounces++;
+        if (kind === "bubble" || kind === "ceiling") { stoppedOnBubble = kind === "bubble"; break; }
+        if (kind === "budget") break;
+        vx = -vx; bounces++; // wall bounce, keep going
       }
       ctx.setLineDash([6, 4]);
-      ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 2;
+      ctx.strokeStyle = stoppedOnBubble ? "rgba(255,215,120,0.8)" : "rgba(255,255,255,0.6)";
+      ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(points[0].x, points[0].y);
       for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
       ctx.stroke();
@@ -3182,10 +3246,14 @@
         }
         s.fallParticles = s.fallParticles.filter((p) => p.alpha > 0);
       }
-      if (now >= s.nextRowTime) {
+      // Hybrid row descent: a new row drops when EITHER the timer
+      // elapses OR the player has fired enough shots, whichever comes
+      // first. Both are reset together whenever a row is added.
+      const tier = BUBBLE_TIERS[s.difficulty] || BUBBLE_TIERS.moderate;
+      if (now >= s.nextRowTime || s.shotsSinceRow >= tier.shotsPerRow) {
         this.addRow();
-        const tier = BUBBLE_TIERS[s.difficulty] || BUBBLE_TIERS.moderate;
         s.nextRowTime = now + tier.rowInterval;
+        s.shotsSinceRow = 0;
       }
     },
 
