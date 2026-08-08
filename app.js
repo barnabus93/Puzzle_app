@@ -3398,6 +3398,7 @@
   const RANGER_FIRE_COOLDOWN = 200;  // ms between auto-fired shots — a stable, constant rate
   const RANGER_BULLET_SPEED = 480;   // px/s
   const RANGER_TOUCH_OFFSET = 3.2;   // ship-radii above the finger, so the ship stays visible while dragging
+  const RANGER_BODY_SPEED = 55;      // px/s the background planet/nebula drifts down at, so several drift past each level
   const RANGER_ENEMY_COLORS = { drone: "#ff5f5f", weaver: "#c568f2", hunter: "#ff9f43" };
 
   // Per-difficulty tuning. `f` (0..1, current progress through the level)
@@ -3497,7 +3498,7 @@
         for (let i = 0; i < n; i++) {
           s.rocks.push({
             x: Math.random() * this.fieldW, y: Math.random() * this.fieldH,
-            r: 5 + Math.random() * 10, speed: 10 + Math.random() * 10,
+            r: 5 + Math.random() * 10, speed: RANGER_BODY_SPEED * 0.6 + Math.random() * RANGER_BODY_SPEED * 0.6,
           });
         }
         s.body = null;
@@ -3700,7 +3701,7 @@
           if (rock.y - rock.r > this.fieldH) { rock.y = -rock.r; rock.x = Math.random() * this.fieldW; }
         }
       } else if (s.body) {
-        s.body.y += 6 * dt;
+        s.body.y += RANGER_BODY_SPEED * dt;
         if (s.body.y - s.body.r > this.fieldH) this.respawnBody();
       }
 
