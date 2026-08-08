@@ -3397,6 +3397,7 @@
   const RANGER_MAX_LIVES = 3;
   const RANGER_FIRE_COOLDOWN = 200;  // ms between auto-fired shots — a stable, constant rate
   const RANGER_BULLET_SPEED = 480;   // px/s
+  const RANGER_TOUCH_OFFSET = 3.2;   // ship-radii above the finger, so the ship stays visible while dragging
   const RANGER_ENEMY_COLORS = { drone: "#ff5f5f", weaver: "#c568f2", hunter: "#ff9f43" };
 
   // Per-difficulty tuning. `f` (0..1, current progress through the level)
@@ -3557,12 +3558,15 @@
       };
     },
 
+    // Ship is drawn above the actual touch point (by RANGER_TOUCH_OFFSET
+    // ship-radii) so a finger dragging it around doesn't sit directly on
+    // top of — and hide — the ship.
     onCanvasDown(e) {
       const s = this.state;
       if (s.over || s.paused) return;
       const p = this.getCanvasPoint(e);
       s.dragging = true;
-      s.ship.x = p.x; s.ship.y = p.y;
+      s.ship.x = p.x; s.ship.y = p.y - this.shipR * RANGER_TOUCH_OFFSET;
       try { this.canvas.setPointerCapture(e.pointerId); } catch { /* ignore */ }
     },
 
@@ -3570,7 +3574,7 @@
       const s = this.state;
       if (!s.dragging) return;
       const p = this.getCanvasPoint(e);
-      s.ship.x = p.x; s.ship.y = p.y;
+      s.ship.x = p.x; s.ship.y = p.y - this.shipR * RANGER_TOUCH_OFFSET;
     },
 
     onCanvasUp() {
