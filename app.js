@@ -3395,9 +3395,7 @@
   const rangerStore = makeStore("ranger");
 
   const RANGER_MAX_LIVES = 3;
-  const RANGER_MOVE_THRESHOLD = 8;   // px of pointer travel before a touch counts as a drag, not a tap
-  const RANGER_TAP_MAX_MS = 220;     // a press+release faster than this (and under the move threshold) fires a shot
-  const RANGER_FIRE_COOLDOWN = 200;  // ms between shots, so rapid tapping can't spam bullets
+  const RANGER_FIRE_COOLDOWN = 200;  // ms between auto-fired shots — a stable, constant rate
   const RANGER_BULLET_SPEED = 480;   // px/s
   const RANGER_ENEMY_COLORS = { drone: "#ff5f5f", weaver: "#c568f2", hunter: "#ff9f43" };
 
@@ -3407,10 +3405,11 @@
   // up toward the end. weaverAt/hunterAt gate when those enemy types are
   // allowed to spawn (as fractions of level progress), adding variety on
   // top of the raw speed/density ramp.
+  // speedStart/speedEnd are 15% higher than the original tuning pass.
   const RANGER_TIERS = {
-    simple:    { levelLength: 45000, spawnStart: 1400, spawnEnd: 700, speedStart: 70,  speedEnd: 130, weaverAt: 0.30, hunterAt: 0.70 },
-    moderate:  { levelLength: 55000, spawnStart: 1000, spawnEnd: 420, speedStart: 90,  speedEnd: 170, weaverAt: 0.20, hunterAt: 0.55 },
-    difficult: { levelLength: 65000, spawnStart: 750,  spawnEnd: 280, speedStart: 110, speedEnd: 210, weaverAt: 0.10, hunterAt: 0.40 },
+    simple:    { levelLength: 45000, spawnStart: 1400, spawnEnd: 700, speedStart: 81,  speedEnd: 150, weaverAt: 0.30, hunterAt: 0.70 },
+    moderate:  { levelLength: 55000, spawnStart: 1000, spawnEnd: 420, speedStart: 104, speedEnd: 196, weaverAt: 0.20, hunterAt: 0.55 },
+    difficult: { levelLength: 65000, spawnStart: 750,  spawnEnd: 280, speedStart: 127, speedEnd: 242, weaverAt: 0.10, hunterAt: 0.40 },
   };
 
   // Cycled by levelIndex % length. Each level of a fresh playthrough is a
@@ -3443,7 +3442,7 @@
       levelIndex: 0, levelsCleared: 0,
       progress: 0, lives: RANGER_MAX_LIVES,
       ship: { x: 150, y: 400 },
-      drag: null,
+      dragging: false,
       bullets: [], enemies: [], particles: [],
       theme: PLANET_THEMES[0], body: null, rocks: null,
       nextFireTime: 0, nextSpawnTime: 0, invulnUntil: 0,
@@ -3525,7 +3524,7 @@
       s.bullets = []; s.enemies = []; s.particles = [];
       s.nextFireTime = 0; s.nextSpawnTime = performance.now() + 600; s.invulnUntil = 0;
       s.over = false; s.paused = false;
-      s.drag = null;
+      s.dragging = false;
       s.ship.x = this.fieldW / 2; s.ship.y = this.maxY;
       this.placeBackground();
       this.updateLivesDisplay();
@@ -3562,31 +3561,24 @@
       const s = this.state;
       if (s.over || s.paused) return;
       const p = this.getCanvasPoint(e);
-      s.drag = { x: p.x, y: p.y, t: performance.now(), moved: false };
+      s.dragging = true;
+      s.ship.x = p.x; s.ship.y = p.y;
       try { this.canvas.setPointerCapture(e.pointerId); } catch { /* ignore */ }
     },
 
     onCanvasMove(e) {
       const s = this.state;
-      if (!s.drag) return;
+      if (!s.dragging) return;
       const p = this.getCanvasPoint(e);
-      if (!s.drag.moved) {
-        const dx = p.x - s.drag.x, dy = p.y - s.drag.y;
-        if (Math.hypot(dx, dy) > RANGER_MOVE_THRESHOLD) s.drag.moved = true;
-      }
-      if (s.drag.moved) { s.ship.x = p.x; s.ship.y = p.y; }
+      s.ship.x = p.x; s.ship.y = p.y;
     },
 
     onCanvasUp() {
-      const s = this.state;
-      if (!s.drag) return;
-      const elapsed = performance.now() - s.drag.t;
-      const wasMoved = s.drag.moved;
-      s.drag = null;
-      if (s.over || s.paused) return;
-      if (!wasMoved && elapsed < RANGER_TAP_MAX_MS) this.fireBullet(performance.now());
+      this.state.dragging = false;
     },
 
+    // Ship fires automatically at a steady rate (RANGER_FIRE_COOLDOWN)
+    // whenever the level is running — no player input needed to shoot.
     fireBullet(now) {
       const s = this.state;
       if (s.over || s.paused || now < s.nextFireTime) return;
@@ -3713,6 +3705,8 @@
         const interval = (tier.spawnStart + (tier.spawnEnd - tier.spawnStart) * f) / lapMult;
         s.nextSpawnTime = now + Math.max(150, interval);
       }
+
+      this.fireBullet(now);
 
       for (const b of s.bullets) b.y -= RANGER_BULLET_SPEED * dt;
       s.bullets = s.bullets.filter((b) => b.y + this.bulletR > 0);
