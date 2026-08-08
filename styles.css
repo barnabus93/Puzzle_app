@@ -1092,17 +1092,17 @@ fieldset.field legend {
   padding: 6px 0;
   min-height: 24px;
 }
-.soccer-tut-step[hidden], .bubble-tut-step[hidden] { display: none !important; }
+.soccer-tut-step[hidden], .bubble-tut-step[hidden], .ranger-tut-step[hidden] { display: none !important; }
 .soccer-tut-icon {
   font-size: 2.5rem;
   text-align: center;
   margin-bottom: 6px;
 }
-.soccer-tut-step .tutorial-caption, .bubble-tut-step .tutorial-caption {
+.soccer-tut-step .tutorial-caption, .bubble-tut-step .tutorial-caption, .ranger-tut-step .tutorial-caption {
   text-align: center;
   margin: 4px 0;
 }
-.soccer-tut-step .tutorial-caption strong, .bubble-tut-step .tutorial-caption strong {
+.soccer-tut-step .tutorial-caption strong, .bubble-tut-step .tutorial-caption strong, .ranger-tut-step .tutorial-caption strong {
   color: var(--fg);
   font-size: 1.05rem;
 }
@@ -1126,4 +1126,59 @@ fieldset.field legend {
   border-radius: 8px;
   box-shadow: var(--shadow);
   touch-action: none;
+}
+
+/* ================================================================
+   SPACE RANGER
+   ================================================================ */
+.ranger-main {
+  justify-content: flex-start;
+  padding-top: 6px;
+}
+.ranger-progress-bar {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 340px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.ranger-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #4fc3e8, #7fe8ff);
+  transition: width 120ms linear;
+}
+.ranger-canvas-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+}
+.ranger-canvas-wrap canvas {
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  touch-action: none;
+}
+.ranger-lives {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  flex: 0 0 auto;
+}
+.ranger-life {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  background: #4fc3e8;
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  opacity: 1;
+  transition: opacity 300ms;
+}
+.ranger-life.lost {
+  opacity: 0.2;
 }

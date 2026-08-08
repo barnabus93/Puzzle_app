@@ -3390,7 +3390,673 @@
   };
 
   // ================================================================
-  // 19. INIT & LOCALSTORAGE MIGRATION
+  // 19. SPACE RANGER — top-down scrolling space shooter
+  // ================================================================
+  const rangerStore = makeStore("ranger");
+
+  const RANGER_MAX_LIVES = 3;
+  const RANGER_MOVE_THRESHOLD = 8;   // px of pointer travel before a touch counts as a drag, not a tap
+  const RANGER_TAP_MAX_MS = 220;     // a press+release faster than this (and under the move threshold) fires a shot
+  const RANGER_FIRE_COOLDOWN = 200;  // ms between shots, so rapid tapping can't spam bullets
+  const RANGER_BULLET_SPEED = 480;   // px/s
+  const RANGER_ENEMY_COLORS = { drone: "#ff5f5f", weaver: "#c568f2", hunter: "#ff9f43" };
+
+  // Per-difficulty tuning. `f` (0..1, current progress through the level)
+  // linearly interpolates spawn interval and enemy speed between the
+  // *Start and *End values, so every level starts slow/sparse and ramps
+  // up toward the end. weaverAt/hunterAt gate when those enemy types are
+  // allowed to spawn (as fractions of level progress), adding variety on
+  // top of the raw speed/density ramp.
+  const RANGER_TIERS = {
+    simple:    { levelLength: 45000, spawnStart: 1400, spawnEnd: 700, speedStart: 70,  speedEnd: 130, weaverAt: 0.30, hunterAt: 0.70 },
+    moderate:  { levelLength: 55000, spawnStart: 1000, spawnEnd: 420, speedStart: 90,  speedEnd: 170, weaverAt: 0.20, hunterAt: 0.55 },
+    difficult: { levelLength: 65000, spawnStart: 750,  spawnEnd: 280, speedStart: 110, speedEnd: 210, weaverAt: 0.10, hunterAt: 0.40 },
+  };
+
+  // Cycled by levelIndex % length. Each level of a fresh playthrough is a
+  // different backdrop; once the whole list has been seen once ("a lap"),
+  // the cycle repeats but with a compounding difficulty multiplier (see
+  // `lapMult` in ranger.update) so the game never plateaus.
+  const PLANET_THEMES = [
+    { name: "Mercury", kind: "planet", base: "#8c7d6b", shade: "#3f362c", accent: "#c9bba8" },
+    { name: "Venus", kind: "planet", base: "#d9b877", shade: "#6b5326", accent: "#f0dca0" },
+    { name: "Earth", kind: "planet", base: "#3a72b0", shade: "#132840", accent: "#4f9e5c" },
+    { name: "Mars", kind: "planet", base: "#b8542f", shade: "#4a1f10", accent: "#e08a55" },
+    { name: "Asteroid Belt", kind: "belt", base: "#8a8078", shade: "#332f2b" },
+    { name: "Jupiter", kind: "planet", base: "#c99a63", shade: "#5c3f1e", accent: "#e8c893", bands: true },
+    { name: "Saturn", kind: "planet", base: "#d8c396", shade: "#5f5238", accent: "#f0e2bd", rings: true },
+    { name: "Uranus", kind: "planet", base: "#8fd4d6", shade: "#2c5a5b", accent: "#c3ecee" },
+    { name: "Neptune", kind: "planet", base: "#3d54c9", shade: "#151f56", accent: "#7c8fe8" },
+    { name: "Deep Space Nebula", kind: "nebula", colors: ["#b04fd6", "#4f7fd6", "#d64f9a"] },
+  ];
+
+  const ranger = {
+    canvas: null, ctx: null,
+    fieldW: 300, fieldH: 460,
+    shipR: 16, enemyR: 14, bulletR: 4,
+    minY: 100, maxY: 400,
+    starLayers: [],
+    animId: null, lastFrame: 0,
+    els: {},
+    state: {
+      difficulty: "moderate",
+      levelIndex: 0, levelsCleared: 0,
+      progress: 0, lives: RANGER_MAX_LIVES,
+      ship: { x: 150, y: 400 },
+      drag: null,
+      bullets: [], enemies: [], particles: [],
+      theme: PLANET_THEMES[0], body: null, rocks: null,
+      nextFireTime: 0, nextSpawnTime: 0, invulnUntil: 0,
+      paused: false, over: false,
+    },
+
+    // --- Setup ---
+    initCanvas() {
+      this.canvas = document.getElementById("ranger-canvas");
+      this.ctx = this.canvas.getContext("2d");
+      this.sizeCanvas();
+    },
+
+    sizeCanvas() {
+      const wrap = this.canvas.parentElement;
+      const rect = wrap.getBoundingClientRect();
+      const maxW = rect.width - 8, maxH = rect.height - 8;
+      const aspect = 0.62; // width / height (portrait)
+      let w = maxW, h = maxH;
+      if (w / h > aspect) w = h * aspect; else h = w / aspect;
+      w = Math.floor(w); h = Math.floor(h);
+      this.fieldW = w; this.fieldH = h;
+      this.canvas.width = w; this.canvas.height = h;
+      this.canvas.style.width = w + "px"; this.canvas.style.height = h + "px";
+      this.shipR = Math.max(14, w * 0.055);
+      this.enemyR = Math.max(12, w * 0.05);
+      this.bulletR = Math.max(3, w * 0.012);
+      this.minY = h * 0.3;
+      this.maxY = h - this.shipR - 6;
+      this.starLayers = this.buildStarLayers();
+    },
+
+    buildStarLayers() {
+      const counts = [40, 26, 14], speeds = [18, 34, 55], sizes = [1, 1.6, 2.4];
+      const layers = [];
+      for (let i = 0; i < 3; i++) {
+        const stars = [];
+        for (let n = 0; n < counts[i]; n++) stars.push({ x: Math.random() * this.fieldW, y: Math.random() * this.fieldH });
+        layers.push({ stars, speed: speeds[i], size: sizes[i] });
+      }
+      return layers;
+    },
+
+    placeBackground() {
+      const s = this.state;
+      const theme = PLANET_THEMES[s.levelIndex % PLANET_THEMES.length];
+      s.theme = theme;
+      if (theme.kind === "belt") {
+        s.rocks = [];
+        const n = 10 + Math.floor(Math.random() * 6);
+        for (let i = 0; i < n; i++) {
+          s.rocks.push({
+            x: Math.random() * this.fieldW, y: Math.random() * this.fieldH,
+            r: 5 + Math.random() * 10, speed: 10 + Math.random() * 10,
+          });
+        }
+        s.body = null;
+      } else {
+        s.body = {
+          x: this.fieldW * (0.25 + Math.random() * 0.5),
+          y: this.fieldH * (0.1 + Math.random() * 0.25),
+          r: this.fieldW * (0.45 + Math.random() * 0.25),
+        };
+        s.rocks = null;
+      }
+    },
+
+    respawnBody() {
+      const s = this.state;
+      s.body.r = this.fieldW * (0.45 + Math.random() * 0.25);
+      s.body.x = this.fieldW * (0.25 + Math.random() * 0.5);
+      s.body.y = -s.body.r;
+    },
+
+    // --- Level lifecycle ---
+    resetField() {
+      const s = this.state;
+      s.progress = 0;
+      s.bullets = []; s.enemies = []; s.particles = [];
+      s.nextFireTime = 0; s.nextSpawnTime = performance.now() + 600; s.invulnUntil = 0;
+      s.over = false; s.paused = false;
+      s.drag = null;
+      s.ship.x = this.fieldW / 2; s.ship.y = this.maxY;
+      this.placeBackground();
+      this.updateLivesDisplay();
+      this.updateProgressBar(0);
+      this.draw();
+    },
+
+    startLevel(idx) {
+      this.state.levelIndex = Math.max(0, idx);
+      this.resetField();
+    },
+
+    retryLevel() {
+      this.state.lives = RANGER_MAX_LIVES;
+      this.resetField();
+    },
+
+    newGame() {
+      this.state.levelIndex = 0;
+      this.state.lives = RANGER_MAX_LIVES;
+      this.resetField();
+    },
+
+    // --- Input: drag to move, tap to shoot ---
+    getCanvasPoint(e) {
+      const rect = this.canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left) * (this.fieldW / rect.width),
+        y: (e.clientY - rect.top) * (this.fieldH / rect.height),
+      };
+    },
+
+    onCanvasDown(e) {
+      const s = this.state;
+      if (s.over || s.paused) return;
+      const p = this.getCanvasPoint(e);
+      s.drag = { x: p.x, y: p.y, t: performance.now(), moved: false };
+      try { this.canvas.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+    },
+
+    onCanvasMove(e) {
+      const s = this.state;
+      if (!s.drag) return;
+      const p = this.getCanvasPoint(e);
+      if (!s.drag.moved) {
+        const dx = p.x - s.drag.x, dy = p.y - s.drag.y;
+        if (Math.hypot(dx, dy) > RANGER_MOVE_THRESHOLD) s.drag.moved = true;
+      }
+      if (s.drag.moved) { s.ship.x = p.x; s.ship.y = p.y; }
+    },
+
+    onCanvasUp() {
+      const s = this.state;
+      if (!s.drag) return;
+      const elapsed = performance.now() - s.drag.t;
+      const wasMoved = s.drag.moved;
+      s.drag = null;
+      if (s.over || s.paused) return;
+      if (!wasMoved && elapsed < RANGER_TAP_MAX_MS) this.fireBullet(performance.now());
+    },
+
+    fireBullet(now) {
+      const s = this.state;
+      if (s.over || s.paused || now < s.nextFireTime) return;
+      s.bullets.push({ x: s.ship.x, y: s.ship.y - this.shipR });
+      s.nextFireTime = now + RANGER_FIRE_COOLDOWN;
+    },
+
+    // --- Enemies ---
+    pickEnemyType(f, tier) {
+      const types = ["drone"];
+      if (f >= tier.weaverAt) types.push("weaver");
+      if (f >= tier.hunterAt) types.push("hunter");
+      return types[Math.floor(Math.random() * types.length)];
+    },
+
+    spawnEnemy(f, tier, lapMult) {
+      const s = this.state;
+      const type = this.pickEnemyType(f, tier);
+      const speed = (tier.speedStart + (tier.speedEnd - tier.speedStart) * f) * lapMult;
+      const x = this.enemyR + Math.random() * (this.fieldW - this.enemyR * 2);
+      const enemy = { type, x, y: -this.enemyR, r: this.enemyR };
+      if (type === "drone") {
+        enemy.vy = speed * (0.9 + Math.random() * 0.2);
+      } else if (type === "weaver") {
+        enemy.vy = speed * 0.8;
+        enemy.phase = Math.random() * Math.PI * 2;
+        enemy.amp = 50 + Math.random() * 40;
+      } else {
+        enemy.vy = speed * 0.7;
+        enemy.hSpeed = speed * 0.6;
+      }
+      s.enemies.push(enemy);
+    },
+
+    updateEnemy(e, dt) {
+      if (e.type === "weaver") {
+        e.phase += dt * 3.2;
+        e.x += Math.cos(e.phase) * e.amp * dt;
+        e.x = Math.max(this.enemyR, Math.min(this.fieldW - this.enemyR, e.x));
+      } else if (e.type === "hunter") {
+        const dir = Math.sign(this.state.ship.x - e.x);
+        e.x += dir * e.hSpeed * dt;
+        e.x = Math.max(this.enemyR, Math.min(this.fieldW - this.enemyR, e.x));
+      }
+      e.y += e.vy * dt;
+    },
+
+    // --- Collisions & particles ---
+    spawnBurst(x, y, color, count) {
+      const s = this.state;
+      for (let i = 0; i < (count || 10); i++) {
+        const ang = Math.random() * Math.PI * 2, spd = 40 + Math.random() * 90;
+        s.particles.push({ x, y, vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd, color, t: 0 });
+      }
+    },
+
+    checkBulletEnemyCollisions() {
+      const s = this.state;
+      for (const b of s.bullets) {
+        if (b.dead) continue;
+        for (const e of s.enemies) {
+          if (e.dead) continue;
+          const dx = b.x - e.x, dy = b.y - e.y, rr = this.bulletR + e.r;
+          if (dx * dx + dy * dy < rr * rr) {
+            b.dead = true; e.dead = true;
+            this.spawnBurst(e.x, e.y, RANGER_ENEMY_COLORS[e.type]);
+            break;
+          }
+        }
+      }
+      s.bullets = s.bullets.filter((b) => !b.dead);
+      s.enemies = s.enemies.filter((e) => !e.dead);
+    },
+
+    checkShipEnemyCollision(now) {
+      const s = this.state;
+      if (now < s.invulnUntil) return;
+      for (const e of s.enemies) {
+        if (e.dead) continue;
+        const dx = s.ship.x - e.x, dy = s.ship.y - e.y, rr = this.shipR * 0.8 + e.r;
+        if (dx * dx + dy * dy < rr * rr) {
+          e.dead = true;
+          s.lives -= 1;
+          s.invulnUntil = now + 900;
+          this.spawnBurst(s.ship.x, s.ship.y, "#ffdd66");
+          this.updateLivesDisplay();
+          if (s.lives <= 0) this.onGameOver();
+          break;
+        }
+      }
+      s.enemies = s.enemies.filter((e) => !e.dead);
+    },
+
+    // --- Loop ---
+    update(dt, now) {
+      const s = this.state;
+      if (s.paused || s.over) return;
+      const tier = RANGER_TIERS[s.difficulty] || RANGER_TIERS.moderate;
+      const laps = Math.floor(s.levelIndex / PLANET_THEMES.length);
+      const lapMult = Math.min(1 + laps * 0.08, 1.6);
+      const f = Math.max(0, Math.min(1, s.progress / tier.levelLength));
+
+      s.ship.x = Math.max(this.shipR, Math.min(this.fieldW - this.shipR, s.ship.x));
+      s.ship.y = Math.max(this.minY, Math.min(this.maxY, s.ship.y));
+
+      for (const layer of this.starLayers) {
+        for (const star of layer.stars) {
+          star.y += layer.speed * dt;
+          if (star.y > this.fieldH) { star.y -= this.fieldH; star.x = Math.random() * this.fieldW; }
+        }
+      }
+      if (s.theme.kind === "belt") {
+        for (const rock of s.rocks) {
+          rock.y += rock.speed * dt;
+          if (rock.y - rock.r > this.fieldH) { rock.y = -rock.r; rock.x = Math.random() * this.fieldW; }
+        }
+      } else if (s.body) {
+        s.body.y += 6 * dt;
+        if (s.body.y - s.body.r > this.fieldH) this.respawnBody();
+      }
+
+      if (now >= s.nextSpawnTime) {
+        this.spawnEnemy(f, tier, lapMult);
+        const interval = (tier.spawnStart + (tier.spawnEnd - tier.spawnStart) * f) / lapMult;
+        s.nextSpawnTime = now + Math.max(150, interval);
+      }
+
+      for (const b of s.bullets) b.y -= RANGER_BULLET_SPEED * dt;
+      s.bullets = s.bullets.filter((b) => b.y + this.bulletR > 0);
+
+      for (const e of s.enemies) this.updateEnemy(e, dt);
+      s.enemies = s.enemies.filter((e) => e.y - this.enemyR < this.fieldH);
+
+      this.checkBulletEnemyCollisions();
+      this.checkShipEnemyCollision(now);
+      if (s.over) return;
+
+      for (const p of s.particles) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; }
+      s.particles = s.particles.filter((p) => p.t < 0.4);
+
+      s.progress += dt * 1000;
+      this.updateProgressBar(f);
+      if (s.progress >= tier.levelLength) this.onLevelClear();
+    },
+
+    gameLoop(timestamp) {
+      if (!this.canvas) return;
+      const dt = Math.min((timestamp - this.lastFrame) / 1000, 0.1);
+      this.lastFrame = timestamp;
+      this.update(dt, timestamp);
+      this.draw();
+      this.animId = requestAnimationFrame((t) => this.gameLoop(t));
+    },
+
+    startLoop() {
+      this.lastFrame = performance.now();
+      if (this.animId) cancelAnimationFrame(this.animId);
+      this.animId = requestAnimationFrame((t) => this.gameLoop(t));
+    },
+
+    stopLoop() {
+      if (this.animId) { cancelAnimationFrame(this.animId); this.animId = null; }
+    },
+
+    // --- Win / lose ---
+    onLevelClear() {
+      const s = this.state;
+      if (s.over) return;
+      s.over = true;
+      s.levelsCleared += 1;
+      s.lives = Math.min(s.lives + 1, RANGER_MAX_LIVES);
+      rangerStore.setInt("levelsCleared", s.levelsCleared);
+      this.updateLivesDisplay();
+      this.els.levelCount.textContent = String(s.levelsCleared);
+      document.getElementById("ranger-win-planet").textContent = PLANET_THEMES[s.levelIndex % PLANET_THEMES.length].name;
+      document.getElementById("ranger-win-total").textContent = String(s.levelsCleared);
+      showModal(this.els.winModal);
+    },
+
+    onGameOver() {
+      const s = this.state;
+      if (s.over) return;
+      s.over = true;
+      document.getElementById("ranger-gameover-total").textContent = String(s.levelsCleared);
+      showModal(this.els.gameoverModal);
+    },
+
+    updateHeader() {
+      this.els.levelCount.textContent = String(this.state.levelsCleared);
+      this.els.difficultyLabel.textContent = DIFFICULTIES[this.state.difficulty] || "Moderate";
+    },
+
+    updateLivesDisplay() {
+      const el = this.els.livesEl;
+      el.innerHTML = "";
+      for (let i = 0; i < RANGER_MAX_LIVES; i++) {
+        const d = document.createElement("span");
+        d.className = "ranger-life" + (i >= this.state.lives ? " lost" : "");
+        el.appendChild(d);
+      }
+    },
+
+    updateProgressBar(f) {
+      if (this.els.progressFill) this.els.progressFill.style.width = Math.round(f * 100) + "%";
+    },
+
+    // --- Rendering ---
+    drawSpaceBackdrop() {
+      const ctx = this.ctx, w = this.fieldW, h = this.fieldH;
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, "#0b0a1a");
+      grad.addColorStop(1, "#030308");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+    },
+
+    drawStarfield() {
+      const ctx = this.ctx;
+      for (const layer of this.starLayers) {
+        ctx.fillStyle = "rgba(255,255,255," + (0.35 + layer.size * 0.15) + ")";
+        for (const star of layer.stars) ctx.fillRect(star.x, star.y, layer.size, layer.size);
+      }
+    },
+
+    drawSphere(x, y, r, theme) {
+      const ctx = this.ctx;
+      ctx.save();
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.clip();
+      const grad = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r);
+      grad.addColorStop(0, theme.accent || theme.base);
+      grad.addColorStop(0.55, theme.base);
+      grad.addColorStop(1, theme.shade);
+      ctx.fillStyle = grad;
+      ctx.fillRect(x - r, y - r, r * 2, r * 2);
+      if (theme.bands) {
+        ctx.fillStyle = "rgba(0,0,0,0.12)";
+        for (let i = -3; i <= 3; i++) {
+          const by = y + i * r * 0.28;
+          ctx.fillRect(x - r, by, r * 2, r * 0.1);
+        }
+      }
+      ctx.fillStyle = "rgba(0,0,0,0.35)";
+      ctx.beginPath(); ctx.arc(x + r * 0.4, y + r * 0.4, r * 0.95, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    },
+
+    drawBackgroundBody() {
+      const ctx = this.ctx, s = this.state;
+      if (s.theme.kind === "belt") {
+        for (const rock of s.rocks) {
+          ctx.fillStyle = s.theme.base;
+          ctx.beginPath(); ctx.arc(rock.x, rock.y, rock.r, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = s.theme.shade;
+          ctx.beginPath(); ctx.arc(rock.x + rock.r * 0.3, rock.y + rock.r * 0.3, rock.r * 0.45, 0, Math.PI * 2); ctx.fill();
+        }
+        return;
+      }
+      if (!s.body) return;
+      const b = s.body;
+      if (s.theme.kind === "nebula") {
+        ctx.save();
+        for (let i = 0; i < s.theme.colors.length; i++) {
+          const ox = Math.sin(i * 2.1) * b.r * 0.4, oy = Math.cos(i * 1.7) * b.r * 0.3;
+          const grad = ctx.createRadialGradient(b.x + ox, b.y + oy, 0, b.x + ox, b.y + oy, b.r * 0.9);
+          grad.addColorStop(0, s.theme.colors[i] + "55");
+          grad.addColorStop(1, s.theme.colors[i] + "00");
+          ctx.fillStyle = grad;
+          ctx.beginPath(); ctx.arc(b.x + ox, b.y + oy, b.r * 0.9, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
+        return;
+      }
+      if (s.theme.rings) {
+        ctx.save();
+        ctx.strokeStyle = s.theme.accent;
+        ctx.globalAlpha = 0.55;
+        ctx.lineWidth = Math.max(2, b.r * 0.07);
+        ctx.beginPath(); ctx.ellipse(b.x, b.y, b.r * 1.7, b.r * 0.45, -0.25, Math.PI, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+      }
+      this.drawSphere(b.x, b.y, b.r, s.theme);
+      if (s.theme.rings) {
+        ctx.save();
+        ctx.strokeStyle = s.theme.accent;
+        ctx.globalAlpha = 0.85;
+        ctx.lineWidth = Math.max(2, b.r * 0.07);
+        ctx.beginPath(); ctx.ellipse(b.x, b.y, b.r * 1.7, b.r * 0.45, -0.25, 0, Math.PI); ctx.stroke();
+        ctx.restore();
+      }
+    },
+
+    drawParticles() {
+      const ctx = this.ctx;
+      for (const p of this.state.particles) {
+        ctx.globalAlpha = Math.max(0, 1 - p.t / 0.4);
+        ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 2.4, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    },
+
+    drawBullet(b) {
+      const ctx = this.ctx;
+      ctx.fillStyle = "#7fe8ff";
+      ctx.beginPath();
+      ctx.roundRect(b.x - this.bulletR * 0.6, b.y - this.bulletR * 1.6, this.bulletR * 1.2, this.bulletR * 3.2, this.bulletR);
+      ctx.fill();
+    },
+
+    drawEnemy(e) {
+      const ctx = this.ctx, r = e.r;
+      ctx.fillStyle = RANGER_ENEMY_COLORS[e.type];
+      ctx.beginPath();
+      if (e.type === "drone") {
+        ctx.moveTo(e.x, e.y + r); ctx.lineTo(e.x - r * 0.85, e.y - r * 0.7); ctx.lineTo(e.x + r * 0.85, e.y - r * 0.7);
+      } else if (e.type === "weaver") {
+        ctx.moveTo(e.x, e.y - r); ctx.lineTo(e.x + r, e.y); ctx.lineTo(e.x, e.y + r); ctx.lineTo(e.x - r, e.y);
+      } else {
+        ctx.moveTo(e.x, e.y + r); ctx.lineTo(e.x - r, e.y - r * 0.6); ctx.lineTo(e.x, e.y - r * 0.1); ctx.lineTo(e.x + r, e.y - r * 0.6);
+      }
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.4)"; ctx.lineWidth = 1.5; ctx.stroke();
+    },
+
+    drawShip() {
+      const s = this.state, now = performance.now();
+      if (now < s.invulnUntil && Math.floor(now / 100) % 2 === 0) return;
+      const ctx = this.ctx, x = s.ship.x, y = s.ship.y, r = this.shipR;
+      ctx.save();
+      ctx.fillStyle = "#ffb545";
+      ctx.beginPath();
+      ctx.moveTo(x - r * 0.35, y + r * 0.7); ctx.lineTo(x - r * 0.15, y + r * 1.3); ctx.lineTo(x + r * 0.15, y + r * 1.3); ctx.lineTo(x + r * 0.35, y + r * 0.7);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#4fc3e8";
+      ctx.beginPath();
+      ctx.moveTo(x, y - r * 1.1); ctx.lineTo(x - r * 0.85, y + r * 0.8); ctx.lineTo(x + r * 0.85, y + r * 0.8);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.4)"; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = "#dff6ff";
+      ctx.beginPath(); ctx.arc(x, y - r * 0.15, r * 0.32, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    },
+
+    draw() {
+      this.ctx.clearRect(0, 0, this.fieldW, this.fieldH);
+      this.drawSpaceBackdrop();
+      this.drawBackgroundBody();
+      this.drawStarfield();
+      this.drawParticles();
+      for (const b of this.state.bullets) this.drawBullet(b);
+      for (const e of this.state.enemies) this.drawEnemy(e);
+      this.drawShip();
+    },
+  };
+
+  modules.ranger = {
+    _wired: false,
+
+    onEnter() {
+      ranger.initCanvas();
+      ranger.els = {
+        levelCount: document.getElementById("ranger-level-count"),
+        difficultyLabel: document.getElementById("ranger-difficulty-label"),
+        winModal: document.getElementById("ranger-win-modal"),
+        gameoverModal: document.getElementById("ranger-gameover-modal"),
+        settingsModal: document.getElementById("ranger-settings-modal"),
+        progressFill: document.getElementById("ranger-progress-fill"),
+        livesEl: document.getElementById("ranger-lives"),
+      };
+
+      ranger.state.levelsCleared = rangerStore.getInt("levelsCleared", 0);
+      ranger.state.difficulty = rangerStore.getString("difficulty", "moderate", DIFFICULTIES);
+
+      if (!this._wired) {
+        this._wired = true;
+        wireModal(ranger.els.settingsModal);
+        wireModal(ranger.els.winModal);
+
+        document.getElementById("ranger-settings-btn").addEventListener("click", () => {
+          ranger.state.paused = true;
+          const m = ranger.els.settingsModal;
+          m.querySelectorAll('input[name="ranger-difficulty"]').forEach((r) => { r.checked = r.value === ranger.state.difficulty; });
+          showModal(m);
+        });
+
+        ranger.els.settingsModal.addEventListener("click", (e) => {
+          if (e.target instanceof HTMLElement && e.target.hasAttribute("data-close")) {
+            ranger.state.paused = false;
+          }
+        });
+
+        ranger.els.settingsModal.querySelectorAll('input[name="ranger-difficulty"]').forEach((r) => r.addEventListener("change", (e) => {
+          if (!DIFFICULTIES[e.target.value] || e.target.value === ranger.state.difficulty) return;
+          ranger.state.difficulty = e.target.value;
+          rangerStore.setString("difficulty", e.target.value);
+          ranger.updateHeader();
+          ranger.resetField();
+        }));
+
+        document.getElementById("ranger-reset-count-btn").addEventListener("click", () => {
+          if (!window.confirm("Reset the number of levels cleared back to 0?")) return;
+          ranger.state.levelsCleared = 0; rangerStore.setInt("levelsCleared", 0);
+          ranger.els.levelCount.textContent = "0";
+        });
+
+        document.getElementById("ranger-next-btn").addEventListener("click", () => {
+          hideModal(ranger.els.winModal);
+          ranger.startLevel(ranger.state.levelIndex + 1);
+        });
+
+        document.getElementById("ranger-retry-btn").addEventListener("click", () => {
+          hideModal(ranger.els.gameoverModal);
+          ranger.retryLevel();
+        });
+
+        // Step-by-step tutorial navigation (same pattern as Bubble Blast)
+        let tutStep = 0;
+        const tutSteps = document.querySelectorAll(".ranger-tut-step");
+        const tutPrev = document.getElementById("ranger-tut-prev");
+        const tutNext = document.getElementById("ranger-tut-next");
+        function showTutStep() {
+          tutSteps.forEach((s, i) => { s.hidden = i !== tutStep; });
+          tutPrev.hidden = tutStep === 0;
+          tutNext.textContent = tutStep === tutSteps.length - 1 ? "Let's fly!" : "Next →";
+        }
+        tutNext.addEventListener("click", () => {
+          if (tutStep < tutSteps.length - 1) { tutStep++; showTutStep(); }
+          else {
+            rangerStore.setBool("tutorialSeen", true);
+            hideModal(document.getElementById("ranger-tutorial-modal"));
+            ranger.state.paused = false;
+          }
+        });
+        tutPrev.addEventListener("click", () => {
+          if (tutStep > 0) { tutStep--; showTutStep(); }
+        });
+
+        ranger.canvas.addEventListener("pointerdown", (e) => { e.preventDefault(); ranger.onCanvasDown(e); });
+        ranger.canvas.addEventListener("pointermove", (e) => { ranger.onCanvasMove(e); });
+        ranger.canvas.addEventListener("pointerup", () => { ranger.onCanvasUp(); });
+
+        window.addEventListener("resize", () => {
+          if (router.current !== "ranger") return;
+          ranger.sizeCanvas();
+          ranger.draw();
+        });
+      }
+
+      ranger.updateHeader();
+      ranger.newGame();
+      ranger.startLoop();
+
+      if (!rangerStore.getBool("tutorialSeen")) {
+        ranger.state.paused = true;
+        showModal(document.getElementById("ranger-tutorial-modal"));
+      }
+    },
+
+    onLeave() {
+      ranger.stopLoop();
+      ranger.state.paused = true;
+      hideModal(ranger.els.winModal);
+      hideModal(ranger.els.gameoverModal);
+      hideModal(ranger.els.settingsModal);
+      hideModal(document.getElementById("ranger-tutorial-modal"));
+    },
+  };
+
+  // ================================================================
+  // 20. INIT & LOCALSTORAGE MIGRATION
   // ================================================================
   function migrateStorage() {
     try {

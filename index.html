@@ -101,13 +101,22 @@
             </svg>
             <span class="tile-label">BUBBLE BLAST</span>
           </button>
-          <div class="game-tile game-tile--disabled">
+          <button class="game-tile" data-game="ranger">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
-              <rect width="64" height="64" rx="6" fill="#1f1c19" opacity="0.5"/>
-              <text x="32" y="36" text-anchor="middle" font-size="20" fill="#555">?</text>
+              <rect width="64" height="64" rx="6" fill="#0b0a1a"/>
+              <circle cx="12" cy="10" r="1.4" fill="#fff"/>
+              <circle cx="50" cy="14" r="1" fill="#fff"/>
+              <circle cx="8" cy="40" r="1" fill="#fff"/>
+              <circle cx="56" cy="46" r="1.4" fill="#fff"/>
+              <circle cx="44" cy="8" r="1" fill="#fff"/>
+              <circle cx="44" cy="46" r="14" fill="#3d54c9" opacity="0.6"/>
+              <polygon points="32,10 24,44 32,38 40,44" fill="#4fc3e8"/>
+              <polygon points="28,44 26,52 30,50" fill="#ffb545"/>
+              <polygon points="36,44 34,50 38,52" fill="#ffb545"/>
+              <circle cx="32" cy="24" r="4" fill="#dff6ff"/>
             </svg>
-            <span class="tile-label">MORE COMING SOON</span>
-          </div>
+            <span class="tile-label">SPACE RANGER</span>
+          </button>
         </div>
       </div>
       <div class="scanlines"></div>
@@ -756,6 +765,116 @@
           <div class="modal-actions" style="justify-content:space-between;">
             <button id="bubble-tut-prev" type="button" class="danger-btn" hidden>&larr; Back</button>
             <button id="bubble-tut-next" type="button" class="primary-btn">Next &rarr;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SPACE RANGER SCREEN                                           -->
+    <!-- ============================================================ -->
+    <div id="screen-ranger" class="screen" hidden>
+      <header class="app-header">
+        <button class="menu-btn" type="button" data-back aria-label="Back to menu">&larr; MENU</button>
+        <div class="counter" aria-live="polite">
+          Level: <span id="ranger-level-count">0</span>
+        </div>
+        <button id="ranger-settings-btn" class="icon-btn" type="button" aria-label="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M19.14 12.94a7.49 7.49 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.88 2h-3.84a.5.5 0 0 0-.5.43l-.36 2.54c-.58.24-1.13.55-1.63.94l-2.39-.96a.5.5 0 0 0-.61.22L2.63 8.49a.5.5 0 0 0 .12.64l2.03 1.58a7.49 7.49 0 0 0 0 1.88L2.75 14.17a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.34.67.24l2.39-.96c.5.39 1.05.7 1.63.94l.36 2.54c.05.25.26.43.5.43h3.84c.25 0 .46-.18.5-.43l.36-2.54c.58-.24 1.13-.55 1.63-.94l2.39.96c.25.1.53 0 .67-.24l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </header>
+
+      <main class="app-main ranger-main">
+        <div class="ranger-progress-bar" aria-hidden="true"><div id="ranger-progress-fill" class="ranger-progress-fill"></div></div>
+        <div class="ranger-canvas-wrap">
+          <canvas id="ranger-canvas"></canvas>
+        </div>
+        <div class="status-bar">
+          <div id="ranger-lives" class="ranger-lives"></div>
+          <div class="difficulty-label">
+            <span id="ranger-difficulty-label">Moderate</span>
+          </div>
+        </div>
+      </main>
+
+      <!-- Space Ranger settings modal -->
+      <div id="ranger-settings-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card">
+          <h2>Settings</h2>
+          <fieldset class="field">
+            <legend>Difficulty</legend>
+            <label class="radio"><input type="radio" name="ranger-difficulty" value="simple" /><span>Simple</span></label>
+            <label class="radio"><input type="radio" name="ranger-difficulty" value="moderate" checked /><span>Moderate</span></label>
+            <label class="radio"><input type="radio" name="ranger-difficulty" value="difficult" /><span>Difficult</span></label>
+          </fieldset>
+          <div class="field">
+            <button id="ranger-reset-count-btn" type="button" class="danger-btn">Reset levels cleared</button>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="primary-btn" data-close>Close</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Space Ranger win modal -->
+      <div id="ranger-win-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card">
+          <h2>Level Cleared!</h2>
+          <p>You made it past <strong><span id="ranger-win-planet">Mercury</span></strong>!</p>
+          <p>Levels cleared: <strong><span id="ranger-win-total">0</span></strong></p>
+          <div class="modal-actions">
+            <button id="ranger-next-btn" type="button" class="primary-btn">Next Level</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Space Ranger game-over modal -->
+      <div id="ranger-gameover-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-card">
+          <h2>Ship Destroyed!</h2>
+          <p>Your ship took one too many hits.</p>
+          <p>Levels cleared: <strong><span id="ranger-gameover-total">0</span></strong></p>
+          <div class="modal-actions">
+            <button id="ranger-retry-btn" type="button" class="primary-btn">Try Again</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Space Ranger tutorial modal -->
+      <div id="ranger-tutorial-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-card tutorial-card" style="max-width:360px;">
+          <h2 style="text-align:center;">How to Play</h2>
+          <div id="ranger-tutorial-steps">
+            <div class="ranger-tut-step" data-step="0">
+              <div class="soccer-tut-icon">&#128272;</div>
+              <p class="tutorial-caption"><strong>Drag to fly</strong></p>
+              <p class="tutorial-caption">Drag your finger anywhere on screen to steer your ship.</p>
+            </div>
+            <div class="ranger-tut-step" data-step="1" hidden>
+              <div class="soccer-tut-icon">&#128165;</div>
+              <p class="tutorial-caption"><strong>Tap to shoot</strong></p>
+              <p class="tutorial-caption">A quick tap (without dragging) fires a shot straight ahead.</p>
+            </div>
+            <div class="ranger-tut-step" data-step="2" hidden>
+              <div class="soccer-tut-icon">&#128128;</div>
+              <p class="tutorial-caption"><strong>3 hits and you're out</strong></p>
+              <p class="tutorial-caption">Colliding with an enemy costs a life. Dodge or shoot them first!</p>
+            </div>
+            <div class="ranger-tut-step" data-step="3" hidden>
+              <div class="soccer-tut-icon">&#127768;</div>
+              <p class="tutorial-caption"><strong>Explore the solar system</strong></p>
+              <p class="tutorial-caption">Survive to the end of the progress bar to clear the level. Enemies start slow and ramp up &mdash; each new level is a different planet or nebula!</p>
+            </div>
+          </div>
+          <div class="modal-actions" style="justify-content:space-between;">
+            <button id="ranger-tut-prev" type="button" class="danger-btn" hidden>&larr; Back</button>
+            <button id="ranger-tut-next" type="button" class="primary-btn">Next &rarr;</button>
           </div>
         </div>
       </div>
