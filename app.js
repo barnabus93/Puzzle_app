@@ -4498,13 +4498,17 @@
           if (!selectedSide) return;
           selectEl.hidden = true;
           matchEl.hidden = false;
+          // sizeCanvas() reads the wrap's layout box via getBoundingClientRect(),
+          // which is zero while matchEl is hidden -- must re-measure now that
+          // it's visible, not rely on the one-time size from initCanvas().
+          arena.sizeCanvas();
           arena.newMatch(selectedSide);
           arena.startLoop();
         });
 
         document.getElementById("arena-rematch-btn").addEventListener("click", () => {
           hideModal(arena.els.resultModal);
-          if (selectedSide) { arena.newMatch(selectedSide); arena.startLoop(); }
+          if (selectedSide) { arena.sizeCanvas(); arena.newMatch(selectedSide); arena.startLoop(); }
         });
         document.getElementById("arena-choose-fighter-btn").addEventListener("click", () => {
           hideModal(arena.els.resultModal);
