@@ -931,6 +931,22 @@
               <span class="arena-fighter-swatch" style="background:#3ac7d6"></span>
               <span>Blue Bot</span>
             </button>
+            <button class="arena-fighter-btn" type="button" data-side="purple">
+              <span class="arena-fighter-swatch" style="background:#a95fe0"></span>
+              <span>Purple Bot</span>
+            </button>
+            <button class="arena-fighter-btn" type="button" data-side="green">
+              <span class="arena-fighter-swatch" style="background:#5fd068"></span>
+              <span>Green Bot</span>
+            </button>
+            <button class="arena-fighter-btn" type="button" data-side="brown">
+              <span class="arena-fighter-swatch" style="background:#a9713f"></span>
+              <span>Brown Bot</span>
+            </button>
+            <button class="arena-fighter-btn" type="button" data-side="yellow">
+              <span class="arena-fighter-swatch" style="background:#f2c94c"></span>
+              <span>Yellow Bot</span>
+            </button>
           </div>
           <div id="arena-matchup" class="soccer-matchup" hidden>
             <div class="matchup-team">
@@ -951,13 +967,13 @@
         <!-- Match view -->
         <div id="arena-match-view" class="arena-match-view" hidden>
           <div class="arena-healthbars">
-            <div class="arena-health arena-health-red">
-              <div class="arena-health-name"><span id="arena-label-red">Red</span></div>
-              <div class="arena-health-track"><div id="arena-health-red-fill" class="arena-health-fill arena-health-fill-red"></div></div>
+            <div class="arena-health arena-health-you">
+              <div class="arena-health-name"><span id="arena-label-you">You</span></div>
+              <div class="arena-health-track"><div id="arena-health-you-fill" class="arena-health-fill"></div></div>
             </div>
-            <div class="arena-health arena-health-blue">
-              <div class="arena-health-name"><span id="arena-label-blue">Blue</span></div>
-              <div class="arena-health-track"><div id="arena-health-blue-fill" class="arena-health-fill arena-health-fill-blue"></div></div>
+            <div class="arena-health arena-health-cpu">
+              <div class="arena-health-name"><span id="arena-label-cpu">CPU</span></div>
+              <div class="arena-health-track"><div id="arena-health-cpu-fill" class="arena-health-fill"></div></div>
             </div>
           </div>
           <div class="arena-canvas-wrap">
@@ -982,8 +998,17 @@
               </button>
             </div>
             <div class="arena-action-btns">
-              <button id="arena-punch-btn" class="fight-btn fight-btn-punch" type="button">PUNCH</button>
-              <button id="arena-kick-btn" class="fight-btn fight-btn-kick" type="button">KICK</button>
+              <button id="arena-punch-btn" class="fight-btn fight-btn-punch" type="button" aria-label="Punch">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M7 10.5A2.5 2.5 0 0 1 9.5 8H10V6.5a1.5 1.5 0 0 1 3 0V8h.3a1.5 1.5 0 0 1 2.6-1.1c.4.4.6.9.6 1.4V9c1 .2 1.5 1 1.5 2v3.5a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5v-3a2.5 2.5 0 0 1 1-2z" fill="currentColor"/>
+                  <path d="M10 9v5M13 8.3v5.2M16 9.4v4.6" stroke="rgba(0,0,0,0.28)" stroke-width="1.1" stroke-linecap="round"/>
+                </svg>
+              </button>
+              <button id="arena-kick-btn" class="fight-btn fight-btn-kick" type="button" aria-label="Kick">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M5 15.5c0-1.9 1.5-3 3.3-3H10V8.5A1.5 1.5 0 0 1 11.5 7h2A1.5 1.5 0 0 1 15 8.5v1.6c3.3.2 6 1.8 6 4.4 0 2-1.7 3.5-4.3 3.5H9a4 4 0 0 1-4-4z" fill="currentColor"/>
+                </svg>
+              </button>
             </div>
           </div>
           <div class="status-bar">

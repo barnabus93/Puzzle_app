@@ -4081,6 +4081,10 @@
   const ARENA_FIGHTERS = {
     red: { name: "Red Bot", color: "#e0455a", dark: "#7a1f2b" },
     blue: { name: "Blue Bot", color: "#3ac7d6", dark: "#1a5a63" },
+    purple: { name: "Purple Bot", color: "#a95fe0", dark: "#4e2b6e" },
+    green: { name: "Green Bot", color: "#5fd068", dark: "#256b2c" },
+    brown: { name: "Brown Bot", color: "#a9713f", dark: "#523119" },
+    yellow: { name: "Yellow Bot", color: "#f2c94c", dark: "#8a6a12" },
   };
 
   function makeArenaFighter(side, x, facing, isCpu) {
@@ -4144,10 +4148,12 @@
     },
 
     // --- Match lifecycle ---
-    newMatch(playerSide) {
+    // cpuSide is chosen by the caller (the fighter-select UI rolls it once,
+    // at pick time, so the matchup preview shown before "Start Match"
+    // always matches the opponent the match actually starts with).
+    newMatch(playerSide, cpuSide) {
       const s = this.state;
       s.playerSide = playerSide;
-      const cpuSide = playerSide === "red" ? "blue" : "red";
       s.playerFighter = makeArenaFighter(playerSide, this.floorMinX + this.fighterW, 1, false);
       s.cpuFighter = makeArenaFighter(cpuSide, this.floorMaxX - this.fighterW, -1, true);
       s.playerInput = makeArenaInput();
@@ -4331,15 +4337,20 @@
       this.els.difficultyLabel.textContent = DIFFICULTIES[this.state.difficulty] || "Moderate";
     },
 
+    // Player's bar is always shown on the left, CPU's on the right,
+    // regardless of which of the 6 colors either fighter is playing --
+    // the bar's own gradient is set from that fighter's theme color.
     updateHealthBars() {
       const s = this.state;
-      if (!this.els.redFill || !s.playerFighter) return;
-      const red = s.playerFighter.side === "red" ? s.playerFighter : s.cpuFighter;
-      const blue = s.playerFighter.side === "blue" ? s.playerFighter : s.cpuFighter;
-      this.els.redFill.style.width = Math.max(0, red.health) + "%";
-      this.els.blueFill.style.width = Math.max(0, blue.health) + "%";
-      this.els.redLabel.textContent = s.playerSide === "red" ? "YOU" : "CPU";
-      this.els.blueLabel.textContent = s.playerSide === "blue" ? "YOU" : "CPU";
+      if (!this.els.youFill || !s.playerFighter) return;
+      const youTheme = ARENA_FIGHTERS[s.playerFighter.side];
+      const cpuTheme = ARENA_FIGHTERS[s.cpuFighter.side];
+      this.els.youFill.style.width = Math.max(0, s.playerFighter.health) + "%";
+      this.els.cpuFill.style.width = Math.max(0, s.cpuFighter.health) + "%";
+      this.els.youFill.style.background = "linear-gradient(90deg, " + youTheme.dark + ", " + youTheme.color + ")";
+      this.els.cpuFill.style.background = "linear-gradient(90deg, " + cpuTheme.color + ", " + cpuTheme.dark + ")";
+      this.els.youLabel.textContent = "YOU";
+      this.els.cpuLabel.textContent = "CPU";
     },
 
     // --- Rendering ---
@@ -4428,10 +4439,10 @@
         difficultyLabel: document.getElementById("arena-difficulty-label"),
         settingsModal: document.getElementById("arena-settings-modal"),
         resultModal: document.getElementById("arena-result-modal"),
-        redFill: document.getElementById("arena-health-red-fill"),
-        blueFill: document.getElementById("arena-health-blue-fill"),
-        redLabel: document.getElementById("arena-label-red"),
-        blueLabel: document.getElementById("arena-label-blue"),
+        youFill: document.getElementById("arena-health-you-fill"),
+        cpuFill: document.getElementById("arena-health-cpu-fill"),
+        youLabel: document.getElementById("arena-label-you"),
+        cpuLabel: document.getElementById("arena-label-cpu"),
       };
 
       arena.state.wins = arenaStore.getInt("wins", 0);
@@ -4464,17 +4475,23 @@
           arena.els.winsCount.textContent = "0";
         });
 
-        // Fighter-select overlay
+        // Fighter-select overlay. The CPU's color is rolled once, right
+        // when the player picks theirs, and stored alongside it -- so the
+        // matchup preview shown here always matches who the match actually
+        // starts against (no separate re-roll inside newMatch()).
         let selectedSide = null;
+        let selectedCpuSide = null;
         const selectEl = document.getElementById("arena-select");
         const matchEl = document.getElementById("arena-match-view");
         const startBtn = document.getElementById("arena-start-btn");
         const matchupEl = document.getElementById("arena-matchup");
         function pickSide(side) {
           selectedSide = side;
+          const remaining = Object.keys(ARENA_FIGHTERS).filter((k) => k !== side);
+          selectedCpuSide = remaining[Math.floor(Math.random() * remaining.length)];
           document.querySelectorAll(".arena-fighter-btn").forEach((b) => b.classList.toggle("selected", b.dataset.side === side));
           const theme = ARENA_FIGHTERS[side];
-          const cpuTheme = ARENA_FIGHTERS[side === "red" ? "blue" : "red"];
+          const cpuTheme = ARENA_FIGHTERS[selectedCpuSide];
           document.getElementById("arena-matchup-you-badge").style.background = theme.color;
           document.getElementById("arena-matchup-you-name").textContent = theme.name;
           document.getElementById("arena-matchup-cpu-badge").style.background = cpuTheme.color;
@@ -4487,6 +4504,7 @@
         });
         arena.showSelect = () => {
           selectedSide = null;
+          selectedCpuSide = null;
           document.querySelectorAll(".arena-fighter-btn").forEach((b) => b.classList.remove("selected"));
           matchupEl.hidden = true;
           startBtn.hidden = true;
@@ -4502,13 +4520,13 @@
           // which is zero while matchEl is hidden -- must re-measure now that
           // it's visible, not rely on the one-time size from initCanvas().
           arena.sizeCanvas();
-          arena.newMatch(selectedSide);
+          arena.newMatch(selectedSide, selectedCpuSide);
           arena.startLoop();
         });
 
         document.getElementById("arena-rematch-btn").addEventListener("click", () => {
           hideModal(arena.els.resultModal);
-          if (selectedSide) { arena.sizeCanvas(); arena.newMatch(selectedSide); arena.startLoop(); }
+          if (selectedSide) { arena.sizeCanvas(); arena.newMatch(selectedSide, selectedCpuSide); arena.startLoop(); }
         });
         document.getElementById("arena-choose-fighter-btn").addEventListener("click", () => {
           hideModal(arena.els.resultModal);

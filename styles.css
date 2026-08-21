@@ -1202,23 +1202,25 @@ fieldset.field legend {
 }
 .arena-select[hidden] { display: none !important; }
 .arena-fighter-choices {
-  display: flex;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
   width: 100%;
-  justify-content: center;
 }
 .arena-fighter-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
   font: inherit;
   font-weight: 600;
+  font-size: 0.85rem;
   color: var(--fg);
   background: rgba(255, 255, 255, 0.05);
   border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: 14px;
-  padding: 16px 22px;
+  padding: 12px 8px;
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -1227,8 +1229,8 @@ fieldset.field legend {
   background: rgba(233, 163, 74, 0.12);
 }
 .arena-fighter-swatch {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 3px solid rgba(0, 0, 0, 0.3);
 }
@@ -1254,7 +1256,7 @@ fieldset.field legend {
   flex-direction: column;
   gap: 3px;
 }
-.arena-health-blue { align-items: flex-end; }
+.arena-health-cpu { align-items: flex-end; }
 .arena-health-name {
   font-size: 0.7rem;
   font-weight: 700;
@@ -1271,14 +1273,16 @@ fieldset.field legend {
 .arena-health-fill {
   height: 100%;
   width: 100%;
-  transition: width 200ms ease-out;
+  transition: width 200ms ease-out, background 200ms ease-out;
+  /* Color is set inline per-match from the fighter's own theme (any of
+     6 colors can be YOU or CPU now), so no fixed color rule here. */
 }
-.arena-health-fill-red {
-  background: linear-gradient(90deg, #7a1f2b, #e0455a);
+/* YOU is always the left bar, CPU always the right -- the CPU bar is
+   right-aligned in its track so it depletes toward the center (its
+   outer/far edge stays anchored), mirroring the YOU bar's default
+   left-anchored depletion. */
+.arena-health-cpu .arena-health-fill {
   margin-left: auto;
-}
-.arena-health-fill-blue {
-  background: linear-gradient(90deg, #3ac7d6, #1a5a63);
 }
 .arena-canvas-wrap {
   flex: 1 1 auto;
@@ -1309,30 +1313,38 @@ fieldset.field legend {
   gap: 2px;
 }
 .arena-action-btns {
+  flex: 1 1 auto;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
 }
 .fight-btn {
-  width: 76px;
-  height: 56px;
-  font: inherit;
-  font-weight: 700;
-  font-size: 0.8rem;
-  letter-spacing: 0.03em;
+  flex: 0 0 auto;
+  width: 84px;
+  height: 84px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: var(--shadow);
+}
+.fight-btn svg {
+  width: 42px;
+  height: 42px;
 }
 .fight-btn-punch {
-  background: linear-gradient(180deg, #e0455a, #a52e3d);
+  background: radial-gradient(circle at 35% 30%, #ff6b7d, #a52e3d);
 }
 .fight-btn-kick {
-  background: linear-gradient(180deg, #3ac7d6, #237a85);
+  background: radial-gradient(circle at 35% 30%, #5fe0ee, #237a85);
 }
 .fight-btn:active {
   filter: brightness(1.2);
+  transform: scale(0.96);
 }
