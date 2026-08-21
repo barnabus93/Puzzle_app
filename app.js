@@ -4055,7 +4055,547 @@
   };
 
   // ================================================================
-  // 20. INIT & LOCALSTORAGE MIGRATION
+  // 20. ROBOT ARENA — 1v1 fighting game
+  // ================================================================
+  const arenaStore = makeStore("arena");
+
+  const ARENA_MAX_HEALTH = 100;
+  const ARENA_GRAVITY = 1400;        // px/s^2
+  const ARENA_JUMP_VY = -520;        // px/s jump impulse
+  const ARENA_MOVE_SPEED = 140;      // px/s walking speed (player; CPU scales by tier.moveSpeedMult)
+  const ARENA_HITSTUN_MS = 250;
+  const ARENA_BLOCK_REDUCTION = 0.8; // fraction of damage blocked
+  const ARENA_KNOCKBACK = 18;        // px pushed back on a landed hit
+  const ARENA_PUNCH = { dmg: 6, range: 60, cooldown: 350, animMs: 220 };
+  const ARENA_KICK = { dmg: 10, range: 78, cooldown: 550, animMs: 320 };
+
+  // Difficulty tunes CPU *behavior*, not raw damage/health multipliers —
+  // same convention as HEN_DIFFICULTY (spawn/speed) and RANGER_TIERS
+  // (spawn/speed): the fight stays fair, just faster/more aggressive.
+  const ARENA_TIERS = {
+    simple:    { decisionMs: 550, attackChance: 0.35, blockChance: 0.15, moveSpeedMult: 0.85 },
+    moderate:  { decisionMs: 380, attackChance: 0.50, blockChance: 0.25, moveSpeedMult: 1.00 },
+    difficult: { decisionMs: 230, attackChance: 0.68, blockChance: 0.35, moveSpeedMult: 1.15 },
+  };
+
+  const ARENA_FIGHTERS = {
+    red: { name: "Red Bot", color: "#e0455a", dark: "#7a1f2b" },
+    blue: { name: "Blue Bot", color: "#3ac7d6", dark: "#1a5a63" },
+  };
+
+  function makeArenaFighter(side, x, facing, isCpu) {
+    return {
+      side, isCpu, x, y: 0, vy: 0, facing, grounded: true,
+      health: ARENA_MAX_HEALTH,
+      action: "idle", actionUntil: 0, attackCooldownUntil: 0, hitstunUntil: 0,
+    };
+  }
+
+  function makeArenaInput() {
+    return { left: false, right: false, block: false, jumpPressed: false, punchPressed: false, kickPressed: false };
+  }
+
+  const arena = {
+    canvas: null, ctx: null,
+    fieldW: 360, fieldH: 260,
+    fighterW: 32, fighterH: 100, floorY: 220, floorMinX: 20, floorMaxX: 340,
+    animId: null, lastFrame: 0,
+    els: {},
+    state: {
+      difficulty: "moderate",
+      wins: 0,
+      playerSide: "red",
+      playerFighter: null, cpuFighter: null,
+      playerInput: null, cpuInput: null,
+      cpuNextDecision: 0,
+      particles: [],
+      paused: false, over: false,
+    },
+
+    // --- Setup ---
+    initCanvas() {
+      this.canvas = document.getElementById("arena-canvas");
+      this.ctx = this.canvas.getContext("2d");
+      this.sizeCanvas();
+    },
+
+    sizeCanvas() {
+      const wrap = this.canvas.parentElement;
+      const rect = wrap.getBoundingClientRect();
+      const maxW = rect.width - 8, maxH = rect.height - 8;
+      const aspect = 1.4; // width / height — landscape arena strip
+      let w = maxW, h = maxH;
+      if (w / h > aspect) w = h * aspect; else h = w / aspect;
+      w = Math.floor(w); h = Math.floor(h);
+      this.fieldW = w; this.fieldH = h;
+      this.canvas.width = w; this.canvas.height = h;
+      this.canvas.style.width = w + "px"; this.canvas.style.height = h + "px";
+      this.fighterW = w * 0.09;
+      this.fighterH = h * 0.42;
+      this.floorY = h * 0.86;
+      this.floorMinX = this.fighterW * 0.6;
+      this.floorMaxX = w - this.fighterW * 0.6;
+    },
+
+    moveSpeedFor(f) {
+      if (!f.isCpu) return ARENA_MOVE_SPEED;
+      const tier = ARENA_TIERS[this.state.difficulty] || ARENA_TIERS.moderate;
+      return ARENA_MOVE_SPEED * tier.moveSpeedMult;
+    },
+
+    // --- Match lifecycle ---
+    newMatch(playerSide) {
+      const s = this.state;
+      s.playerSide = playerSide;
+      const cpuSide = playerSide === "red" ? "blue" : "red";
+      s.playerFighter = makeArenaFighter(playerSide, this.floorMinX + this.fighterW, 1, false);
+      s.cpuFighter = makeArenaFighter(cpuSide, this.floorMaxX - this.fighterW, -1, true);
+      s.playerInput = makeArenaInput();
+      s.cpuInput = makeArenaInput();
+      s.cpuNextDecision = 0;
+      s.particles = [];
+      s.over = false; s.paused = false;
+      this.updateHealthBars();
+      this.draw();
+    },
+
+    // --- CPU ---
+    cpuThink(now) {
+      const s = this.state;
+      if (now < s.cpuNextDecision) return;
+      const tier = ARENA_TIERS[s.difficulty] || ARENA_TIERS.moderate;
+      s.cpuNextDecision = now + tier.decisionMs;
+      const cpu = s.cpuFighter, player = s.playerFighter;
+      const input = s.cpuInput;
+      input.left = false; input.right = false; input.block = false;
+      if (cpu.action === "ko" || player.action === "ko") return;
+      const dist = Math.abs(player.x - cpu.x);
+      if (dist > ARENA_KICK.range) {
+        if (player.x > cpu.x) input.right = true; else input.left = true;
+        return;
+      }
+      const roll = Math.random();
+      if (roll < tier.attackChance) {
+        if (Math.random() < 0.5) input.punchPressed = true; else input.kickPressed = true;
+      } else if (roll < tier.attackChance + tier.blockChance) {
+        input.block = true;
+      } else if (Math.random() < 0.3) {
+        if (player.x > cpu.x) input.left = true; else input.right = true;
+      }
+    },
+
+    // --- Fighter physics/state machine (shared by player and CPU) ---
+    updateFighter(f, input, dt, now, opponent) {
+      if (f.action === "ko") return;
+
+      // Clear a finished attack/hit animation before deciding what this
+      // tick is allowed to do.
+      if ((f.action === "hit" || f.action === "punch" || f.action === "kick") && now >= f.actionUntil) {
+        f.action = f.grounded ? "idle" : "jump";
+      }
+
+      const inHitstun = now < f.hitstunUntil;
+      const canAct = !inHitstun && f.action !== "punch" && f.action !== "kick" && f.action !== "hit";
+
+      if (canAct) f.facing = opponent.x >= f.x ? 1 : -1;
+
+      if (canAct && !input.block) {
+        const dx = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+        if (dx !== 0) {
+          f.x = Math.max(this.floorMinX, Math.min(this.floorMaxX, f.x + dx * this.moveSpeedFor(f) * dt));
+          if (f.grounded) f.action = "walk";
+        } else if (f.grounded && f.action === "walk") {
+          f.action = "idle";
+        }
+      }
+
+      if (canAct && input.block && f.grounded) {
+        f.action = "block";
+      } else if (f.action === "block" && (!input.block || !canAct)) {
+        f.action = "idle";
+      }
+
+      if (canAct && input.jumpPressed && f.grounded) {
+        f.vy = ARENA_JUMP_VY; f.grounded = false; f.action = "jump";
+      }
+      input.jumpPressed = false;
+
+      if (!f.grounded) {
+        f.vy += ARENA_GRAVITY * dt;
+        f.y += f.vy * dt;
+        if (f.y >= 0) { f.y = 0; f.vy = 0; f.grounded = true; if (f.action === "jump") f.action = "idle"; }
+      }
+
+      if (canAct && f.grounded && now >= f.attackCooldownUntil && (input.punchPressed || input.kickPressed)) {
+        const isKick = !!input.kickPressed;
+        const cfg = isKick ? ARENA_KICK : ARENA_PUNCH;
+        f.action = isKick ? "kick" : "punch";
+        f.actionUntil = now + cfg.animMs;
+        f.attackCooldownUntil = now + cfg.cooldown;
+        this.resolveAttack(f, opponent, cfg, now);
+      }
+      input.punchPressed = false;
+      input.kickPressed = false;
+    },
+
+    // Whiffs (no hit) if the opponent is airborne (jump = simple dodge),
+    // out of range, or facing the wrong way. Blocking reduces damage
+    // rather than negating it, so blocking indefinitely still loses.
+    resolveAttack(attacker, defender, cfg, now) {
+      if (defender.action === "ko" || !defender.grounded) return;
+      const dist = Math.abs(defender.x - attacker.x);
+      const isFacing = (defender.x - attacker.x) * attacker.facing >= 0;
+      if (dist > cfg.range || !isFacing) return;
+      let dmg = cfg.dmg;
+      if (defender.action === "block") dmg *= (1 - ARENA_BLOCK_REDUCTION);
+      this.applyDamage(defender, dmg, attacker.facing, now);
+    },
+
+    applyDamage(f, dmg, attackerFacing, now) {
+      f.health = Math.max(0, f.health - dmg);
+      f.x = Math.max(this.floorMinX, Math.min(this.floorMaxX, f.x + attackerFacing * ARENA_KNOCKBACK));
+      if (f.health <= 0) {
+        f.action = "ko";
+      } else {
+        f.action = "hit";
+        f.hitstunUntil = now + ARENA_HITSTUN_MS;
+        f.actionUntil = now + ARENA_HITSTUN_MS;
+      }
+      this.spawnBurst(f.x, this.floorY - f.y - this.fighterH * 0.55, "#ffe066");
+      this.updateHealthBars();
+    },
+
+    spawnBurst(x, y, color) {
+      const s = this.state;
+      for (let i = 0; i < 10; i++) {
+        const ang = Math.random() * Math.PI * 2, spd = 40 + Math.random() * 90;
+        s.particles.push({ x, y, vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd, color, t: 0 });
+      }
+    },
+
+    // --- Loop ---
+    update(dt, now) {
+      const s = this.state;
+      if (s.paused || s.over) return;
+      this.cpuThink(now);
+      this.updateFighter(s.playerFighter, s.playerInput, dt, now, s.cpuFighter);
+      this.updateFighter(s.cpuFighter, s.cpuInput, dt, now, s.playerFighter);
+
+      for (const p of s.particles) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; }
+      s.particles = s.particles.filter((p) => p.t < 0.4);
+
+      if (s.playerFighter.action === "ko" || s.cpuFighter.action === "ko") {
+        this.onMatchOver(s.cpuFighter.action === "ko");
+      }
+    },
+
+    gameLoop(timestamp) {
+      if (!this.canvas) return;
+      const dt = Math.min((timestamp - this.lastFrame) / 1000, 0.1);
+      this.lastFrame = timestamp;
+      this.update(dt, timestamp);
+      this.draw();
+      this.animId = requestAnimationFrame((t) => this.gameLoop(t));
+    },
+
+    startLoop() {
+      this.lastFrame = performance.now();
+      if (this.animId) cancelAnimationFrame(this.animId);
+      this.animId = requestAnimationFrame((t) => this.gameLoop(t));
+    },
+
+    stopLoop() {
+      if (this.animId) { cancelAnimationFrame(this.animId); this.animId = null; }
+    },
+
+    // --- Win / lose ---
+    onMatchOver(playerWon) {
+      const s = this.state;
+      if (s.over) return;
+      s.over = true;
+      if (playerWon) {
+        s.wins += 1;
+        arenaStore.setInt("wins", s.wins);
+        this.els.winsCount.textContent = String(s.wins);
+      }
+      document.getElementById("arena-result-title").textContent = playerWon ? "You Win!" : "You Lose!";
+      document.getElementById("arena-result-msg").textContent = playerWon
+        ? "Your robot is still standing."
+        : "Your robot has been knocked out.";
+      document.getElementById("arena-result-total").textContent = String(s.wins);
+      showModal(this.els.resultModal);
+    },
+
+    updateHeader() {
+      this.els.winsCount.textContent = String(this.state.wins);
+      this.els.difficultyLabel.textContent = DIFFICULTIES[this.state.difficulty] || "Moderate";
+    },
+
+    updateHealthBars() {
+      const s = this.state;
+      if (!this.els.redFill || !s.playerFighter) return;
+      const red = s.playerFighter.side === "red" ? s.playerFighter : s.cpuFighter;
+      const blue = s.playerFighter.side === "blue" ? s.playerFighter : s.cpuFighter;
+      this.els.redFill.style.width = Math.max(0, red.health) + "%";
+      this.els.blueFill.style.width = Math.max(0, blue.health) + "%";
+      this.els.redLabel.textContent = s.playerSide === "red" ? "YOU" : "CPU";
+      this.els.blueLabel.textContent = s.playerSide === "blue" ? "YOU" : "CPU";
+    },
+
+    // --- Rendering ---
+    drawBackground() {
+      const ctx = this.ctx, w = this.fieldW, h = this.fieldH;
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, "#2a2440");
+      grad.addColorStop(0.7, "#4a3a5a");
+      grad.addColorStop(1, "#6b5a70");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "#1c1626";
+      ctx.fillRect(0, this.floorY, w, h - this.floorY);
+      ctx.strokeStyle = "rgba(255,255,255,0.15)";
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, this.floorY); ctx.lineTo(w, this.floorY); ctx.stroke();
+    },
+
+    drawFighter(f) {
+      const ctx = this.ctx, theme = ARENA_FIGHTERS[f.side];
+      const fw = this.fighterW, fh = this.fighterH;
+      const x = f.x, y = this.floorY - f.y;
+      const flash = f.action === "hit" && Math.floor(performance.now() / 60) % 2 === 0;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(f.facing, 1);
+
+      ctx.fillStyle = theme.dark;
+      const strideShift = f.action === "walk" ? Math.sin(performance.now() / 80) * fw * 0.15 : 0;
+      ctx.fillRect(-fw * 0.28 + strideShift, -fh * 0.05, fw * 0.22, fh * 0.35);
+      ctx.fillRect(fw * 0.06 - strideShift, -fh * 0.05, fw * 0.22, fh * 0.35);
+
+      ctx.fillStyle = flash ? "#fff" : theme.color;
+      ctx.fillRect(-fw * 0.32, -fh * 0.62, fw * 0.64, fh * 0.55);
+
+      ctx.fillStyle = theme.dark;
+      ctx.fillRect(-fw * 0.18, -fh * 0.85, fw * 0.36, fh * 0.24);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(fw * 0.02, -fh * 0.78, fw * 0.1, fh * 0.06);
+
+      ctx.fillStyle = flash ? "#fff" : theme.color;
+      if (f.action === "punch") {
+        ctx.fillRect(fw * 0.28, -fh * 0.5, fw * 0.5, fh * 0.14);
+      } else if (f.action === "kick") {
+        ctx.fillStyle = theme.dark;
+        ctx.fillRect(fw * 0.1, -fh * 0.15, fw * 0.55, fh * 0.16);
+      } else if (f.action === "block") {
+        ctx.fillRect(fw * 0.18, -fh * 0.55, fw * 0.18, fh * 0.4);
+      } else {
+        ctx.fillRect(-fw * 0.42, -fh * 0.5, fw * 0.14, fh * 0.32);
+        ctx.fillRect(fw * 0.28, -fh * 0.5, fw * 0.14, fh * 0.32);
+      }
+      ctx.restore();
+    },
+
+    drawParticles() {
+      const ctx = this.ctx;
+      for (const p of this.state.particles) {
+        ctx.globalAlpha = Math.max(0, 1 - p.t / 0.4);
+        ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 2.4, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    },
+
+    draw() {
+      this.ctx.clearRect(0, 0, this.fieldW, this.fieldH);
+      this.drawBackground();
+      const s = this.state;
+      if (!s.playerFighter) return;
+      this.drawParticles();
+      // draw the fighter further back (smaller x... actually just draw by
+      // x order so the nearer one overlaps correctly) left-to-right
+      const pair = [s.playerFighter, s.cpuFighter].sort((a, b) => a.x - b.x);
+      for (const f of pair) this.drawFighter(f);
+    },
+  };
+
+  modules.arena = {
+    _wired: false,
+
+    onEnter() {
+      arena.initCanvas();
+      arena.els = {
+        winsCount: document.getElementById("arena-wins-count"),
+        difficultyLabel: document.getElementById("arena-difficulty-label"),
+        settingsModal: document.getElementById("arena-settings-modal"),
+        resultModal: document.getElementById("arena-result-modal"),
+        redFill: document.getElementById("arena-health-red-fill"),
+        blueFill: document.getElementById("arena-health-blue-fill"),
+        redLabel: document.getElementById("arena-label-red"),
+        blueLabel: document.getElementById("arena-label-blue"),
+      };
+
+      arena.state.wins = arenaStore.getInt("wins", 0);
+      arena.state.difficulty = arenaStore.getString("difficulty", "moderate", DIFFICULTIES);
+
+      if (!this._wired) {
+        this._wired = true;
+        wireModal(arena.els.settingsModal);
+
+        document.getElementById("arena-settings-btn").addEventListener("click", () => {
+          arena.state.paused = true;
+          const m = arena.els.settingsModal;
+          m.querySelectorAll('input[name="arena-difficulty"]').forEach((r) => { r.checked = r.value === arena.state.difficulty; });
+          showModal(m);
+        });
+        arena.els.settingsModal.addEventListener("click", (e) => {
+          if (e.target instanceof HTMLElement && e.target.hasAttribute("data-close")) {
+            arena.state.paused = false;
+          }
+        });
+        arena.els.settingsModal.querySelectorAll('input[name="arena-difficulty"]').forEach((r) => r.addEventListener("change", (e) => {
+          if (!DIFFICULTIES[e.target.value] || e.target.value === arena.state.difficulty) return;
+          arena.state.difficulty = e.target.value;
+          arenaStore.setString("difficulty", e.target.value);
+          arena.updateHeader();
+        }));
+        document.getElementById("arena-reset-count-btn").addEventListener("click", () => {
+          if (!window.confirm("Reset the number of wins back to 0?")) return;
+          arena.state.wins = 0; arenaStore.setInt("wins", 0);
+          arena.els.winsCount.textContent = "0";
+        });
+
+        // Fighter-select overlay
+        let selectedSide = null;
+        const selectEl = document.getElementById("arena-select");
+        const matchEl = document.getElementById("arena-match-view");
+        const startBtn = document.getElementById("arena-start-btn");
+        const matchupEl = document.getElementById("arena-matchup");
+        function pickSide(side) {
+          selectedSide = side;
+          document.querySelectorAll(".arena-fighter-btn").forEach((b) => b.classList.toggle("selected", b.dataset.side === side));
+          const theme = ARENA_FIGHTERS[side];
+          const cpuTheme = ARENA_FIGHTERS[side === "red" ? "blue" : "red"];
+          document.getElementById("arena-matchup-you-badge").style.background = theme.color;
+          document.getElementById("arena-matchup-you-name").textContent = theme.name;
+          document.getElementById("arena-matchup-cpu-badge").style.background = cpuTheme.color;
+          document.getElementById("arena-matchup-cpu-name").textContent = cpuTheme.name;
+          matchupEl.hidden = false;
+          startBtn.hidden = false;
+        }
+        document.querySelectorAll(".arena-fighter-btn").forEach((btn) => {
+          btn.addEventListener("click", () => pickSide(btn.dataset.side));
+        });
+        arena.showSelect = () => {
+          selectedSide = null;
+          document.querySelectorAll(".arena-fighter-btn").forEach((b) => b.classList.remove("selected"));
+          matchupEl.hidden = true;
+          startBtn.hidden = true;
+          selectEl.hidden = false;
+          matchEl.hidden = true;
+          arena.stopLoop();
+        };
+        startBtn.addEventListener("click", () => {
+          if (!selectedSide) return;
+          selectEl.hidden = true;
+          matchEl.hidden = false;
+          arena.newMatch(selectedSide);
+          arena.startLoop();
+        });
+
+        document.getElementById("arena-rematch-btn").addEventListener("click", () => {
+          hideModal(arena.els.resultModal);
+          if (selectedSide) { arena.newMatch(selectedSide); arena.startLoop(); }
+        });
+        document.getElementById("arena-choose-fighter-btn").addEventListener("click", () => {
+          hideModal(arena.els.resultModal);
+          arena.showSelect();
+        });
+
+        // Step-by-step tutorial navigation (same pattern as Bubble Blast / Space Ranger)
+        let tutStep = 0;
+        const tutSteps = document.querySelectorAll(".arena-tut-step");
+        const tutPrev = document.getElementById("arena-tut-prev");
+        const tutNext = document.getElementById("arena-tut-next");
+        function showTutStep() {
+          tutSteps.forEach((s, i) => { s.hidden = i !== tutStep; });
+          tutPrev.hidden = tutStep === 0;
+          tutNext.textContent = tutStep === tutSteps.length - 1 ? "Let's fight!" : "Next →";
+        }
+        tutNext.addEventListener("click", () => {
+          if (tutStep < tutSteps.length - 1) { tutStep++; showTutStep(); }
+          else {
+            arenaStore.setBool("tutorialSeen", true);
+            hideModal(document.getElementById("arena-tutorial-modal"));
+            arena.state.paused = false;
+          }
+        });
+        tutPrev.addEventListener("click", () => {
+          if (tutStep > 0) { tutStep--; showTutStep(); }
+        });
+
+        // Directional pad: left/right/down are held; up (jump) is edge-triggered.
+        const wireHold = (el, setter) => {
+          el.addEventListener("pointerdown", (e) => { e.preventDefault(); setter(true); });
+          ["pointerup", "pointercancel", "pointerleave"].forEach((evt) => el.addEventListener(evt, () => setter(false)));
+        };
+        const dpad = document.getElementById("arena-dpad");
+        wireHold(dpad.querySelector(".dpad-left"), (v) => { arena.state.playerInput.left = v; });
+        wireHold(dpad.querySelector(".dpad-right"), (v) => { arena.state.playerInput.right = v; });
+        wireHold(dpad.querySelector(".dpad-down"), (v) => { arena.state.playerInput.block = v; });
+        dpad.querySelector(".dpad-up").addEventListener("pointerdown", (e) => { e.preventDefault(); arena.state.playerInput.jumpPressed = true; });
+
+        document.getElementById("arena-punch-btn").addEventListener("pointerdown", (e) => { e.preventDefault(); arena.state.playerInput.punchPressed = true; });
+        document.getElementById("arena-kick-btn").addEventListener("pointerdown", (e) => { e.preventDefault(); arena.state.playerInput.kickPressed = true; });
+
+        document.addEventListener("keydown", arenaKeyDown);
+        document.addEventListener("keyup", arenaKeyUp);
+
+        window.addEventListener("resize", () => {
+          if (router.current !== "arena") return;
+          arena.sizeCanvas();
+          arena.draw();
+        });
+      }
+
+      arena.updateHeader();
+      arena.showSelect();
+
+      if (!arenaStore.getBool("tutorialSeen")) {
+        arena.state.paused = true;
+        showModal(document.getElementById("arena-tutorial-modal"));
+      }
+    },
+
+    onLeave() {
+      arena.stopLoop();
+      arena.state.paused = true;
+      hideModal(arena.els.resultModal);
+      hideModal(arena.els.settingsModal);
+      hideModal(document.getElementById("arena-tutorial-modal"));
+    },
+  };
+
+  function arenaKeyDown(e) {
+    if (router.current !== "arena" || !arena.state.playerInput) return;
+    const k = e.key.toLowerCase();
+    if (k === "arrowleft" || k === "a") { e.preventDefault(); arena.state.playerInput.left = true; return; }
+    if (k === "arrowright" || k === "d") { e.preventDefault(); arena.state.playerInput.right = true; return; }
+    if (k === "arrowdown" || k === "s") { e.preventDefault(); arena.state.playerInput.block = true; return; }
+    if ((k === "arrowup" || k === "w") && !e.repeat) { e.preventDefault(); arena.state.playerInput.jumpPressed = true; return; }
+    if ((k === "j" || k === "1") && !e.repeat) { arena.state.playerInput.punchPressed = true; return; }
+    if ((k === "k" || k === "2") && !e.repeat) { arena.state.playerInput.kickPressed = true; }
+  }
+
+  function arenaKeyUp(e) {
+    if (router.current !== "arena" || !arena.state.playerInput) return;
+    const k = e.key.toLowerCase();
+    if (k === "arrowleft" || k === "a") arena.state.playerInput.left = false;
+    if (k === "arrowright" || k === "d") arena.state.playerInput.right = false;
+    if (k === "arrowdown" || k === "s") arena.state.playerInput.block = false;
+  }
+
+  // ================================================================
+  // 21. INIT & LOCALSTORAGE MIGRATION
   // ================================================================
   function migrateStorage() {
     try {

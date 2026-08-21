@@ -117,6 +117,21 @@
             </svg>
             <span class="tile-label">SPACE RANGER</span>
           </button>
+          <button class="game-tile" data-game="arena">
+            <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
+              <rect width="64" height="64" rx="6" fill="#241c2e"/>
+              <rect x="6" y="40" width="52" height="4" fill="#3a2e44"/>
+              <rect x="8" y="20" width="14" height="20" rx="2" fill="#e0455a"/>
+              <rect x="11" y="12" width="8" height="9" rx="2" fill="#7a1f2b"/>
+              <rect x="6" y="24" width="6" height="12" fill="#7a1f2b"/>
+              <rect x="20" y="24" width="10" height="6" fill="#7a1f2b"/>
+              <rect x="42" y="20" width="14" height="20" rx="2" fill="#3ac7d6"/>
+              <rect x="45" y="12" width="8" height="9" rx="2" fill="#1a5a63"/>
+              <rect x="52" y="24" width="6" height="12" fill="#1a5a63"/>
+              <rect x="34" y="24" width="10" height="6" fill="#1a5a63"/>
+            </svg>
+            <span class="tile-label">ROBOT ARENA</span>
+          </button>
           <div class="game-tile game-tile--disabled">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="6" fill="#1f1c19" opacity="0.5"/>
@@ -882,6 +897,167 @@
           <div class="modal-actions" style="justify-content:space-between;">
             <button id="ranger-tut-prev" type="button" class="danger-btn" hidden>&larr; Back</button>
             <button id="ranger-tut-next" type="button" class="primary-btn">Next &rarr;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ROBOT ARENA SCREEN                                            -->
+    <!-- ============================================================ -->
+    <div id="screen-arena" class="screen" hidden>
+      <header class="app-header">
+        <button class="menu-btn" type="button" data-back aria-label="Back to menu">&larr; MENU</button>
+        <div class="counter" aria-live="polite">
+          Wins: <span id="arena-wins-count">0</span>
+        </div>
+        <button id="arena-settings-btn" class="icon-btn" type="button" aria-label="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M19.14 12.94a7.49 7.49 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.88 2h-3.84a.5.5 0 0 0-.5.43l-.36 2.54c-.58.24-1.13.55-1.63.94l-2.39-.96a.5.5 0 0 0-.61.22L2.63 8.49a.5.5 0 0 0 .12.64l2.03 1.58a7.49 7.49 0 0 0 0 1.88L2.75 14.17a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.34.67.24l2.39-.96c.5.39 1.05.7 1.63.94l.36 2.54c.05.25.26.43.5.43h3.84c.25 0 .46-.18.5-.43l.36-2.54c.58-.24 1.13-.55 1.63-.94l2.39.96c.25.1.53 0 .67-.24l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </header>
+
+      <main class="app-main arena-main">
+        <!-- Fighter selection overlay -->
+        <div id="arena-select" class="arena-select">
+          <h2 class="soccer-select-title">Choose Your Fighter</h2>
+          <div class="arena-fighter-choices">
+            <button class="arena-fighter-btn" type="button" data-side="red">
+              <span class="arena-fighter-swatch" style="background:#e0455a"></span>
+              <span>Red Bot</span>
+            </button>
+            <button class="arena-fighter-btn" type="button" data-side="blue">
+              <span class="arena-fighter-swatch" style="background:#3ac7d6"></span>
+              <span>Blue Bot</span>
+            </button>
+          </div>
+          <div id="arena-matchup" class="soccer-matchup" hidden>
+            <div class="matchup-team">
+              <div class="matchup-badge" id="arena-matchup-you-badge"></div>
+              <span class="matchup-name" id="arena-matchup-you-name"></span>
+              <span class="matchup-name" style="color:var(--muted);font-size:0.65rem;">YOU</span>
+            </div>
+            <span class="matchup-vs">VS</span>
+            <div class="matchup-team">
+              <div class="matchup-badge" id="arena-matchup-cpu-badge"></div>
+              <span class="matchup-name" id="arena-matchup-cpu-name"></span>
+              <span class="matchup-name" style="color:var(--muted);font-size:0.65rem;">CPU</span>
+            </div>
+          </div>
+          <button id="arena-start-btn" class="primary-btn" type="button" hidden>Start Match</button>
+        </div>
+
+        <!-- Match view -->
+        <div id="arena-match-view" class="arena-match-view" hidden>
+          <div class="arena-healthbars">
+            <div class="arena-health arena-health-red">
+              <div class="arena-health-name"><span id="arena-label-red">Red</span></div>
+              <div class="arena-health-track"><div id="arena-health-red-fill" class="arena-health-fill arena-health-fill-red"></div></div>
+            </div>
+            <div class="arena-health arena-health-blue">
+              <div class="arena-health-name"><span id="arena-label-blue">Blue</span></div>
+              <div class="arena-health-track"><div id="arena-health-blue-fill" class="arena-health-fill arena-health-fill-blue"></div></div>
+            </div>
+          </div>
+          <div class="arena-canvas-wrap">
+            <canvas id="arena-canvas"></canvas>
+          </div>
+          <div class="arena-controls">
+            <div id="arena-dpad" class="arena-dpad">
+              <button class="dpad-btn dpad-up" aria-label="Jump">
+                <svg viewBox="0 0 24 24"><path d="M12 4l8 8h-5v8h-6v-8H4z" fill="currentColor"/></svg>
+              </button>
+              <div class="dpad-mid">
+                <button class="dpad-btn dpad-left" aria-label="Move left">
+                  <svg viewBox="0 0 24 24"><path d="M4 12l8-8v5h8v6h-8v5z" fill="currentColor"/></svg>
+                </button>
+                <div class="dpad-center"></div>
+                <button class="dpad-btn dpad-right" aria-label="Move right">
+                  <svg viewBox="0 0 24 24"><path d="M20 12l-8 8v-5H4v-6h8V4z" fill="currentColor"/></svg>
+                </button>
+              </div>
+              <button class="dpad-btn dpad-down" aria-label="Block">
+                <svg viewBox="0 0 24 24"><path d="M12 20l-8-8h5V4h6v8h5z" fill="currentColor"/></svg>
+              </button>
+            </div>
+            <div class="arena-action-btns">
+              <button id="arena-punch-btn" class="fight-btn fight-btn-punch" type="button">PUNCH</button>
+              <button id="arena-kick-btn" class="fight-btn fight-btn-kick" type="button">KICK</button>
+            </div>
+          </div>
+          <div class="status-bar">
+            <div class="difficulty-label">
+              <span id="arena-difficulty-label">Moderate</span>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Robot Arena settings modal -->
+      <div id="arena-settings-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card">
+          <h2>Settings</h2>
+          <fieldset class="field">
+            <legend>Difficulty</legend>
+            <label class="radio"><input type="radio" name="arena-difficulty" value="simple" /><span>Simple</span></label>
+            <label class="radio"><input type="radio" name="arena-difficulty" value="moderate" checked /><span>Moderate</span></label>
+            <label class="radio"><input type="radio" name="arena-difficulty" value="difficult" /><span>Difficult</span></label>
+          </fieldset>
+          <div class="field">
+            <button id="arena-reset-count-btn" type="button" class="danger-btn">Reset wins count</button>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="primary-btn" data-close>Close</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Robot Arena result modal -->
+      <div id="arena-result-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-card">
+          <h2 id="arena-result-title">You Win!</h2>
+          <p id="arena-result-msg">Your robot is still standing.</p>
+          <p>Wins: <strong><span id="arena-result-total">0</span></strong></p>
+          <div class="modal-actions" style="flex-direction:column;gap:8px;">
+            <button id="arena-rematch-btn" type="button" class="primary-btn" style="width:100%">Rematch</button>
+            <button id="arena-choose-fighter-btn" type="button" class="danger-btn" style="width:100%">Choose Fighter</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Robot Arena tutorial modal -->
+      <div id="arena-tutorial-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-card tutorial-card" style="max-width:360px;">
+          <h2 style="text-align:center;">How to Fight</h2>
+          <div id="arena-tutorial-steps">
+            <div class="arena-tut-step" data-step="0">
+              <div class="soccer-tut-icon">&#127918;</div>
+              <p class="tutorial-caption"><strong>Move &amp; jump</strong></p>
+              <p class="tutorial-caption">Use the d-pad to walk left/right. Up jumps &mdash; jumping dodges attacks!</p>
+            </div>
+            <div class="arena-tut-step" data-step="1" hidden>
+              <div class="soccer-tut-icon">&#128737;&#65039;</div>
+              <p class="tutorial-caption"><strong>Block</strong></p>
+              <p class="tutorial-caption">Hold Down to block. It won't stop all damage, but it cuts most of it.</p>
+            </div>
+            <div class="arena-tut-step" data-step="2" hidden>
+              <div class="soccer-tut-icon">&#129360;</div>
+              <p class="tutorial-caption"><strong>Punch &amp; kick</strong></p>
+              <p class="tutorial-caption">Punch is fast but weak. Kick hits harder and has more range, but is slower to recover.</p>
+            </div>
+            <div class="arena-tut-step" data-step="3" hidden>
+              <div class="soccer-tut-icon">&#127942;</div>
+              <p class="tutorial-caption"><strong>Knock them out</strong></p>
+              <p class="tutorial-caption">Drain your opponent's health bar to zero to win the match!</p>
+            </div>
+          </div>
+          <div class="modal-actions" style="justify-content:space-between;">
+            <button id="arena-tut-prev" type="button" class="danger-btn" hidden>&larr; Back</button>
+            <button id="arena-tut-next" type="button" class="primary-btn">Next &rarr;</button>
           </div>
         </div>
       </div>
