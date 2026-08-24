@@ -1312,6 +1312,12 @@ fieldset.field legend {
   align-items: center;
   gap: 2px;
 }
+/* Spaceship mode only moves vertically -- keep left/right in the layout
+   (so up/down don't shift position) but make them non-visible/inert. */
+.arena-dpad.ship-mode .dpad-left,
+.arena-dpad.ship-mode .dpad-right {
+  visibility: hidden;
+}
 .arena-action-btns {
   flex: 1 1 auto;
   display: flex;
@@ -1334,6 +1340,7 @@ fieldset.field legend {
   -webkit-tap-highlight-color: transparent;
   box-shadow: var(--shadow);
 }
+.fight-btn[hidden] { display: none !important; }
 .fight-btn svg {
   width: 42px;
   height: 42px;
@@ -1343,6 +1350,11 @@ fieldset.field legend {
 }
 .fight-btn-kick {
   background: radial-gradient(circle at 35% 30%, #5fe0ee, #237a85);
+}
+.fight-btn-fire {
+  background: radial-gradient(circle at 35% 30%, #ffb545, #b5591a);
+  width: 92px;
+  height: 92px;
 }
 .fight-btn:active {
   filter: brightness(1.2);

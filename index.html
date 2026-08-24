@@ -922,30 +922,34 @@
         <!-- Fighter selection overlay -->
         <div id="arena-select" class="arena-select">
           <h2 class="soccer-select-title">Choose Your Fighter</h2>
+          <div class="soccer-mode-toggle">
+            <button id="arena-mode-robots" class="soccer-mode-btn active" type="button">Robots</button>
+            <button id="arena-mode-spaceships" class="soccer-mode-btn" type="button">Spaceships</button>
+          </div>
           <div class="arena-fighter-choices">
             <button class="arena-fighter-btn" type="button" data-side="red">
               <span class="arena-fighter-swatch" style="background:#e0455a"></span>
-              <span>Red Bot</span>
+              <span class="arena-fighter-btn-name">Red Bot</span>
             </button>
             <button class="arena-fighter-btn" type="button" data-side="blue">
               <span class="arena-fighter-swatch" style="background:#3ac7d6"></span>
-              <span>Blue Bot</span>
+              <span class="arena-fighter-btn-name">Blue Bot</span>
             </button>
             <button class="arena-fighter-btn" type="button" data-side="purple">
               <span class="arena-fighter-swatch" style="background:#a95fe0"></span>
-              <span>Purple Bot</span>
+              <span class="arena-fighter-btn-name">Purple Bot</span>
             </button>
             <button class="arena-fighter-btn" type="button" data-side="green">
               <span class="arena-fighter-swatch" style="background:#5fd068"></span>
-              <span>Green Bot</span>
+              <span class="arena-fighter-btn-name">Green Bot</span>
             </button>
             <button class="arena-fighter-btn" type="button" data-side="brown">
               <span class="arena-fighter-swatch" style="background:#a9713f"></span>
-              <span>Brown Bot</span>
+              <span class="arena-fighter-btn-name">Brown Bot</span>
             </button>
             <button class="arena-fighter-btn" type="button" data-side="yellow">
               <span class="arena-fighter-swatch" style="background:#f2c94c"></span>
-              <span>Yellow Bot</span>
+              <span class="arena-fighter-btn-name">Yellow Bot</span>
             </button>
           </div>
           <div id="arena-matchup" class="soccer-matchup" hidden>
@@ -1009,6 +1013,13 @@
                   <path d="M5 15.5c0-1.9 1.5-3 3.3-3H10V8.5A1.5 1.5 0 0 1 11.5 7h2A1.5 1.5 0 0 1 15 8.5v1.6c3.3.2 6 1.8 6 4.4 0 2-1.7 3.5-4.3 3.5H9a4 4 0 0 1-4-4z" fill="currentColor"/>
                 </svg>
               </button>
+              <button id="arena-fire-btn" class="fight-btn fight-btn-fire" type="button" aria-label="Fire" hidden>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M13 2s5 4.5 5 10a5 5 0 0 1-10 0c0-5.5 5-10 5-10z" fill="currentColor"/>
+                  <path d="M11 15.5c-2 .3-3.5 1.7-3.8 3.6-.1.5.4.9.8.6 1-.7 2.2-1 3-1zm4 0c2 .3 3.5 1.7 3.8 3.6.1.5-.4.9-.8.6-1-.7-2.2-1-3-1z" fill="rgba(255,120,60,0.85)"/>
+                  <circle cx="13" cy="11" r="2" fill="rgba(0,0,0,0.3)"/>
+                </svg>
+              </button>
             </div>
           </div>
           <div class="status-bar">
@@ -1060,19 +1071,19 @@
           <h2 style="text-align:center;">How to Fight</h2>
           <div id="arena-tutorial-steps">
             <div class="arena-tut-step" data-step="0">
-              <div class="soccer-tut-icon">&#127918;</div>
-              <p class="tutorial-caption"><strong>Move &amp; jump</strong></p>
-              <p class="tutorial-caption">Use the d-pad to walk left/right. Up jumps &mdash; jumping dodges attacks!</p>
+              <div class="soccer-tut-icon">&#129302;&#128640;</div>
+              <p class="tutorial-caption"><strong>Robots or Spaceships</strong></p>
+              <p class="tutorial-caption">Choose your combat style at the top of the fighter-select screen, then pick a color &mdash; either works with any color.</p>
             </div>
             <div class="arena-tut-step" data-step="1" hidden>
-              <div class="soccer-tut-icon">&#128737;&#65039;</div>
-              <p class="tutorial-caption"><strong>Block</strong></p>
-              <p class="tutorial-caption">Hold Down to block. It won't stop all damage, but it cuts most of it.</p>
+              <div class="soccer-tut-icon">&#127918;</div>
+              <p class="tutorial-caption"><strong>Move</strong></p>
+              <p class="tutorial-caption">Robots: the d-pad walks left/right, and Up jumps &mdash; jumping dodges attacks! Spaceships: the d-pad flies Up/Down only.</p>
             </div>
             <div class="arena-tut-step" data-step="2" hidden>
-              <div class="soccer-tut-icon">&#129360;</div>
-              <p class="tutorial-caption"><strong>Punch &amp; kick</strong></p>
-              <p class="tutorial-caption">Punch is fast but weak. Kick hits harder and has more range, but is slower to recover.</p>
+              <div class="soccer-tut-icon">&#129360;&#128163;</div>
+              <p class="tutorial-caption"><strong>Attack</strong></p>
+              <p class="tutorial-caption">Robots: Punch is fast but weak, Kick hits harder with more range. Holding Down blocks, cutting most damage. Spaceships: Fire rockets at your opponent &mdash; dodge theirs by moving out of the way!</p>
             </div>
             <div class="arena-tut-step" data-step="3" hidden>
               <div class="soccer-tut-icon">&#127942;</div>

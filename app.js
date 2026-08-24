@@ -4068,24 +4068,35 @@
   const ARENA_KNOCKBACK = 18;        // px pushed back on a landed hit
   const ARENA_PUNCH = { dmg: 6, range: 60, cooldown: 350, animMs: 220 };
   const ARENA_KICK = { dmg: 10, range: 78, cooldown: 550, animMs: 320 };
+  const ARENA_ROCKET = { dmg: 12, speed: 260, cooldown: 420, radius: 5 };
+  const ARENA_SHIP_MOVE_SPEED = 170; // px/s vertical (player; CPU scales by tier.moveSpeedMult)
+
+  const ARENA_MODES = { robots: "Robots", spaceships: "Spaceships" };
 
   // Difficulty tunes CPU *behavior*, not raw damage/health multipliers —
   // same convention as HEN_DIFFICULTY (spawn/speed) and RANGER_TIERS
   // (spawn/speed): the fight stays fair, just faster/more aggressive.
+  // Reused for both combat modes -- blockChance is simply unread by ships.
   const ARENA_TIERS = {
     simple:    { decisionMs: 550, attackChance: 0.35, blockChance: 0.15, moveSpeedMult: 0.85 },
     moderate:  { decisionMs: 380, attackChance: 0.50, blockChance: 0.25, moveSpeedMult: 1.00 },
     difficult: { decisionMs: 230, attackChance: 0.68, blockChance: 0.35, moveSpeedMult: 1.15 },
   };
 
+  // `label` is just the color name -- the displayed name ("Red Bot" vs
+  // "Red Ship") depends on the active combat mode, via arenaFighterName().
   const ARENA_FIGHTERS = {
-    red: { name: "Red Bot", color: "#e0455a", dark: "#7a1f2b" },
-    blue: { name: "Blue Bot", color: "#3ac7d6", dark: "#1a5a63" },
-    purple: { name: "Purple Bot", color: "#a95fe0", dark: "#4e2b6e" },
-    green: { name: "Green Bot", color: "#5fd068", dark: "#256b2c" },
-    brown: { name: "Brown Bot", color: "#a9713f", dark: "#523119" },
-    yellow: { name: "Yellow Bot", color: "#f2c94c", dark: "#8a6a12" },
+    red: { label: "Red", color: "#e0455a", dark: "#7a1f2b" },
+    blue: { label: "Blue", color: "#3ac7d6", dark: "#1a5a63" },
+    purple: { label: "Purple", color: "#a95fe0", dark: "#4e2b6e" },
+    green: { label: "Green", color: "#5fd068", dark: "#256b2c" },
+    brown: { label: "Brown", color: "#a9713f", dark: "#523119" },
+    yellow: { label: "Yellow", color: "#f2c94c", dark: "#8a6a12" },
   };
+
+  function arenaFighterName(side, mode) {
+    return ARENA_FIGHTERS[side].label + " " + (mode === "spaceships" ? "Ship" : "Bot");
+  }
 
   function makeArenaFighter(side, x, facing, isCpu) {
     return {
@@ -4095,24 +4106,42 @@
     };
   }
 
+  // Ships only ever move vertically and never turn (player is always on
+  // the left facing right, CPU always on the right facing left), so this
+  // is a much smaller shape than makeArenaFighter -- no facing/grounded/vy,
+  // and no hitstun (getting hit doesn't lock out control, just flashes).
+  function makeArenaShip(side, x, y, isCpu) {
+    return {
+      side, isCpu, x, y,
+      health: ARENA_MAX_HEALTH,
+      action: "idle", actionUntil: 0, nextFireTime: 0,
+    };
+  }
+
   function makeArenaInput() {
-    return { left: false, right: false, block: false, jumpPressed: false, punchPressed: false, kickPressed: false };
+    return {
+      left: false, right: false, up: false, down: false, block: false,
+      jumpPressed: false, punchPressed: false, kickPressed: false, firePressed: false,
+    };
   }
 
   const arena = {
     canvas: null, ctx: null,
     fieldW: 360, fieldH: 260,
     fighterW: 32, fighterH: 100, floorY: 220, floorMinX: 20, floorMaxX: 340,
+    shipW: 40, shipH: 26, shipMinY: 30, shipMaxY: 230, shipPlayerX: 50, shipCpuX: 310,
+    starLayers: [],
     animId: null, lastFrame: 0,
     els: {},
     state: {
+      mode: "robots",
       difficulty: "moderate",
       wins: 0,
       playerSide: "red",
       playerFighter: null, cpuFighter: null,
       playerInput: null, cpuInput: null,
       cpuNextDecision: 0,
-      particles: [],
+      particles: [], rockets: [],
       paused: false, over: false,
     },
 
@@ -4139,6 +4168,24 @@
       this.floorY = h * 0.86;
       this.floorMinX = this.fighterW * 0.6;
       this.floorMaxX = w - this.fighterW * 0.6;
+      this.shipW = w * 0.1;
+      this.shipH = h * 0.13;
+      this.shipMinY = h * 0.12;
+      this.shipMaxY = h * 0.88;
+      this.shipPlayerX = w * 0.14;
+      this.shipCpuX = w * 0.86;
+      this.starLayers = this.buildStarLayers();
+    },
+
+    buildStarLayers() {
+      const counts = [24, 14], speeds = [10, 20], sizes = [1, 1.6];
+      const layers = [];
+      for (let i = 0; i < counts.length; i++) {
+        const stars = [];
+        for (let n = 0; n < counts[i]; n++) stars.push({ x: Math.random() * this.fieldW, y: Math.random() * this.fieldH });
+        layers.push({ stars, speed: speeds[i], size: sizes[i] });
+      }
+      return layers;
     },
 
     moveSpeedFor(f) {
@@ -4154,8 +4201,14 @@
     newMatch(playerSide, cpuSide) {
       const s = this.state;
       s.playerSide = playerSide;
-      s.playerFighter = makeArenaFighter(playerSide, this.floorMinX + this.fighterW, 1, false);
-      s.cpuFighter = makeArenaFighter(cpuSide, this.floorMaxX - this.fighterW, -1, true);
+      if (s.mode === "spaceships") {
+        s.playerFighter = makeArenaShip(playerSide, this.shipPlayerX, this.fieldH / 2, false);
+        s.cpuFighter = makeArenaShip(cpuSide, this.shipCpuX, this.fieldH / 2, true);
+        s.rockets = [];
+      } else {
+        s.playerFighter = makeArenaFighter(playerSide, this.floorMinX + this.fighterW, 1, false);
+        s.cpuFighter = makeArenaFighter(cpuSide, this.floorMaxX - this.fighterW, -1, true);
+      }
       s.playerInput = makeArenaInput();
       s.cpuInput = makeArenaInput();
       s.cpuNextDecision = 0;
@@ -4279,13 +4332,105 @@
       }
     },
 
+    // --- Spaceship mode: CPU, movement, firing, rocket collision ---
+    // Ships share the same decision-interval AI shape as cpuThink, but
+    // track the player's vertical position instead of closing horizontal
+    // distance, and fire instead of punch/kick. blockChance is unused.
+    cpuThinkShip(now) {
+      const s = this.state;
+      if (now < s.cpuNextDecision) return;
+      const tier = ARENA_TIERS[s.difficulty] || ARENA_TIERS.moderate;
+      s.cpuNextDecision = now + tier.decisionMs;
+      const cpu = s.cpuFighter, player = s.playerFighter;
+      const input = s.cpuInput;
+      input.up = false; input.down = false;
+      if (cpu.action === "ko" || player.action === "ko") return;
+      const diff = player.y - cpu.y;
+      if (Math.abs(diff) > 12) { if (diff > 0) input.down = true; else input.up = true; }
+      if (Math.random() < tier.attackChance) input.firePressed = true;
+    },
+
+    shipMoveSpeedFor(f) {
+      if (!f.isCpu) return ARENA_SHIP_MOVE_SPEED;
+      const tier = ARENA_TIERS[this.state.difficulty] || ARENA_TIERS.moderate;
+      return ARENA_SHIP_MOVE_SPEED * tier.moveSpeedMult;
+    },
+
+    updateShip(f, input, dt, now) {
+      if (f.action === "ko") return;
+      if (f.action === "hit" && now >= f.actionUntil) f.action = "idle";
+
+      const dy = (input.down ? 1 : 0) - (input.up ? 1 : 0);
+      if (dy !== 0) {
+        f.y = Math.max(this.shipMinY, Math.min(this.shipMaxY, f.y + dy * this.shipMoveSpeedFor(f) * dt));
+      }
+
+      if (input.firePressed && now >= f.nextFireTime) {
+        this.fireRocket(f);
+        f.nextFireTime = now + ARENA_ROCKET.cooldown;
+      }
+      input.firePressed = false;
+    },
+
+    fireRocket(f) {
+      const dir = f.isCpu ? -1 : 1; // player (left) fires right, CPU (right) fires left
+      this.state.rockets.push({ x: f.x, y: f.y, vx: dir * ARENA_ROCKET.speed, isCpu: f.isCpu });
+    },
+
+    // A rocket only ever threatens the ship it was NOT fired by -- checked
+    // via r.isCpu (a CPU rocket can only hit the player, and vice versa),
+    // so there's no risk of a ship damaging itself with its own shot.
+    updateRockets(dt, now) {
+      const s = this.state;
+      for (const r of s.rockets) r.x += r.vx * dt;
+      for (const r of s.rockets) {
+        if (r.dead) continue;
+        const target = r.isCpu ? s.playerFighter : s.cpuFighter;
+        if (target.action === "ko") continue;
+        const dx = Math.abs(r.x - target.x), dy = Math.abs(r.y - target.y);
+        if (dx < ARENA_ROCKET.radius + this.shipW * 0.5 && dy < this.shipH * 0.5) {
+          r.dead = true;
+          this.applyShipDamage(target, ARENA_ROCKET.dmg, now);
+        }
+      }
+      s.rockets = s.rockets.filter((r) => !r.dead && r.x > -20 && r.x < this.fieldW + 20);
+    },
+
+    // No knockback (ships don't move horizontally) and no hitstun/control
+    // lockout -- just a brief flash. Ship combat is meant to feel like
+    // reflexive dodging, not a melee trade-off.
+    applyShipDamage(f, dmg, now) {
+      f.health = Math.max(0, f.health - dmg);
+      if (f.health <= 0) {
+        f.action = "ko";
+      } else {
+        f.action = "hit";
+        f.actionUntil = now + 200;
+      }
+      this.spawnBurst(f.x, f.y, "#ffe066");
+      this.updateHealthBars();
+    },
+
     // --- Loop ---
     update(dt, now) {
       const s = this.state;
       if (s.paused || s.over) return;
-      this.cpuThink(now);
-      this.updateFighter(s.playerFighter, s.playerInput, dt, now, s.cpuFighter);
-      this.updateFighter(s.cpuFighter, s.cpuInput, dt, now, s.playerFighter);
+      if (s.mode === "spaceships") {
+        for (const layer of this.starLayers) {
+          for (const star of layer.stars) {
+            star.x -= layer.speed * dt;
+            if (star.x < 0) { star.x = this.fieldW; star.y = Math.random() * this.fieldH; }
+          }
+        }
+        this.cpuThinkShip(now);
+        this.updateShip(s.playerFighter, s.playerInput, dt, now);
+        this.updateShip(s.cpuFighter, s.cpuInput, dt, now);
+        this.updateRockets(dt, now);
+      } else {
+        this.cpuThink(now);
+        this.updateFighter(s.playerFighter, s.playerInput, dt, now, s.cpuFighter);
+        this.updateFighter(s.cpuFighter, s.cpuInput, dt, now, s.playerFighter);
+      }
 
       for (const p of s.particles) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; }
       s.particles = s.particles.filter((p) => p.t < 0.4);
@@ -4406,6 +4551,67 @@
       ctx.restore();
     },
 
+    // Much simpler than Space Ranger's planet system on purpose -- this
+    // is just enough to read as "space" and stay visually distinct from
+    // the robot arena's gradient+floor.
+    drawSpaceBackdrop() {
+      const ctx = this.ctx, w = this.fieldW, h = this.fieldH;
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, "#0b0a1a");
+      grad.addColorStop(1, "#1a1230");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+    },
+
+    drawStarfield() {
+      const ctx = this.ctx;
+      for (const layer of this.starLayers) {
+        ctx.fillStyle = "rgba(255,255,255," + (0.4 + layer.size * 0.2) + ")";
+        for (const star of layer.stars) ctx.fillRect(star.x, star.y, layer.size, layer.size);
+      }
+    },
+
+    drawShip(f) {
+      const ctx = this.ctx, theme = ARENA_FIGHTERS[f.side];
+      const w = this.shipW, h = this.shipH;
+      const facing = f.isCpu ? -1 : 1;
+      const flash = f.action === "hit" && Math.floor(performance.now() / 60) % 2 === 0;
+      ctx.save();
+      ctx.translate(f.x, f.y);
+      ctx.scale(facing, 1);
+
+      ctx.fillStyle = "rgba(255,150,60,0.8)";
+      const flicker = 0.7 + Math.random() * 0.3;
+      ctx.beginPath();
+      ctx.moveTo(-w * 0.5, -h * 0.15); ctx.lineTo(-w * 0.5, h * 0.15); ctx.lineTo(-w * 0.85 * flicker, 0);
+      ctx.closePath(); ctx.fill();
+
+      ctx.fillStyle = flash ? "#fff" : theme.color;
+      ctx.beginPath();
+      ctx.moveTo(w * 0.55, 0); ctx.lineTo(-w * 0.1, -h * 0.5); ctx.lineTo(-w * 0.45, -h * 0.2);
+      ctx.lineTo(-w * 0.45, h * 0.2); ctx.lineTo(-w * 0.1, h * 0.5);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.35)"; ctx.lineWidth = 1.5; ctx.stroke();
+
+      ctx.fillStyle = theme.dark;
+      ctx.beginPath(); ctx.ellipse(w * 0.05, 0, w * 0.16, h * 0.22, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#dff6ff";
+      ctx.beginPath(); ctx.ellipse(w * 0.1, 0, w * 0.08, h * 0.12, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    },
+
+    drawRocket(r) {
+      const ctx = this.ctx;
+      ctx.save();
+      ctx.translate(r.x, r.y);
+      ctx.scale(r.vx >= 0 ? 1 : -1, 1);
+      ctx.fillStyle = r.isCpu ? "#ff9f6b" : "#7fe8ff";
+      ctx.beginPath();
+      ctx.roundRect(-ARENA_ROCKET.radius * 2, -ARENA_ROCKET.radius * 0.7, ARENA_ROCKET.radius * 4, ARENA_ROCKET.radius * 1.4, ARENA_ROCKET.radius);
+      ctx.fill();
+      ctx.restore();
+    },
+
     drawParticles() {
       const ctx = this.ctx;
       for (const p of this.state.particles) {
@@ -4418,8 +4624,18 @@
 
     draw() {
       this.ctx.clearRect(0, 0, this.fieldW, this.fieldH);
-      this.drawBackground();
       const s = this.state;
+      if (s.mode === "spaceships") {
+        this.drawSpaceBackdrop();
+        this.drawStarfield();
+        if (!s.playerFighter) return;
+        this.drawParticles();
+        for (const r of s.rockets) this.drawRocket(r);
+        this.drawShip(s.playerFighter);
+        this.drawShip(s.cpuFighter);
+        return;
+      }
+      this.drawBackground();
       if (!s.playerFighter) return;
       this.drawParticles();
       // draw the fighter further back (smaller x... actually just draw by
@@ -4447,6 +4663,7 @@
 
       arena.state.wins = arenaStore.getInt("wins", 0);
       arena.state.difficulty = arenaStore.getString("difficulty", "moderate", DIFFICULTIES);
+      arena.state.mode = arenaStore.getString("mode", "robots", ARENA_MODES);
 
       if (!this._wired) {
         this._wired = true;
@@ -4485,17 +4702,53 @@
         const matchEl = document.getElementById("arena-match-view");
         const startBtn = document.getElementById("arena-start-btn");
         const matchupEl = document.getElementById("arena-matchup");
+        const dpadEl = document.getElementById("arena-dpad");
+        const modeRobotsBtn = document.getElementById("arena-mode-robots");
+        const modeShipsBtn = document.getElementById("arena-mode-spaceships");
+
+        function refreshMatchupPreview() {
+          if (!selectedSide) return;
+          const theme = ARENA_FIGHTERS[selectedSide];
+          const cpuTheme = ARENA_FIGHTERS[selectedCpuSide];
+          document.getElementById("arena-matchup-you-badge").style.background = theme.color;
+          document.getElementById("arena-matchup-you-name").textContent = arenaFighterName(selectedSide, arena.state.mode);
+          document.getElementById("arena-matchup-cpu-badge").style.background = cpuTheme.color;
+          document.getElementById("arena-matchup-cpu-name").textContent = arenaFighterName(selectedCpuSide, arena.state.mode);
+        }
+
+        // Applies arena.state.mode to: the fighter-choice button labels,
+        // the control layout (hide left/right for ships, swap punch/kick
+        // for a single fire button), and the live matchup preview if a
+        // color is already picked. Called on load and on every toggle
+        // click -- never resets the color selection.
+        function applyMode() {
+          const mode = arena.state.mode;
+          modeRobotsBtn.classList.toggle("active", mode === "robots");
+          modeShipsBtn.classList.toggle("active", mode === "spaceships");
+          document.querySelectorAll(".arena-fighter-btn").forEach((b) => {
+            b.querySelector(".arena-fighter-btn-name").textContent = arenaFighterName(b.dataset.side, mode);
+          });
+          dpadEl.classList.toggle("ship-mode", mode === "spaceships");
+          document.getElementById("arena-punch-btn").hidden = mode === "spaceships";
+          document.getElementById("arena-kick-btn").hidden = mode === "spaceships";
+          document.getElementById("arena-fire-btn").hidden = mode !== "spaceships";
+          refreshMatchupPreview();
+        }
+        function pickMode(mode) {
+          if (mode === arena.state.mode) return;
+          arena.state.mode = mode;
+          arenaStore.setString("mode", mode);
+          applyMode();
+        }
+        modeRobotsBtn.addEventListener("click", () => pickMode("robots"));
+        modeShipsBtn.addEventListener("click", () => pickMode("spaceships"));
+
         function pickSide(side) {
           selectedSide = side;
           const remaining = Object.keys(ARENA_FIGHTERS).filter((k) => k !== side);
           selectedCpuSide = remaining[Math.floor(Math.random() * remaining.length)];
           document.querySelectorAll(".arena-fighter-btn").forEach((b) => b.classList.toggle("selected", b.dataset.side === side));
-          const theme = ARENA_FIGHTERS[side];
-          const cpuTheme = ARENA_FIGHTERS[selectedCpuSide];
-          document.getElementById("arena-matchup-you-badge").style.background = theme.color;
-          document.getElementById("arena-matchup-you-name").textContent = theme.name;
-          document.getElementById("arena-matchup-cpu-badge").style.background = cpuTheme.color;
-          document.getElementById("arena-matchup-cpu-name").textContent = cpuTheme.name;
+          refreshMatchupPreview();
           matchupEl.hidden = false;
           startBtn.hidden = false;
         }
@@ -4512,6 +4765,7 @@
           matchEl.hidden = true;
           arena.stopLoop();
         };
+        applyMode();
         startBtn.addEventListener("click", () => {
           if (!selectedSide) return;
           selectEl.hidden = true;
@@ -4555,19 +4809,24 @@
           if (tutStep > 0) { tutStep--; showTutStep(); }
         });
 
-        // Directional pad: left/right/down are held; up (jump) is edge-triggered.
+        // Directional pad: left/right are robot-only (held, walk). Down
+        // sets BOTH block (robot, held) and down (ship, held) -- harmless
+        // dual-wiring, since updateFighter never reads `down` and
+        // updateShip never reads `block`. Up sets BOTH jumpPressed
+        // (robot, edge) and up (ship, held) the same way.
         const wireHold = (el, setter) => {
           el.addEventListener("pointerdown", (e) => { e.preventDefault(); setter(true); });
           ["pointerup", "pointercancel", "pointerleave"].forEach((evt) => el.addEventListener(evt, () => setter(false)));
         };
-        const dpad = document.getElementById("arena-dpad");
-        wireHold(dpad.querySelector(".dpad-left"), (v) => { arena.state.playerInput.left = v; });
-        wireHold(dpad.querySelector(".dpad-right"), (v) => { arena.state.playerInput.right = v; });
-        wireHold(dpad.querySelector(".dpad-down"), (v) => { arena.state.playerInput.block = v; });
-        dpad.querySelector(".dpad-up").addEventListener("pointerdown", (e) => { e.preventDefault(); arena.state.playerInput.jumpPressed = true; });
+        wireHold(dpadEl.querySelector(".dpad-left"), (v) => { arena.state.playerInput.left = v; });
+        wireHold(dpadEl.querySelector(".dpad-right"), (v) => { arena.state.playerInput.right = v; });
+        wireHold(dpadEl.querySelector(".dpad-down"), (v) => { arena.state.playerInput.block = v; arena.state.playerInput.down = v; });
+        wireHold(dpadEl.querySelector(".dpad-up"), (v) => { arena.state.playerInput.up = v; });
+        dpadEl.querySelector(".dpad-up").addEventListener("pointerdown", (e) => { e.preventDefault(); arena.state.playerInput.jumpPressed = true; });
 
         document.getElementById("arena-punch-btn").addEventListener("pointerdown", (e) => { e.preventDefault(); arena.state.playerInput.punchPressed = true; });
         document.getElementById("arena-kick-btn").addEventListener("pointerdown", (e) => { e.preventDefault(); arena.state.playerInput.kickPressed = true; });
+        document.getElementById("arena-fire-btn").addEventListener("pointerdown", (e) => { e.preventDefault(); arena.state.playerInput.firePressed = true; });
 
         document.addEventListener("keydown", arenaKeyDown);
         document.addEventListener("keyup", arenaKeyUp);
@@ -4600,20 +4859,28 @@
   function arenaKeyDown(e) {
     if (router.current !== "arena" || !arena.state.playerInput) return;
     const k = e.key.toLowerCase();
-    if (k === "arrowleft" || k === "a") { e.preventDefault(); arena.state.playerInput.left = true; return; }
-    if (k === "arrowright" || k === "d") { e.preventDefault(); arena.state.playerInput.right = true; return; }
-    if (k === "arrowdown" || k === "s") { e.preventDefault(); arena.state.playerInput.block = true; return; }
-    if ((k === "arrowup" || k === "w") && !e.repeat) { e.preventDefault(); arena.state.playerInput.jumpPressed = true; return; }
-    if ((k === "j" || k === "1") && !e.repeat) { arena.state.playerInput.punchPressed = true; return; }
-    if ((k === "k" || k === "2") && !e.repeat) { arena.state.playerInput.kickPressed = true; }
+    const input = arena.state.playerInput;
+    if (k === "arrowleft" || k === "a") { e.preventDefault(); input.left = true; return; }
+    if (k === "arrowright" || k === "d") { e.preventDefault(); input.right = true; return; }
+    if (k === "arrowdown" || k === "s") { e.preventDefault(); input.block = true; input.down = true; return; }
+    if (k === "arrowup" || k === "w") {
+      e.preventDefault();
+      input.up = true;
+      if (!e.repeat) input.jumpPressed = true;
+      return;
+    }
+    if ((k === "j" || k === "1" || k === " ") && !e.repeat) { input.punchPressed = true; input.firePressed = true; return; }
+    if ((k === "k" || k === "2") && !e.repeat) { input.kickPressed = true; }
   }
 
   function arenaKeyUp(e) {
     if (router.current !== "arena" || !arena.state.playerInput) return;
     const k = e.key.toLowerCase();
-    if (k === "arrowleft" || k === "a") arena.state.playerInput.left = false;
-    if (k === "arrowright" || k === "d") arena.state.playerInput.right = false;
-    if (k === "arrowdown" || k === "s") arena.state.playerInput.block = false;
+    const input = arena.state.playerInput;
+    if (k === "arrowleft" || k === "a") input.left = false;
+    if (k === "arrowright" || k === "d") input.right = false;
+    if (k === "arrowdown" || k === "s") { input.block = false; input.down = false; }
+    if (k === "arrowup" || k === "w") input.up = false;
   }
 
   // ================================================================
