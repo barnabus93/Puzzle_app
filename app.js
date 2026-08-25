@@ -4469,10 +4469,16 @@
         arenaStore.setInt("wins", s.wins);
         this.els.winsCount.textContent = String(s.wins);
       }
-      document.getElementById("arena-result-title").textContent = playerWon ? "You Win!" : "You Lose!";
+      const outcome = playerWon ? "win" : "lose";
+      const card = document.getElementById("arena-result-card");
+      const title = document.getElementById("arena-result-title");
+      card.classList.remove("win", "lose"); card.classList.add(outcome);
+      title.classList.remove("win", "lose"); title.classList.add(outcome);
+      document.getElementById("arena-result-icon").textContent = playerWon ? "🏆" : "💥";
+      title.textContent = playerWon ? "You Win!" : "You Lose!";
       document.getElementById("arena-result-msg").textContent = playerWon
-        ? "Your robot is still standing."
-        : "Your robot has been knocked out.";
+        ? "Victory! Your robot is still standing."
+        : "Defeat! Your robot has been destroyed.";
       document.getElementById("arena-result-total").textContent = String(s.wins);
       showModal(this.els.resultModal);
     },

@@ -578,6 +578,42 @@ body {
   gap: 10px;
 }
 
+/* Robot Arena result modal -- win/lose should read at a glance from
+   icon shape + color + a bold title, not just body text. */
+.arena-result-card {
+  text-align: center;
+  border: 2px solid transparent;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+.arena-result-card.win {
+  border-color: #4bae55;
+  box-shadow: 0 0 28px rgba(75, 174, 85, 0.4), var(--shadow);
+}
+.arena-result-card.lose {
+  border-color: var(--danger);
+  box-shadow: 0 0 28px rgba(217, 85, 67, 0.4), var(--shadow);
+}
+.arena-result-icon {
+  font-size: 3.4rem;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+/* #arena-result-title (id) beats the shared ".modal-card h2" rule's
+   specificity so the larger size actually applies. */
+#arena-result-title.arena-result-title {
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin: 0 0 10px;
+}
+.arena-result-title.win {
+  color: #4bae55;
+}
+.arena-result-title.lose {
+  color: var(--danger);
+}
+
 /* ================================================================
    FORM
    ================================================================ */

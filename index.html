@@ -1053,8 +1053,9 @@
       <!-- Robot Arena result modal -->
       <div id="arena-result-modal" class="modal" role="dialog" aria-modal="true" hidden>
         <div class="modal-backdrop"></div>
-        <div class="modal-card">
-          <h2 id="arena-result-title">You Win!</h2>
+        <div id="arena-result-card" class="modal-card arena-result-card">
+          <div id="arena-result-icon" class="arena-result-icon" aria-hidden="true">&#127942;</div>
+          <h2 id="arena-result-title" class="arena-result-title">You Win!</h2>
           <p id="arena-result-msg">Your robot is still standing.</p>
           <p>Wins: <strong><span id="arena-result-total">0</span></strong></p>
           <div class="modal-actions" style="flex-direction:column;gap:8px;">
