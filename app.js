@@ -3407,13 +3407,14 @@
   // up toward the end. weaverAt/hunterAt gate when those enemy types are
   // allowed to spawn (as fractions of level progress), adding variety on
   // top of the raw speed/density ramp.
-  // speedStart/speedEnd are 15% higher than the original tuning pass.
   // levelLength (survived-time ms to clear a level) is 50% faster than
-  // the previous 28s/34s/40s pass -- i.e. levels clear in 2/3 the time.
+  // the original 28s/34s/40s pass -- i.e. levels clear in 2/3 the time.
+  // speedStart/speedEnd (enemy descent speed) are a further 50% faster
+  // on top of the earlier +15% pass.
   const RANGER_TIERS = {
-    simple:    { levelLength: 18000, spawnStart: 1400, spawnEnd: 700, speedStart: 81,  speedEnd: 150, weaverAt: 0.30, hunterAt: 0.70 },
-    moderate:  { levelLength: 22000, spawnStart: 1000, spawnEnd: 420, speedStart: 104, speedEnd: 196, weaverAt: 0.20, hunterAt: 0.55 },
-    difficult: { levelLength: 26000, spawnStart: 750,  spawnEnd: 280, speedStart: 127, speedEnd: 242, weaverAt: 0.10, hunterAt: 0.40 },
+    simple:    { levelLength: 18000, spawnStart: 1400, spawnEnd: 700, speedStart: 122, speedEnd: 225, weaverAt: 0.30, hunterAt: 0.70 },
+    moderate:  { levelLength: 22000, spawnStart: 1000, spawnEnd: 420, speedStart: 156, speedEnd: 294, weaverAt: 0.20, hunterAt: 0.55 },
+    difficult: { levelLength: 26000, spawnStart: 750,  spawnEnd: 280, speedStart: 191, speedEnd: 363, weaverAt: 0.10, hunterAt: 0.40 },
   };
 
   // Cycled by levelIndex % length. Each level of a fresh playthrough is a
