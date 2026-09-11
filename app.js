@@ -3395,11 +3395,13 @@
   const rangerStore = makeStore("ranger");
 
   const RANGER_MAX_LIVES = 3;
-  const RANGER_FIRE_COOLDOWN = 200;  // ms between auto-fired shots — a stable, constant rate
+  const RANGER_FIRE_COOLDOWN = 250;  // ms between auto-fired shots — 25% slower than the original 200ms
   const RANGER_BULLET_SPEED = 480;   // px/s
   const RANGER_TOUCH_OFFSET = 3.2;   // ship-radii above the finger, so the ship stays visible while dragging
   const RANGER_BODY_SPEED = 55;      // px/s the background planet/nebula drifts down at, so several drift past each level
   const RANGER_ENEMY_COLORS = { drone: "#ff5f5f", weaver: "#c568f2", hunter: "#ff9f43" };
+  const RANGER_ENEMY_BULLET_SPEED = 220; // px/s -- slower than the player's own bullets, so an aimed shot is dodgeable
+  const RANGER_ENEMY_FIRE_CHANCE = 0.35; // avg fires/sec per on-screen enemy (random, not a fixed interval)
 
   // Per-difficulty tuning. `f` (0..1, current progress through the level)
   // linearly interpolates spawn interval and enemy speed between the
@@ -3448,7 +3450,7 @@
       progress: 0, lives: RANGER_MAX_LIVES,
       ship: { x: 150, y: 400 },
       dragging: false,
-      bullets: [], enemies: [], particles: [],
+      bullets: [], enemyBullets: [], enemies: [], particles: [],
       theme: PLANET_THEMES[0], body: null, rocks: null,
       nextFireTime: 0, nextSpawnTime: 0, invulnUntil: 0,
       paused: false, over: false,
@@ -3526,7 +3528,7 @@
     resetField() {
       const s = this.state;
       s.progress = 0;
-      s.bullets = []; s.enemies = []; s.particles = [];
+      s.bullets = []; s.enemyBullets = []; s.enemies = []; s.particles = [];
       s.nextFireTime = 0; s.nextSpawnTime = performance.now() + 600; s.invulnUntil = 0;
       s.over = false; s.paused = false;
       s.dragging = false;
@@ -3669,15 +3671,48 @@
         const dx = s.ship.x - e.x, dy = s.ship.y - e.y, rr = this.shipR * 0.8 + e.r;
         if (dx * dx + dy * dy < rr * rr) {
           e.dead = true;
-          s.lives -= 1;
-          s.invulnUntil = now + 900;
-          this.spawnBurst(s.ship.x, s.ship.y, "#ffdd66");
-          this.updateLivesDisplay();
-          if (s.lives <= 0) this.onGameOver();
+          this.hitShip(now);
           break;
         }
       }
       s.enemies = s.enemies.filter((e) => !e.dead);
+    },
+
+    // Shared "ship took a hit" consequence, used for both direct enemy
+    // collisions and enemy bullets.
+    hitShip(now) {
+      const s = this.state;
+      s.lives -= 1;
+      s.invulnUntil = now + 900;
+      this.spawnBurst(s.ship.x, s.ship.y, "#ffdd66");
+      this.updateLivesDisplay();
+      if (s.lives <= 0) this.onGameOver();
+    },
+
+    // Aimed at the ship's position at the moment of firing (no homing),
+    // so dodging after the shot is fired is meaningful. Which enemy
+    // fires, and when, is left to random chance in update() rather than
+    // a fixed per-enemy interval.
+    fireEnemyBullet(e) {
+      const s = this.state;
+      const dx = s.ship.x - e.x, dy = s.ship.y - e.y;
+      const len = Math.hypot(dx, dy) || 1;
+      s.enemyBullets.push({ x: e.x, y: e.y, vx: (dx / len) * RANGER_ENEMY_BULLET_SPEED, vy: (dy / len) * RANGER_ENEMY_BULLET_SPEED });
+    },
+
+    checkEnemyBulletShipCollision(now) {
+      const s = this.state;
+      if (now < s.invulnUntil) return;
+      for (const b of s.enemyBullets) {
+        if (b.dead) continue;
+        const dx = s.ship.x - b.x, dy = s.ship.y - b.y, rr = this.shipR * 0.8 + this.bulletR;
+        if (dx * dx + dy * dy < rr * rr) {
+          b.dead = true;
+          this.hitShip(now);
+          break;
+        }
+      }
+      s.enemyBullets = s.enemyBullets.filter((b) => !b.dead);
     },
 
     // --- Loop ---
@@ -3722,8 +3757,18 @@
       for (const e of s.enemies) this.updateEnemy(e, dt);
       s.enemies = s.enemies.filter((e) => e.y - this.enemyR < this.fieldH);
 
+      // Any enemy that's fully on screen has a random per-second chance to
+      // fire at the ship's current position -- not a fixed interval, so
+      // it's unpredictable which enemy shoots and when.
+      for (const e of s.enemies) {
+        if (e.y > 0 && Math.random() < RANGER_ENEMY_FIRE_CHANCE * dt) this.fireEnemyBullet(e);
+      }
+      for (const b of s.enemyBullets) { b.x += b.vx * dt; b.y += b.vy * dt; }
+      s.enemyBullets = s.enemyBullets.filter((b) => b.x > -20 && b.x < this.fieldW + 20 && b.y > -20 && b.y < this.fieldH + 20);
+
       this.checkBulletEnemyCollisions();
       this.checkShipEnemyCollision(now);
+      this.checkEnemyBulletShipCollision(now);
       if (s.over) return;
 
       for (const p of s.particles) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; }
@@ -3898,6 +3943,21 @@
       ctx.fill();
     },
 
+    // Oriented along its own travel direction (aimed shots aren't always
+    // vertical), and colored distinctly from the player's cyan bullets.
+    drawEnemyBullet(b) {
+      const ctx = this.ctx;
+      const angle = Math.atan2(b.vy, b.vx) - Math.PI / 2;
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.rotate(angle);
+      ctx.fillStyle = "#ff6b6b";
+      ctx.beginPath();
+      ctx.roundRect(-this.bulletR * 0.6, -this.bulletR * 1.6, this.bulletR * 1.2, this.bulletR * 3.2, this.bulletR);
+      ctx.fill();
+      ctx.restore();
+    },
+
     drawEnemy(e) {
       const ctx = this.ctx, r = e.r;
       ctx.fillStyle = RANGER_ENEMY_COLORS[e.type];
@@ -3939,6 +3999,7 @@
       this.drawStarfield();
       this.drawParticles();
       for (const b of this.state.bullets) this.drawBullet(b);
+      for (const b of this.state.enemyBullets) this.drawEnemyBullet(b);
       for (const e of this.state.enemies) this.drawEnemy(e);
       this.drawShip();
     },
