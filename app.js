@@ -4954,7 +4954,507 @@
   }
 
   // ================================================================
-  // 21. INIT & LOCALSTORAGE MIGRATION
+  // 21. PIPE FLOW — rotate the pipes to connect the source to the drain
+  // ================================================================
+  // Game logic first (plain functions, no DOM), then the canvas + screen
+  // wiring below it. Each tile is 4 sides, each open or closed; tapping
+  // rotates which sides are open; flow is a flood-fill from the source.
+  const PIPE_N = 1, PIPE_E = 2, PIPE_S = 4, PIPE_W = 8;
+
+  // Each side of a tile is one bit. `opp` is the side a neighbor sees us
+  // from; dr/dc is the step to that neighbor (row, column).
+  const PIPE_DIRS = [
+    { bit: PIPE_N, opp: PIPE_S, dr: -1, dc: 0 },
+    { bit: PIPE_E, opp: PIPE_W, dr: 0, dc: 1 },
+    { bit: PIPE_S, opp: PIPE_N, dr: 1, dc: 0 },
+    { bit: PIPE_W, opp: PIPE_E, dr: 0, dc: -1 },
+  ];
+
+  // Pipe shapes: name -> which sides are open at rotation 0.
+  // To add a new shape, add a line here (and let a tier use it below).
+  const PIPE_TYPES = {
+    straight: PIPE_N | PIPE_S,
+    elbow: PIPE_N | PIPE_E,
+    tee: PIPE_N | PIPE_E | PIPE_W,
+    cross: PIPE_N | PIPE_E | PIPE_S | PIPE_W,
+    cap: PIPE_N,
+  };
+
+  // Difficulty: board size, how often a path tile sprouts a dead-end branch
+  // (that's what creates tees and crosses), and which shapes may appear as
+  // filler. maxBranches 1 => tees only; 2 => crosses are possible too.
+  const PIPE_TIERS = {
+    simple:    { size: 5, branchChance: 0,    maxBranches: 0, decoyTypes: ["straight", "elbow"] },
+    moderate:  { size: 6, branchChance: 0.45, maxBranches: 1, decoyTypes: ["straight", "elbow", "tee"] },
+    difficult: { size: 7, branchChance: 0.55, maxBranches: 2, decoyTypes: ["straight", "elbow", "tee", "cross"] },
+  };
+
+  // Turn a mask 90 degrees clockwise: N->E->S->W->N.
+  function pipeRotateMask(m) { return ((m << 1) | (m >> 3)) & 15; }
+
+  function pipeMask(tile) {
+    let m = PIPE_TYPES[tile.type];
+    for (let i = 0; i < tile.rot; i++) m = pipeRotateMask(m);
+    return m;
+  }
+
+  // Reverse lookup: which {type, rot} produces this mask? Built once from
+  // PIPE_TYPES so the generator never needs to hard-code shapes.
+  const PIPE_SHAPE_FOR_MASK = (() => {
+    const table = {};
+    for (const type of Object.keys(PIPE_TYPES)) {
+      let m = PIPE_TYPES[type];
+      for (let rot = 0; rot < 4; rot++) {
+        if (!(m in table)) table[m] = { type, rot };
+        m = pipeRotateMask(m);
+      }
+    }
+    return table;
+  })();
+
+  // Flood-fill from the source through sides that are open on BOTH tiles.
+  // Returns the set of "wet" tile indexes.
+  function pipeComputeFlow(board) {
+    const size = board.size, wet = new Set([board.source]), stack = [board.source];
+    while (stack.length) {
+      const idx = stack.pop();
+      const r = Math.floor(idx / size), c = idx % size;
+      const mask = pipeMask(board.tiles[idx]);
+      for (const d of PIPE_DIRS) {
+        if (!(mask & d.bit)) continue;
+        const nr = r + d.dr, nc = c + d.dc;
+        if (nr < 0 || nr >= size || nc < 0 || nc >= size) continue;
+        const nIdx = nr * size + nc;
+        if (wet.has(nIdx)) continue;
+        if (pipeMask(board.tiles[nIdx]) & d.opp) { wet.add(nIdx); stack.push(nIdx); }
+      }
+    }
+    return wet;
+  }
+
+  function pipeIsSolved(board) { return pipeComputeFlow(board).has(board.drain); }
+
+  function pipePick(list, rand) { return list[Math.floor(rand() * list.length)]; }
+
+  // Random self-avoiding walk from source to drain. If the random walk
+  // takes too long (rare), fall back to a guaranteed simple route.
+  function pipeRandomPath(size, srcRow, dstRow, rand) {
+    const target = dstRow * size + (size - 1);
+    const start = srcRow * size;
+    const minLen = size + 2;
+    for (let attempt = 0; attempt < 40; attempt++) {
+      const visited = new Set([start]);
+      const path = [start];
+      let budget = 4000;
+      const walk = (idx) => {
+        if (idx === target) return path.length >= minLen || attempt === 39;
+        if (--budget < 0) return false;
+        const r = Math.floor(idx / size), c = idx % size;
+        const order = PIPE_DIRS.slice().sort(() => rand() - 0.5);
+        for (const d of order) {
+          const nr = r + d.dr, nc = c + d.dc;
+          if (nr < 0 || nr >= size || nc < 0 || nc >= size) continue;
+          const nIdx = nr * size + nc;
+          if (visited.has(nIdx)) continue;
+          visited.add(nIdx); path.push(nIdx);
+          if (walk(nIdx)) return true;
+          visited.delete(nIdx); path.pop();
+        }
+        return false;
+      };
+      if (walk(start)) return path;
+    }
+    // Fallback: along the source row, then up/down the last column.
+    const path = [];
+    for (let c = 0; c < size; c++) path.push(srcRow * size + c);
+    const step = dstRow >= srcRow ? 1 : -1;
+    for (let r = srcRow + step; r !== dstRow + step; r += step) path.push(r * size + (size - 1));
+    return path;
+  }
+
+  // Builds a SOLVED board (so it's always solvable), before scrambling.
+  function pipeGenerateSolved(tierName, rand) {
+    const tier = PIPE_TIERS[tierName] || PIPE_TIERS.moderate;
+    const size = tier.size;
+    const srcRow = Math.floor(rand() * size), dstRow = Math.floor(rand() * size);
+    const path = pipeRandomPath(size, srcRow, dstRow, rand);
+    const source = path[0], drain = path[path.length - 1];
+
+    // Which sides each cell must have open, from the path itself.
+    const edges = new Array(size * size).fill(0);
+    edges[source] |= PIPE_W; // water arrives from the left edge
+    edges[drain] |= PIPE_E;  // and leaves through the right edge
+    for (let i = 0; i + 1 < path.length; i++) {
+      const a = path[i], b = path[i + 1];
+      const dr = Math.floor(b / size) - Math.floor(a / size), dc = (b % size) - (a % size);
+      const d = PIPE_DIRS.find((x) => x.dr === dr && x.dc === dc);
+      edges[a] |= d.bit; edges[b] |= d.opp;
+    }
+
+    // Dead-end branches off middle path tiles: this is where tees/crosses come from.
+    for (let i = 1; i + 1 < path.length && tier.maxBranches > 0; i++) {
+      const idx = path[i], r = Math.floor(idx / size), c = idx % size;
+      let added = 0;
+      for (const d of PIPE_DIRS.slice().sort(() => rand() - 0.5)) {
+        if (added >= tier.maxBranches || rand() >= tier.branchChance) continue;
+        const nr = r + d.dr, nc = c + d.dc;
+        if (nr < 0 || nr >= size || nc < 0 || nc >= size) continue;
+        const nIdx = nr * size + nc;
+        if ((edges[idx] & d.bit) || edges[nIdx] !== 0) continue; // side taken / cell used
+        edges[idx] |= d.bit; edges[nIdx] |= d.opp; added++;
+      }
+    }
+
+    const tiles = edges.map((mask, idx) => {
+      const fixed = idx === source || idx === drain;
+      if (mask === 0) {
+        return { type: pipePick(tier.decoyTypes, rand), rot: Math.floor(rand() * 4), fixed: false };
+      }
+      const shape = PIPE_SHAPE_FOR_MASK[mask];
+      return { type: shape.type, rot: shape.rot, fixed };
+    });
+    return { size, tiles, source, drain };
+  }
+
+  // Randomly rotate every non-fixed tile, re-rolling if it lands solved.
+  function pipeScramble(board, rand) {
+    for (let attempt = 0; attempt < 50; attempt++) {
+      for (const t of board.tiles) if (!t.fixed) t.rot = Math.floor(rand() * 4);
+      if (!pipeIsSolved(board)) return board;
+    }
+    // Pathological case: nudge one rotatable, asymmetric tile off its answer.
+    for (const t of board.tiles) {
+      if (t.fixed) continue;
+      const before = pipeMask(t);
+      t.rot = (t.rot + 1) % 4;
+      if (pipeMask(t) !== before && !pipeIsSolved(board)) return board;
+    }
+    return board;
+  }
+
+  function pipeNewBoard(tierName, rand) {
+    return pipeScramble(pipeGenerateSolved(tierName, rand), rand);
+  }
+
+  const pipesStore = makeStore("pipes");
+
+  // Liquid colors. `tint` is the faint glow on a wet tile's background;
+  // `blur` is how much the liquid glows (0 = none).
+  const PIPE_LIQUIDS = {
+    water: { name: "Water", wet: "#3aa8ff", tint: "#17262f", blur: 0, glow: "rgba(58,168,255,0.6)" },
+    radioactive: { name: "Radioactive", wet: "#9dff3a", tint: "#1b2813", blur: 14, glow: "rgba(157,255,58,0.9)" },
+  };
+  const PIPE_ROTATE_MS = 130;
+
+  const pipes = {
+    canvas: null, ctx: null,
+    cellPx: 56,
+    animId: null,
+    els: {},
+    state: {
+      difficulty: "moderate", liquid: "water",
+      board: null, wet: new Set(),
+      moves: 0, solved: 0,
+      won: false, paused: false,
+    },
+
+    // --- Setup ---
+    initCanvas() {
+      this.canvas = document.getElementById("pipes-canvas");
+      this.ctx = this.canvas.getContext("2d");
+      this.sizeCanvas();
+    },
+
+    sizeCanvas() {
+      const s = this.state;
+      const size = s.board ? s.board.size : (PIPE_TIERS[s.difficulty] || PIPE_TIERS.moderate).size;
+      const wrap = this.canvas.parentElement;
+      const rect = wrap.getBoundingClientRect();
+      const side = Math.max(120, Math.min(rect.width, rect.height) - 8);
+      this.cellPx = Math.max(24, Math.min(80, Math.floor(side / size)));
+      const px = this.cellPx * size;
+      this.canvas.width = px; this.canvas.height = px;
+      this.canvas.style.width = px + "px"; this.canvas.style.height = px + "px";
+    },
+
+    newPuzzle() {
+      const s = this.state;
+      s.board = pipeNewBoard(s.difficulty, Math.random);
+      s.wet = pipeComputeFlow(s.board);
+      s.moves = 0; s.won = false;
+      this.sizeCanvas();
+      this.updateStatus();
+      this.draw(performance.now());
+    },
+
+    // --- Input: tap a tile to rotate it a quarter turn clockwise ---
+    getCanvasPoint(e) {
+      const rect = this.canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left) * (this.canvas.width / rect.width),
+        y: (e.clientY - rect.top) * (this.canvas.height / rect.height),
+      };
+    },
+
+    onCanvasDown(e) {
+      const s = this.state;
+      if (s.won || s.paused || !s.board) return;
+      const p = this.getCanvasPoint(e);
+      const c = Math.floor(p.x / this.cellPx), r = Math.floor(p.y / this.cellPx);
+      const size = s.board.size;
+      if (r < 0 || r >= size || c < 0 || c >= size) return;
+      const tile = s.board.tiles[r * size + c];
+      if (tile.fixed) return; // source and drain don't turn
+      tile.rot = (tile.rot + 1) % 4;
+      tile.animStart = performance.now();
+      s.moves++;
+      s.wet = pipeComputeFlow(s.board);
+      this.updateStatus();
+      this.draw(tile.animStart);
+      this.kickAnim();
+      if (s.wet.has(s.board.drain)) this.onWin();
+    },
+
+    onWin() {
+      const s = this.state;
+      s.won = true;
+      s.solved++;
+      pipesStore.setInt("solvedCount", s.solved);
+      this.els.solvedCount.textContent = String(s.solved);
+      document.getElementById("pipes-win-moves").textContent = String(s.moves);
+      document.getElementById("pipes-win-total").textContent = String(s.solved);
+      // Let the last rotation finish and the liquid reach the drain first.
+      setTimeout(() => {
+        if (router.current === "pipes" && s.won) showModal(this.els.winModal);
+      }, 550);
+    },
+
+    updateStatus() {
+      this.els.moveCount.textContent = String(this.state.moves);
+      this.els.difficultyLabel.textContent = DIFFICULTIES[this.state.difficulty] || "Moderate";
+    },
+
+    // --- Drawing ---
+    // Only runs frames while a tile is mid-turn; otherwise the board is static.
+    kickAnim() {
+      if (this.animId) return;
+      const step = () => {
+        this.animId = null;
+        const now = performance.now();
+        this.draw(now);
+        if (this.isAnimating(now)) this.animId = requestAnimationFrame(step);
+      };
+      this.animId = requestAnimationFrame(step);
+    },
+
+    isAnimating(now) {
+      const b = this.state.board;
+      return !!b && b.tiles.some((t) => t.animStart && now - t.animStart < PIPE_ROTATE_MS);
+    },
+
+    stopAnim() {
+      if (this.animId) { cancelAnimationFrame(this.animId); this.animId = null; }
+    },
+
+    // Strokes one pipe tile's shape: a line from the tile center to every
+    // open side, or a quarter-circle arc for elbows (the curved look).
+    strokePipe(x0, y0, mask, width, color) {
+      const ctx = this.ctx, cp = this.cellPx, h = cp / 2;
+      const cx = x0 + h, cy = y0 + h;
+      ctx.strokeStyle = color; ctx.fillStyle = color;
+      ctx.lineWidth = width; ctx.lineCap = "butt";
+      ctx.beginPath();
+      const arc = { 3: [1, 0, Math.PI / 2, Math.PI], 6: [1, 1, Math.PI, Math.PI * 1.5],
+                    12: [0, 1, Math.PI * 1.5, Math.PI * 2], 9: [0, 0, 0, Math.PI / 2] }[mask];
+      if (arc) {
+        ctx.arc(x0 + arc[0] * cp, y0 + arc[1] * cp, h, arc[2], arc[3]);
+        ctx.stroke();
+        return;
+      }
+      for (const d of PIPE_DIRS) {
+        if (!(mask & d.bit)) continue;
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + d.dc * h, cy + d.dr * h);
+      }
+      ctx.stroke();
+      // Round hub where lines meet (tees, crosses, dead-end caps).
+      ctx.beginPath(); ctx.arc(cx, cy, width / 2, 0, Math.PI * 2); ctx.fill();
+    },
+
+    drawTile(idx, now) {
+      const s = this.state, ctx = this.ctx, cp = this.cellPx;
+      const liquid = PIPE_LIQUIDS[s.liquid] || PIPE_LIQUIDS.water;
+      const size = s.board.size, r = Math.floor(idx / size), c = idx % size;
+      const tile = s.board.tiles[idx];
+      const x0 = c * cp, y0 = r * cp, cx = x0 + cp / 2, cy = y0 + cp / 2;
+      const isWet = s.wet.has(idx);
+
+      ctx.save();
+      ctx.beginPath(); ctx.rect(x0, y0, cp, cp); ctx.clip();
+      ctx.fillStyle = isWet ? liquid.tint : "#1c1a22";
+      ctx.fillRect(x0, y0, cp, cp);
+      ctx.strokeStyle = tile.fixed ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.08)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x0 + 0.5, y0 + 0.5, cp - 1, cp - 1);
+
+      // Mid-turn: draw the pipe rotated back toward where it started.
+      let angle = 0;
+      if (tile.animStart) {
+        const p = Math.min(1, (now - tile.animStart) / PIPE_ROTATE_MS);
+        angle = -(1 - (1 - Math.pow(1 - p, 3))) * (Math.PI / 2);
+      }
+      ctx.translate(cx, cy); ctx.rotate(angle); ctx.translate(-cx, -cy);
+      const mask = pipeMask(tile);
+      this.strokePipe(x0, y0, mask, cp * 0.34, "#6d6a78");
+      if (isWet && liquid.blur) { ctx.shadowColor = liquid.glow; ctx.shadowBlur = liquid.blur; }
+      this.strokePipe(x0, y0, mask, cp * 0.2, isWet ? liquid.wet : "#2b2933");
+      ctx.restore();
+
+      if (idx === s.board.source) this.drawValve(x0, cy);
+      if (idx === s.board.drain) this.drawBarrel(x0 + cp, cy, isWet, liquid);
+    },
+
+    // Tap/valve at the left edge of the source tile.
+    drawValve(x, cy) {
+      const ctx = this.ctx, cp = this.cellPx;
+      ctx.fillStyle = "#8a8795";
+      ctx.fillRect(x, cy - cp * 0.13, cp * 0.16, cp * 0.26);
+      ctx.fillStyle = "#d9534f";
+      ctx.beginPath(); ctx.arc(x + cp * 0.2, cy, cp * 0.13, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.55)"; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + cp * 0.2 - cp * 0.09, cy); ctx.lineTo(x + cp * 0.2 + cp * 0.09, cy);
+      ctx.moveTo(x + cp * 0.2, cy - cp * 0.09); ctx.lineTo(x + cp * 0.2, cy + cp * 0.09);
+      ctx.stroke();
+    },
+
+    // Barrel at the right edge of the drain tile; fills when liquid arrives.
+    drawBarrel(xRight, cy, isWet, liquid) {
+      const ctx = this.ctx, cp = this.cellPx;
+      const w = cp * 0.24, h = cp * 0.56;
+      ctx.fillStyle = "#4a4655";
+      ctx.beginPath(); ctx.roundRect(xRight - w, cy - h / 2, w, h, 4); ctx.fill();
+      ctx.fillStyle = isWet ? liquid.wet : "#25232c";
+      if (isWet && liquid.blur) { ctx.save(); ctx.shadowColor = liquid.glow; ctx.shadowBlur = liquid.blur; }
+      ctx.beginPath(); ctx.roundRect(xRight - w + 3, cy - h / 2 + 3, w - 6, h - 6, 3); ctx.fill();
+      if (isWet && liquid.blur) ctx.restore();
+    },
+
+    draw(now) {
+      const s = this.state;
+      if (!this.ctx || !s.board) return;
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      for (let i = 0; i < s.board.tiles.length; i++) this.drawTile(i, now == null ? performance.now() : now);
+    },
+  };
+
+  modules.pipes = {
+    _wired: false,
+
+    onEnter() {
+      pipes.initCanvas();
+      pipes.els = {
+        solvedCount: document.getElementById("pipes-solved-count"),
+        moveCount: document.getElementById("pipes-move-count"),
+        difficultyLabel: document.getElementById("pipes-difficulty-label"),
+        settingsModal: document.getElementById("pipes-settings-modal"),
+        winModal: document.getElementById("pipes-win-modal"),
+      };
+
+      pipes.state.solved = pipesStore.getInt("solvedCount", 0);
+      pipes.state.difficulty = pipesStore.getString("difficulty", "moderate", DIFFICULTIES);
+      pipes.state.liquid = pipesStore.getString("liquid", "water", PIPE_LIQUIDS);
+      pipes.els.solvedCount.textContent = String(pipes.state.solved);
+
+      if (!this._wired) {
+        this._wired = true;
+        wireModal(pipes.els.settingsModal);
+        wireModal(pipes.els.winModal);
+
+        document.getElementById("pipes-settings-btn").addEventListener("click", () => {
+          pipes.state.paused = true;
+          const m = pipes.els.settingsModal;
+          m.querySelectorAll('input[name="pipes-difficulty"]').forEach((r) => { r.checked = r.value === pipes.state.difficulty; });
+          m.querySelectorAll('input[name="pipes-liquid"]').forEach((r) => { r.checked = r.value === pipes.state.liquid; });
+          showModal(m);
+        });
+        pipes.els.settingsModal.addEventListener("click", (e) => {
+          if (e.target instanceof HTMLElement && e.target.hasAttribute("data-close")) pipes.state.paused = false;
+        });
+        pipes.els.settingsModal.querySelectorAll('input[name="pipes-difficulty"]').forEach((r) => r.addEventListener("change", (e) => {
+          if (!DIFFICULTIES[e.target.value] || e.target.value === pipes.state.difficulty) return;
+          pipes.state.difficulty = e.target.value;
+          pipesStore.setString("difficulty", e.target.value);
+          pipes.newPuzzle();
+        }));
+        pipes.els.settingsModal.querySelectorAll('input[name="pipes-liquid"]').forEach((r) => r.addEventListener("change", (e) => {
+          if (!PIPE_LIQUIDS[e.target.value]) return;
+          pipes.state.liquid = e.target.value;
+          pipesStore.setString("liquid", e.target.value);
+          pipes.draw();
+        }));
+        document.getElementById("pipes-reset-count-btn").addEventListener("click", () => {
+          if (!window.confirm("Reset the number of puzzles solved back to 0?")) return;
+          pipes.state.solved = 0; pipesStore.setInt("solvedCount", 0);
+          pipes.els.solvedCount.textContent = "0";
+        });
+
+        document.getElementById("pipes-next-btn").addEventListener("click", () => {
+          hideModal(pipes.els.winModal);
+          pipes.newPuzzle();
+        });
+
+        // Step-by-step tutorial navigation (same pattern as Bubble Blast / Space Ranger)
+        let tutStep = 0;
+        const tutSteps = document.querySelectorAll(".pipes-tut-step");
+        const tutPrev = document.getElementById("pipes-tut-prev");
+        const tutNext = document.getElementById("pipes-tut-next");
+        function showTutStep() {
+          tutSteps.forEach((st, i) => { st.hidden = i !== tutStep; });
+          tutPrev.hidden = tutStep === 0;
+          tutNext.textContent = tutStep === tutSteps.length - 1 ? "Let's flow!" : "Next →";
+        }
+        tutNext.addEventListener("click", () => {
+          if (tutStep < tutSteps.length - 1) { tutStep++; showTutStep(); }
+          else {
+            pipesStore.setBool("tutorialSeen", true);
+            hideModal(document.getElementById("pipes-tutorial-modal"));
+            pipes.state.paused = false;
+          }
+        });
+        tutPrev.addEventListener("click", () => {
+          if (tutStep > 0) { tutStep--; showTutStep(); }
+        });
+
+        pipes.canvas.addEventListener("pointerdown", (e) => { e.preventDefault(); pipes.onCanvasDown(e); });
+
+        window.addEventListener("resize", () => {
+          if (router.current !== "pipes") return;
+          pipes.sizeCanvas();
+          pipes.draw();
+        });
+      }
+
+      pipes.state.paused = false;
+      pipes.newPuzzle();
+
+      if (!pipesStore.getBool("tutorialSeen")) {
+        pipes.state.paused = true;
+        showModal(document.getElementById("pipes-tutorial-modal"));
+      }
+    },
+
+    onLeave() {
+      pipes.stopAnim();
+      pipes.state.paused = true;
+      hideModal(pipes.els.winModal);
+      hideModal(pipes.els.settingsModal);
+      hideModal(document.getElementById("pipes-tutorial-modal"));
+    },
+  };
+
+  // ================================================================
+  // 22. INIT & LOCALSTORAGE MIGRATION
   // ================================================================
   function migrateStorage() {
     try {

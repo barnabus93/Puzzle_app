@@ -132,6 +132,16 @@
             </svg>
             <span class="tile-label">ROBOT ARENA</span>
           </button>
+          <button class="game-tile" data-game="pipes">
+            <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
+              <rect width="64" height="64" rx="6" fill="#1c1a22"/>
+              <path d="M0 22 H22 A10 10 0 0 1 32 32 V44 A10 10 0 0 0 42 54 H64" fill="none" stroke="#6d6a78" stroke-width="12" stroke-linecap="butt"/>
+              <path d="M0 22 H22 A10 10 0 0 1 32 32 V44 A10 10 0 0 0 42 54 H64" fill="none" stroke="#3aa8ff" stroke-width="7" stroke-linecap="butt"/>
+              <circle cx="6" cy="22" r="6" fill="#d9534f"/>
+              <rect x="54" y="44" width="10" height="20" rx="3" fill="#4a4655"/>
+            </svg>
+            <span class="tile-label">PIPE FLOW</span>
+          </button>
           <div class="game-tile game-tile--disabled">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="6" fill="#1f1c19" opacity="0.5"/>
@@ -1095,6 +1105,107 @@
           <div class="modal-actions" style="justify-content:space-between;">
             <button id="arena-tut-prev" type="button" class="danger-btn" hidden>&larr; Back</button>
             <button id="arena-tut-next" type="button" class="primary-btn">Next &rarr;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- PIPE FLOW SCREEN                                              -->
+    <!-- ============================================================ -->
+    <div id="screen-pipes" class="screen" hidden>
+      <header class="app-header">
+        <button class="menu-btn" type="button" data-back aria-label="Back to menu">&larr; MENU</button>
+        <div class="counter" aria-live="polite">
+          Solved: <span id="pipes-solved-count">0</span>
+        </div>
+        <button id="pipes-settings-btn" class="icon-btn" type="button" aria-label="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M19.14 12.94a7.49 7.49 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.88 2h-3.84a.5.5 0 0 0-.5.43l-.36 2.54c-.58.24-1.13.55-1.63.94l-2.39-.96a.5.5 0 0 0-.61.22L2.63 8.49a.5.5 0 0 0 .12.64l2.03 1.58a7.49 7.49 0 0 0 0 1.88L2.75 14.17a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.34.67.24l2.39-.96c.5.39 1.05.7 1.63.94l.36 2.54c.05.25.26.43.5.43h3.84c.25 0 .46-.18.5-.43l.36-2.54c.58-.24 1.13-.55 1.63-.94l2.39.96c.25.1.53 0 .67-.24l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </header>
+
+      <main class="app-main pipes-main">
+        <div class="pipes-canvas-wrap">
+          <canvas id="pipes-canvas"></canvas>
+        </div>
+        <div class="status-bar">
+          <div class="moves">Moves: <span id="pipes-move-count">0</span></div>
+          <div class="difficulty-label">
+            <span id="pipes-difficulty-label">Moderate</span>
+          </div>
+        </div>
+      </main>
+
+      <!-- Pipe Flow settings modal -->
+      <div id="pipes-settings-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card">
+          <h2>Settings</h2>
+          <fieldset class="field">
+            <legend>Difficulty</legend>
+            <label class="radio"><input type="radio" name="pipes-difficulty" value="simple" /><span>Simple</span></label>
+            <label class="radio"><input type="radio" name="pipes-difficulty" value="moderate" checked /><span>Moderate</span></label>
+            <label class="radio"><input type="radio" name="pipes-difficulty" value="difficult" /><span>Difficult</span></label>
+          </fieldset>
+          <fieldset class="field">
+            <legend>Liquid</legend>
+            <label class="radio"><input type="radio" name="pipes-liquid" value="water" checked /><span>Water</span></label>
+            <label class="radio"><input type="radio" name="pipes-liquid" value="radioactive" /><span>Radioactive</span></label>
+          </fieldset>
+          <div class="field">
+            <button id="pipes-reset-count-btn" type="button" class="danger-btn">Reset solved count</button>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="primary-btn" data-close>Close</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pipe Flow win modal -->
+      <div id="pipes-win-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card">
+          <h2>Flow Connected!</h2>
+          <p>Solved in <strong><span id="pipes-win-moves">0</span></strong> moves.</p>
+          <p>Puzzles solved: <strong><span id="pipes-win-total">0</span></strong></p>
+          <div class="modal-actions">
+            <button id="pipes-next-btn" type="button" class="primary-btn">Next Puzzle</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pipe Flow tutorial modal -->
+      <div id="pipes-tutorial-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-card tutorial-card" style="max-width:360px;">
+          <h2 style="text-align:center;">How to Play</h2>
+          <div id="pipes-tutorial-steps">
+            <div class="pipes-tut-step" data-step="0">
+              <div class="soccer-tut-icon">&#128073;</div>
+              <p class="tutorial-caption"><strong>Tap to turn</strong></p>
+              <p class="tutorial-caption">Tap any pipe to turn it a quarter turn. Straight pipes, elbows, and branching pieces can all be rotated.</p>
+            </div>
+            <div class="pipes-tut-step" data-step="1" hidden>
+              <div class="soccer-tut-icon">&#128167;</div>
+              <p class="tutorial-caption"><strong>Connect the flow</strong></p>
+              <p class="tutorial-caption">Build a path from the red tap on the left to the barrel on the right. The tap and barrel don't turn.</p>
+            </div>
+            <div class="pipes-tut-step" data-step="2" hidden>
+              <div class="soccer-tut-icon">&#10024;</div>
+              <p class="tutorial-caption"><strong>Watch it fill</strong></p>
+              <p class="tutorial-caption">Every pipe the liquid reaches lights up as you turn pieces, so you can see how far it gets.</p>
+            </div>
+            <div class="pipes-tut-step" data-step="3" hidden>
+              <div class="soccer-tut-icon">&#128256;</div>
+              <p class="tutorial-caption"><strong>Branches and decoys</strong></p>
+              <p class="tutorial-caption">Harder boards have T and four-way pieces, plus extra pipes you don't need. Pipes only connect when both sides are open.</p>
+            </div>
+          </div>
+          <div class="modal-actions" style="justify-content:space-between;">
+            <button id="pipes-tut-prev" type="button" class="danger-btn" hidden>&larr; Back</button>
+            <button id="pipes-tut-next" type="button" class="primary-btn">Next &rarr;</button>
           </div>
         </div>
       </div>

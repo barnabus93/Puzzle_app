@@ -1128,17 +1128,17 @@ fieldset.field legend {
   padding: 6px 0;
   min-height: 24px;
 }
-.soccer-tut-step[hidden], .bubble-tut-step[hidden], .ranger-tut-step[hidden], .arena-tut-step[hidden] { display: none !important; }
+.soccer-tut-step[hidden], .bubble-tut-step[hidden], .ranger-tut-step[hidden], .arena-tut-step[hidden], .pipes-tut-step[hidden] { display: none !important; }
 .soccer-tut-icon {
   font-size: 2.5rem;
   text-align: center;
   margin-bottom: 6px;
 }
-.soccer-tut-step .tutorial-caption, .bubble-tut-step .tutorial-caption, .ranger-tut-step .tutorial-caption, .arena-tut-step .tutorial-caption {
+.soccer-tut-step .tutorial-caption, .bubble-tut-step .tutorial-caption, .ranger-tut-step .tutorial-caption, .arena-tut-step .tutorial-caption, .pipes-tut-step .tutorial-caption {
   text-align: center;
   margin: 4px 0;
 }
-.soccer-tut-step .tutorial-caption strong, .bubble-tut-step .tutorial-caption strong, .ranger-tut-step .tutorial-caption strong, .arena-tut-step .tutorial-caption strong {
+.soccer-tut-step .tutorial-caption strong, .bubble-tut-step .tutorial-caption strong, .ranger-tut-step .tutorial-caption strong, .arena-tut-step .tutorial-caption strong, .pipes-tut-step .tutorial-caption strong {
   color: var(--fg);
   font-size: 1.05rem;
 }
@@ -1395,4 +1395,25 @@ fieldset.field legend {
 .fight-btn:active {
   filter: brightness(1.2);
   transform: scale(0.96);
+}
+
+/* ================================================================
+   PIPE FLOW
+   ================================================================ */
+.pipes-main {
+  justify-content: flex-start;
+  padding-top: 6px;
+}
+.pipes-canvas-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+}
+.pipes-canvas-wrap canvas {
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  touch-action: none;
 }
