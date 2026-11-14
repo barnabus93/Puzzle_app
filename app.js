@@ -5145,10 +5145,13 @@
     radioactive: { name: "Radioactive", wet: "#9dff3a", tint: "#1b2813", blur: 14, glow: "rgba(157,255,58,0.9)" },
   };
   const PIPE_ROTATE_MS = 130;
+  const PIPE_GUTTER_CELLS = 0.85; // width of the start/goal margins, in tiles
+  const PIPE_START_COLOR = "#4cd964", PIPE_GOAL_COLOR = "#ffc83a";
 
   const pipes = {
     canvas: null, ctx: null,
     cellPx: 56,
+    gutter: 44, // empty margin left/right of the grid, where the tap and barrel sit
     animId: null,
     els: {},
     state: {
@@ -5170,11 +5173,13 @@
       const size = s.board ? s.board.size : (PIPE_TIERS[s.difficulty] || PIPE_TIERS.moderate).size;
       const wrap = this.canvas.parentElement;
       const rect = wrap.getBoundingClientRect();
-      const side = Math.max(120, Math.min(rect.width, rect.height) - 8);
-      this.cellPx = Math.max(24, Math.min(80, Math.floor(side / size)));
-      const px = this.cellPx * size;
-      this.canvas.width = px; this.canvas.height = px;
-      this.canvas.style.width = px + "px"; this.canvas.style.height = px + "px";
+      // The grid plus a margin on each side (GUTTER_CELLS of a tile wide) for the start tap and goal barrel.
+      const availW = Math.max(160, rect.width - 8), availH = Math.max(120, rect.height - 8);
+      this.cellPx = Math.max(24, Math.min(80, Math.floor(Math.min(availW / (size + 2 * PIPE_GUTTER_CELLS), availH / size))));
+      this.gutter = Math.round(this.cellPx * PIPE_GUTTER_CELLS);
+      const w = this.cellPx * size + 2 * this.gutter, h = this.cellPx * size;
+      this.canvas.width = w; this.canvas.height = h;
+      this.canvas.style.width = w + "px"; this.canvas.style.height = h + "px";
     },
 
     newPuzzle() {
@@ -5200,7 +5205,7 @@
       const s = this.state;
       if (s.won || s.paused || !s.board) return;
       const p = this.getCanvasPoint(e);
-      const c = Math.floor(p.x / this.cellPx), r = Math.floor(p.y / this.cellPx);
+      const c = Math.floor((p.x - this.gutter) / this.cellPx), r = Math.floor(p.y / this.cellPx);
       const size = s.board.size;
       if (r < 0 || r >= size || c < 0 || c >= size) return;
       const tile = s.board.tiles[r * size + c];
@@ -5286,16 +5291,24 @@
       const liquid = PIPE_LIQUIDS[s.liquid] || PIPE_LIQUIDS.water;
       const size = s.board.size, r = Math.floor(idx / size), c = idx % size;
       const tile = s.board.tiles[idx];
-      const x0 = c * cp, y0 = r * cp, cx = x0 + cp / 2, cy = y0 + cp / 2;
+      const x0 = this.gutter + c * cp, y0 = r * cp, cx = x0 + cp / 2, cy = y0 + cp / 2;
+      const isSource = idx === s.board.source, isDrain = idx === s.board.drain;
       const isWet = s.wet.has(idx);
 
       ctx.save();
       ctx.beginPath(); ctx.rect(x0, y0, cp, cp); ctx.clip();
-      ctx.fillStyle = isWet ? liquid.tint : "#1c1a22";
+      // Start and goal tiles get their own color so they stand out from the pipes.
+      ctx.fillStyle = isSource ? "#1d3a26" : isDrain ? (isWet ? "#4a3d12" : "#3a2f10") : isWet ? liquid.tint : "#1c1a22";
       ctx.fillRect(x0, y0, cp, cp);
-      ctx.strokeStyle = tile.fixed ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.08)";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x0 + 0.5, y0 + 0.5, cp - 1, cp - 1);
+      if (isSource || isDrain) {
+        ctx.strokeStyle = isSource ? PIPE_START_COLOR : PIPE_GOAL_COLOR;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x0 + 1.5, y0 + 1.5, cp - 3, cp - 3);
+      } else {
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x0 + 0.5, y0 + 0.5, cp - 1, cp - 1);
+      }
 
       // Mid-turn: draw the pipe rotated back toward where it started.
       let angle = 0;
@@ -5310,34 +5323,69 @@
       this.strokePipe(x0, y0, mask, cp * 0.2, isWet ? liquid.wet : "#2b2933");
       ctx.restore();
 
-      if (idx === s.board.source) this.drawValve(x0, cy);
-      if (idx === s.board.drain) this.drawBarrel(x0 + cp, cy, isWet, liquid);
+      if (isSource) this.drawStart(cy, liquid);
+      if (isDrain) this.drawGoal(cy, isWet, liquid);
     },
 
-    // Tap/valve at the left edge of the source tile.
-    drawValve(x, cy) {
+    // A short pipe stub from the margin into the grid, so the tap/barrel
+    // visibly plug into the board.
+    drawStub(x1, x2, cy, wetColor, liquid) {
       const ctx = this.ctx, cp = this.cellPx;
+      ctx.fillStyle = "#6d6a78";
+      ctx.fillRect(Math.min(x1, x2), cy - cp * 0.17, Math.abs(x2 - x1), cp * 0.34);
+      if (wetColor && liquid.blur) { ctx.save(); ctx.shadowColor = liquid.glow; ctx.shadowBlur = liquid.blur; }
+      ctx.fillStyle = wetColor || "#2b2933";
+      ctx.fillRect(Math.min(x1, x2), cy - cp * 0.1, Math.abs(x2 - x1), cp * 0.2);
+      if (wetColor && liquid.blur) ctx.restore();
+    },
+
+    // Label sits just below an icon, or just above it when the icon is in
+    // the lower half of the board (so it never runs off the canvas).
+    label(text, x, cy, halfH, color) {
+      const ctx = this.ctx;
+      const above = cy > this.canvas.height / 2;
+      ctx.font = "bold " + Math.max(9, Math.round(this.cellPx * 0.2)) + "px system-ui, sans-serif";
+      ctx.textAlign = "center"; ctx.textBaseline = above ? "bottom" : "top";
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, above ? cy - halfH - 3 : cy + halfH + 3);
+    },
+
+    // START: a big red tap in the left margin, always flowing.
+    drawStart(cy, liquid) {
+      const ctx = this.ctx, cp = this.cellPx, g = this.gutter;
+      this.drawStub(g * 0.45, g, cy, liquid.wet, liquid);
+      const tx = g * 0.45, r = cp * 0.26;
       ctx.fillStyle = "#8a8795";
-      ctx.fillRect(x, cy - cp * 0.13, cp * 0.16, cp * 0.26);
-      ctx.fillStyle = "#d9534f";
-      ctx.beginPath(); ctx.arc(x + cp * 0.2, cy, cp * 0.13, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = "rgba(255,255,255,0.55)"; ctx.lineWidth = 2;
+      ctx.fillRect(tx - r * 0.35, cy - cp * 0.2, r * 0.7, cp * 0.4);
+      ctx.fillStyle = "#e0453f";
+      ctx.beginPath(); ctx.arc(tx, cy, r, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.85)"; ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.moveTo(x + cp * 0.2 - cp * 0.09, cy); ctx.lineTo(x + cp * 0.2 + cp * 0.09, cy);
-      ctx.moveTo(x + cp * 0.2, cy - cp * 0.09); ctx.lineTo(x + cp * 0.2, cy + cp * 0.09);
+      ctx.moveTo(tx - r * 0.6, cy); ctx.lineTo(tx + r * 0.6, cy);
+      ctx.moveTo(tx, cy - r * 0.6); ctx.lineTo(tx, cy + r * 0.6);
       ctx.stroke();
+      this.label("START", tx, cy, cp * 0.26, PIPE_START_COLOR);
     },
 
-    // Barrel at the right edge of the drain tile; fills when liquid arrives.
-    drawBarrel(xRight, cy, isWet, liquid) {
-      const ctx = this.ctx, cp = this.cellPx;
-      const w = cp * 0.24, h = cp * 0.56;
+    // GOAL: a glowing gold barrel in the right margin; fills when liquid arrives.
+    drawGoal(cy, isWet, liquid) {
+      const ctx = this.ctx, cp = this.cellPx, g = this.gutter;
+      const xr = g + this.state.board.size * cp;
+      this.drawStub(xr, xr + g * 0.2, cy, isWet ? liquid.wet : null, liquid);
+      const bw = g * 0.52, bh = cp * 0.95, bx = xr + g * 0.2, by = cy - bh / 2;
+      ctx.save();
+      ctx.shadowColor = PIPE_GOAL_COLOR; ctx.shadowBlur = isWet ? 18 : 12;
       ctx.fillStyle = "#4a4655";
-      ctx.beginPath(); ctx.roundRect(xRight - w, cy - h / 2, w, h, 4); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 6); ctx.fill();
+      ctx.restore();
+      ctx.strokeStyle = PIPE_GOAL_COLOR; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 6); ctx.stroke();
+      ctx.save();
+      if (isWet && liquid.blur) { ctx.shadowColor = liquid.glow; ctx.shadowBlur = liquid.blur; }
       ctx.fillStyle = isWet ? liquid.wet : "#25232c";
-      if (isWet && liquid.blur) { ctx.save(); ctx.shadowColor = liquid.glow; ctx.shadowBlur = liquid.blur; }
-      ctx.beginPath(); ctx.roundRect(xRight - w + 3, cy - h / 2 + 3, w - 6, h - 6, 3); ctx.fill();
-      if (isWet && liquid.blur) ctx.restore();
+      ctx.beginPath(); ctx.roundRect(bx + 4, by + 4, bw - 8, bh - 8, 4); ctx.fill();
+      ctx.restore();
+      this.label("GOAL", bx + bw / 2, cy, bh / 2, PIPE_GOAL_COLOR);
     },
 
     draw(now) {
