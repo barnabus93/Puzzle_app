@@ -120,10 +120,25 @@
         if (game) router.show(game);
       };
       tiles.forEach((t) => t.addEventListener("click", this._handler));
+
+      // The list scrolls; show a bottom fade only while more games are below.
+      const screen = document.getElementById("screen-title");
+      this._screen = screen;
+      this._updateMore = () => {
+        const more = screen.scrollTop + screen.clientHeight < screen.scrollHeight - 8;
+        screen.classList.toggle("has-more", more);
+      };
+      screen.addEventListener("scroll", this._updateMore);
+      window.addEventListener("resize", this._updateMore);
+      this._updateMore();
     },
     onLeave() {
       const tiles = document.querySelectorAll("#screen-title .game-tile[data-game]");
       if (this._handler) tiles.forEach((t) => t.removeEventListener("click", this._handler));
+      if (this._screen && this._updateMore) {
+        this._screen.removeEventListener("scroll", this._updateMore);
+        window.removeEventListener("resize", this._updateMore);
+      }
     },
   };
 

@@ -82,9 +82,15 @@ body {
 .title-screen {
   background: #0a0a0e;
   align-items: center;
-  justify-content: center;
+  /* Top-aligned and scrollable: the game list keeps growing, so it scrolls
+     instead of shrinking to fit. (.title-content's auto margins keep it
+     vertically centered whenever everything happens to fit.) */
+  justify-content: flex-start;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .title-content {
@@ -94,9 +100,11 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 18px;
-  padding: 20px;
+  padding: 20px 20px 48px;
   width: 100%;
   max-width: 400px;
+  margin: auto 0;
+  flex: 0 0 auto;
 }
 
 .arcade-title {
@@ -125,6 +133,23 @@ body {
   animation: pulse 2.5s ease-in-out infinite;
 }
 
+/* Soft fade at the bottom edge while there are more games below. */
+.title-fade {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 72px;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(10, 10, 14, 0), #0a0a0e 85%);
+  opacity: 0;
+  transition: opacity 200ms;
+}
+.title-screen.has-more .title-fade {
+  opacity: 1;
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
@@ -133,7 +158,7 @@ body {
 .game-tiles {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
   margin-top: 10px;
 }
@@ -143,13 +168,13 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 14px 10px;
+  gap: 12px;
+  padding: 18px 10px;
   background: rgba(255, 255, 255, 0.04);
   border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   cursor: pointer;
-  min-height: 96px;
+  min-height: 150px;
   color: var(--fg);
   font: inherit;
   text-align: center;
@@ -178,10 +203,10 @@ body {
 }
 
 .tile-icon {
-  width: 44px;
-  height: 44px;
-  flex: 0 0 44px;
-  border-radius: 6px;
+  width: 76px;
+  height: 76px;
+  flex: 0 0 76px;
+  border-radius: 8px;
 }
 
 .tile-label {
@@ -191,9 +216,9 @@ body {
   letter-spacing: 0.04em;
 }
 
-/* CRT scanlines overlay */
+/* CRT scanlines overlay (fixed so it covers the screen while the list scrolls) */
 .scanlines {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 2;
   pointer-events: none;
@@ -749,19 +774,6 @@ fieldset.field legend {
   }
   .arcade-title {
     font-size: 1.4rem;
-  }
-  .game-tiles {
-    gap: 8px;
-  }
-  .game-tile {
-    padding: 8px 6px;
-    min-height: 72px;
-    gap: 5px;
-  }
-  .tile-icon {
-    width: 32px;
-    height: 32px;
-    flex: 0 0 32px;
   }
 }
 
