@@ -1140,17 +1140,17 @@ fieldset.field legend {
   padding: 6px 0;
   min-height: 24px;
 }
-.soccer-tut-step[hidden], .bubble-tut-step[hidden], .ranger-tut-step[hidden], .arena-tut-step[hidden], .pipes-tut-step[hidden] { display: none !important; }
+.soccer-tut-step[hidden], .bubble-tut-step[hidden], .ranger-tut-step[hidden], .arena-tut-step[hidden], .pipes-tut-step[hidden], .tank-tut-step[hidden] { display: none !important; }
 .soccer-tut-icon {
   font-size: 2.5rem;
   text-align: center;
   margin-bottom: 6px;
 }
-.soccer-tut-step .tutorial-caption, .bubble-tut-step .tutorial-caption, .ranger-tut-step .tutorial-caption, .arena-tut-step .tutorial-caption, .pipes-tut-step .tutorial-caption {
+.soccer-tut-step .tutorial-caption, .bubble-tut-step .tutorial-caption, .ranger-tut-step .tutorial-caption, .arena-tut-step .tutorial-caption, .pipes-tut-step .tutorial-caption, .tank-tut-step .tutorial-caption {
   text-align: center;
   margin: 4px 0;
 }
-.soccer-tut-step .tutorial-caption strong, .bubble-tut-step .tutorial-caption strong, .ranger-tut-step .tutorial-caption strong, .arena-tut-step .tutorial-caption strong, .pipes-tut-step .tutorial-caption strong {
+.soccer-tut-step .tutorial-caption strong, .bubble-tut-step .tutorial-caption strong, .ranger-tut-step .tutorial-caption strong, .arena-tut-step .tutorial-caption strong, .pipes-tut-step .tutorial-caption strong, .tank-tut-step .tutorial-caption strong {
   color: var(--fg);
   font-size: 1.05rem;
 }
@@ -1427,5 +1427,99 @@ fieldset.field legend {
 .pipes-canvas-wrap canvas {
   border-radius: 8px;
   box-shadow: var(--shadow);
+  touch-action: none;
+}
+
+/* ================================================================
+   TANK DUEL
+   ================================================================ */
+.tank-config[hidden], .tank-canvas-wrap[hidden] { display: none !important; }
+.tank-config {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+.tank-config-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 16px 40px;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+}
+.tank-field-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.tank-difficulty-row {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.tank-color-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+.tank-color-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.tank-color-btn.selected {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+.tank-swatch {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.08);
+}
+.tank-start-btn {
+  width: 100%;
+  margin-top: 6px;
+  font-size: 1.1rem;
+  padding: 14px;
+}
+.tank-rotate-note {
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-align: center;
+  margin: 0;
+}
+.tank-canvas-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  background: #000;
+  overflow: hidden;
+}
+.tank-canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
   touch-action: none;
 }

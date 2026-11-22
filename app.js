@@ -5517,7 +5517,818 @@
   };
 
   // ================================================================
-  // 22. INIT & LOCALSTORAGE MIGRATION
+  // 22. TANK DUEL — landscape turn-based artillery duel
+  // ================================================================
+  // Pure physics/terrain/AI first (no DOM, unit-tested), then the canvas
+  // module. The match renders a landscape world; on a portrait phone the
+  // whole world (battlefield + HUD + buttons) is rotated 90° so turning
+  // the phone makes it upright even with the rotation lock on.
+  // --- Data tables -------------------------------------------------------
+  // Tank colors the players can pick. body = hull/turret, dark = treads/shade.
+  const TANK_COLORS = {
+    red:    { name: "Red",    body: "#e0455a", dark: "#7a1f2b" },
+    blue:   { name: "Blue",   body: "#3ac7d6", dark: "#1a5a63" },
+    green:  { name: "Green",  body: "#5fd068", dark: "#256b2c" },
+    yellow: { name: "Yellow", body: "#f2c94c", dark: "#8a6a12" },
+    purple: { name: "Purple", body: "#a95fe0", dark: "#4e2b6e" },
+    orange: { name: "Orange", body: "#ff9f43", dark: "#8a4a12" },
+  };
+
+  // Weapons. radius/crater are fractions of worldW; maxDmg is the damage of a
+  // near-direct hit (within half the blast radius); gravMult heavies the arc.
+  // shots>1 fires a small fan (spread). Every weapon is unlimited.
+  const TANK_WEAPONS = {
+    standard: { name: "Standard", radius: 0.045, crater: 0.045, maxDmg: 1, gravMult: 1.0, shots: 1, spreadDeg: 0, color: "#ffd24a" },
+    heavy:    { name: "Heavy",    radius: 0.075, crater: 0.08,  maxDmg: 2, gravMult: 1.35, shots: 1, spreadDeg: 0, color: "#ff6b3a" },
+    spread:   { name: "Spread",   radius: 0.03,  crater: 0.028, maxDmg: 1, gravMult: 1.0, shots: 3, spreadDeg: 7, color: "#7fe8ff" },
+  };
+  const TANK_WEAPON_ORDER = ["standard", "heavy", "spread"];
+
+  // CPU difficulty: how fine its aim search is, how much random error it adds
+  // (degrees / power points), and how often it bothers to reposition. Same
+  // "tune behavior, not raw stats" idea as ARENA_TIERS.
+  const TANK_TIERS = {
+    simple:    { angleStep: 7,   powerStep: 10, angleErr: 8,   powerErr: 14,  moveChance: 0.0 },
+    moderate:  { angleStep: 4,   powerStep: 6,  angleErr: 2.5, powerErr: 5,   moveChance: 0.25 },
+    difficult: { angleStep: 2,   powerStep: 3,  angleErr: 0.8, powerErr: 1.8, moveChance: 0.5 },
+  };
+
+  const TANK_MAX_HP = 5;
+
+  // --- Physics config, scaled to the field size so play feels the same on a
+  // phone or a wide desktop window. -----------------------------------------
+  function tankCfg(worldW, worldH) {
+    return {
+      worldW, worldH,
+      gravity: worldW * 1.2,      // px/s^2
+      vmax: worldW * 1.18,        // px/s at power 100, 45deg -> ~1.15*worldW range
+      windAccel: worldW * 0.14,   // px/s^2 at |wind|=1
+      groundMin: worldH * 0.34,   // highest the terrain may rise (smallest y)
+      groundMax: worldH * 0.9,    // lowest it may sink
+      tankR: Math.max(10, worldW * 0.016),
+      fuelPx: worldW * 0.2,       // full fuel buys 20% of field width of travel
+    };
+  }
+
+  // --- Terrain -----------------------------------------------------------
+  // ground[x] = surface y for each pixel column. Random each match; flattened
+  // pads under the two spawn columns so a tank never starts on a spike.
+  function tankGenTerrain(cfg, rand, p1x, p2x) {
+    const W = cfg.worldW, H = cfg.worldH;
+    const ground = new Float64Array(W);
+    const base = (cfg.groundMin + cfg.groundMax) / 2;
+    const amp = (cfg.groundMax - cfg.groundMin) * 0.5;
+    // A few random sine layers.
+    const layers = [];
+    const nLayers = 3 + Math.floor(rand() * 3);
+    for (let i = 0; i < nLayers; i++) {
+      layers.push({
+        k: (0.4 + rand() * 2.6) * (Math.PI * 2) / W, // wavelength
+        phase: rand() * Math.PI * 2,
+        a: amp * (0.15 + rand() * 0.55) / nLayers * (1 + i * 0.3),
+      });
+    }
+    for (let x = 0; x < W; x++) {
+      let y = base;
+      for (const l of layers) y += Math.sin(x * l.k + l.phase) * l.a;
+      ground[x] = y;
+    }
+    // One midpoint-displacement pass for roughness.
+    const disp = amp * 0.35;
+    (function md(lo, hi, d) {
+      if (hi - lo < 8) return;
+      const mid = (lo + hi) >> 1;
+      ground[mid] = (ground[lo] + ground[hi]) / 2 + (rand() * 2 - 1) * d;
+      md(lo, mid, d * 0.55); md(mid, hi, d * 0.55);
+    })(0, W - 1, disp);
+    // Smooth, then clamp.
+    for (let pass = 0; pass < 2; pass++) {
+      const copy = ground.slice();
+      for (let x = 1; x < W - 1; x++) ground[x] = (copy[x - 1] + copy[x] * 2 + copy[x + 1]) / 4;
+    }
+    for (let x = 0; x < W; x++) ground[x] = Math.max(cfg.groundMin, Math.min(cfg.groundMax, ground[x]));
+    // Flatten a pad under each spawn.
+    tankFlattenPad(ground, p1x, Math.round(cfg.tankR * 2.2));
+    tankFlattenPad(ground, p2x, Math.round(cfg.tankR * 2.2));
+    return ground;
+  }
+
+  function tankFlattenPad(ground, cx, half) {
+    const W = ground.length;
+    const lo = Math.max(0, cx - half), hi = Math.min(W - 1, cx + half);
+    let sum = 0, n = 0;
+    for (let x = lo; x <= hi; x++) { sum += ground[x]; n++; }
+    const level = sum / n;
+    for (let x = lo; x <= hi; x++) ground[x] = level;
+  }
+
+  // Dig a crater: raise ground[x] (increase y) by the circular chord. Only ever
+  // lowers the surface, only within the radius.
+  function tankCarve(ground, cfg, ex, ey, r) {
+    const W = ground.length;
+    const lo = Math.max(0, Math.floor(ex - r)), hi = Math.min(W - 1, Math.ceil(ex + r));
+    for (let x = lo; x <= hi; x++) {
+      const dx = x - ex, inside = r * r - dx * dx;
+      if (inside <= 0) continue;
+      const chord = Math.sqrt(inside);
+      const craterBottom = ey + chord;          // deepest point of the dig at this column
+      if (craterBottom > ground[x]) ground[x] = Math.min(cfg.groundMax, craterBottom);
+    }
+  }
+
+  // --- Projectile trace --------------------------------------------------
+  // One function powers the aim preview, the live animation, and the CPU
+  // search, so they can never disagree. Returns the path points and where it
+  // stopped. tanks (optional) = [{x,y,r,idx}] to stop on a tank hit.
+  function tankTrace(cfg, ground, x0, y0, vx0, vy0, wind, gravMult, tanks) {
+    const g = cfg.gravity * (gravMult || 1), wa = cfg.windAccel * wind;
+    const dt = 1 / 120, maxT = 12;
+    let x = x0, y = y0, vx = vx0, vy = vy0, t = 0;
+    const points = [{ x, y }];
+    while (t < maxT) {
+      vx += wa * dt; vy += g * dt;
+      x += vx * dt; y += vy * dt; t += dt;
+      if ((points.length & 3) === 0) points.push({ x, y });
+      if (x < 0) return { points, stop: { type: "edgeL", x, y } };
+      if (x >= cfg.worldW) return { points, stop: { type: "edgeR", x, y } };
+      if (tanks) {
+        for (const tk of tanks) {
+          const ddx = x - tk.x, ddy = y - tk.y;
+          if (ddx * ddx + ddy * ddy <= tk.r * tk.r) {
+            points.push({ x, y });
+            return { points, stop: { type: "tank", x, y, idx: tk.idx } };
+          }
+        }
+      }
+      if (y >= 0) {
+        const gx = Math.max(0, Math.min(cfg.worldW - 1, Math.round(x)));
+        if (y >= ground[gx]) { points.push({ x, y }); return { points, stop: { type: "ground", x, y } }; }
+      }
+    }
+    return { points, stop: { type: "timeout", x, y } };
+  }
+
+  // angle(deg) 0=right,90=up,180=left ; power 0..100 -> initial velocity.
+  function tankAimVelocity(cfg, angle, power) {
+    const v0 = (power / 100) * cfg.vmax, rad = angle * Math.PI / 180;
+    return { vx: Math.cos(rad) * v0, vy: -Math.sin(rad) * v0 };
+  }
+
+  // --- Blast damage ------------------------------------------------------
+  // Within half the radius -> full weapon damage; within the radius -> a 1-dmg
+  // graze; outside -> nothing.
+  function tankBlastDamage(weapon, dist, radiusPx) {
+    if (dist > radiusPx) return 0;
+    if (dist <= radiusPx * 0.5) return weapon.maxDmg;
+    return 1;
+  }
+
+  // --- CPU shot search ---------------------------------------------------
+  // Headlessly simulate a grid of (angle,power) shots, keep the one landing
+  // nearest the foe, then add difficulty-scaled aim error. me/foe = {x,y}.
+  function tankCpuChooseShot(cfg, ground, tier, me, foe, wind, gravMult, rand) {
+    const aimRight = foe.x > me.x;
+    const loA = aimRight ? 20 : 95, hiA = aimRight ? 85 : 160;
+    let best = null, bestErr = Infinity;
+    for (let a = loA; a <= hiA; a += tier.angleStep) {
+      for (let p = 30; p <= 100; p += tier.powerStep) {
+        const v = tankAimVelocity(cfg, a, p);
+        const res = tankTrace(cfg, ground, me.x, me.y, v.vx, v.vy, wind, gravMult, null);
+        const err = Math.abs(res.stop.x - foe.x) + Math.abs(res.stop.y - foe.y) * 0.3;
+        if (err < bestErr) { bestErr = err; best = { angle: a, power: p }; }
+      }
+    }
+    if (!best) best = { angle: aimRight ? 50 : 130, power: 70 };
+    const r = rand || Math.random;
+    return {
+      angle: Math.max(5, Math.min(175, best.angle + (r() * 2 - 1) * tier.angleErr)),
+      power: Math.max(10, Math.min(100, best.power + (r() * 2 - 1) * tier.powerErr)),
+      searchErr: bestErr,
+    };
+  }
+
+  const tankStore = makeStore("tank");
+
+  // On-screen control geometry is computed per-frame from the world size and
+  // stashed here so pointer hit-testing uses exactly what was drawn.
+  const tank = {
+    canvas: null, ctx: null,
+    animId: null, lastT: 0,
+    els: {},
+    rotated: false, worldW: 800, worldH: 380,
+    state: {
+      mode: "cpu", difficulty: "moderate",
+      p1Color: "red", p2Color: "blue",
+      cfg: null, ground: null,
+      tanks: [], active: 0,
+      phase: "aiming",            // aiming | firing | over
+      wind: 0, weaponIdx: 0,
+      aiming: false,
+      projectiles: [], particles: [],
+      buttons: [], heldMove: 0,
+      cpuTimer: 0, turnMsg: "", msgTimer: 0,
+      winner: -1,
+    },
+
+    // --- Setup / world transform ----------------------------------------
+    initCanvas() {
+      this.canvas = document.getElementById("tank-canvas");
+      this.ctx = this.canvas.getContext("2d");
+      this.sizeCanvas();
+    },
+
+    sizeCanvas() {
+      const wrap = this.canvas.parentElement;
+      const rect = wrap.getBoundingClientRect();
+      const cw = Math.max(240, Math.floor(rect.width)), ch = Math.max(200, Math.floor(rect.height));
+      this.canvas.width = cw; this.canvas.height = ch;
+      this.canvas.style.width = cw + "px"; this.canvas.style.height = ch + "px";
+      this.rotated = cw < ch; // portrait container -> rotate the landscape world
+      this.worldW = this.rotated ? ch : cw;
+      this.worldH = this.rotated ? cw : ch;
+    },
+
+    applyWorldTransform() {
+      const ctx = this.ctx;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      if (this.rotated) { ctx.translate(0, this.canvas.height); ctx.rotate(-Math.PI / 2); }
+    },
+
+    // client (screen) coords -> world coords, the exact inverse of the draw transform.
+    screenToWorld(clientX, clientY) {
+      const rect = this.canvas.getBoundingClientRect();
+      const px = (clientX - rect.left) * (this.canvas.width / rect.width);
+      const py = (clientY - rect.top) * (this.canvas.height / rect.height);
+      if (this.rotated) return { x: this.canvas.height - py, y: px };
+      return { x: px, y: py };
+    },
+
+    // --- Match lifecycle ------------------------------------------------
+    newMatch() {
+      const s = this.state;
+      s.cfg = tankCfg(this.worldW, this.worldH);
+      const p1x = Math.round(this.worldW * 0.12), p2x = Math.round(this.worldW * 0.88);
+      s.ground = tankGenTerrain(s.cfg, Math.random, p1x, p2x);
+      const mk = (x, colorKey, isCpu) => ({
+        x, colorKey, isCpu,
+        hp: TANK_MAX_HP, fuel: 100,
+        angle: x < this.worldW / 2 ? 55 : 125, power: 65,
+      });
+      const cpu = s.mode === "cpu";
+      s.tanks = [mk(p1x, s.p1Color, false), mk(p2x, cpu ? s.p2Color : s.p2Color, cpu)];
+      s.active = 0; s.weaponIdx = 0; s.winner = -1; s.phase = "aiming";
+      s.projectiles = []; s.particles = [];
+      this.beginTurn();
+    },
+
+    turretY(t) { return this.state.ground[Math.max(0, Math.min(this.worldW - 1, Math.round(t.x)))] - this.state.cfg.tankR * 0.9; },
+
+    beginTurn() {
+      const s = this.state, t = s.tanks[s.active];
+      t.fuel = 100;
+      s.wind = (Math.random() * 2 - 1);
+      s.phase = "aiming"; s.aiming = false; s.heldMove = 0;
+      this.showMsg((s.mode === "cpu" && t.isCpu ? "Computer" : "Player " + (s.active + 1)) + "'s turn");
+      if (s.mode === "cpu" && t.isCpu) s.cpuTimer = 0.7; else s.cpuTimer = 0;
+    },
+
+    showMsg(m) { this.state.turnMsg = m; this.state.msgTimer = 1.6; },
+
+    // --- Input ----------------------------------------------------------
+    onDown(e) {
+      const s = this.state;
+      const p = this.screenToWorld(e.clientX, e.clientY);
+      // buttons first (they're live from the last draw)
+      for (const b of s.buttons) {
+        if (p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h) { this.pressButton(b.id); return; }
+      }
+      if (s.phase === "over") return;
+      const t = s.tanks[s.active];
+      if (s.mode === "cpu" && t.isCpu) return;
+      if (s.phase !== "aiming") return;
+      // drag anywhere in the play field to aim
+      if (p.y > this.worldH * 0.14 && p.y < this.worldH * 0.80) {
+        s.aiming = true; this.updateAim(p);
+      }
+    },
+    onMove(e) {
+      const s = this.state;
+      if (!s.aiming) return;
+      this.updateAim(this.screenToWorld(e.clientX, e.clientY));
+    },
+    onUp() { this.state.aiming = false; },
+
+    updateAim(p) {
+      const s = this.state, t = s.tanks[s.active];
+      const tx = t.x, ty = this.turretY(t);
+      const dx = p.x - tx, dy = p.y - ty;
+      let ang = Math.atan2(-dy, dx) * 180 / Math.PI;
+      if (ang < 0) ang = 0; if (ang > 180) ang = 180;
+      t.angle = Math.max(5, Math.min(175, ang));
+      const len = Math.hypot(dx, dy);
+      t.power = Math.max(10, Math.min(100, (len / (this.worldW * 0.42)) * 100));
+    },
+
+    pressButton(id) {
+      const s = this.state, t = s.tanks[s.active];
+      if (id === "menu") { router.show("title"); return; }
+      if (s.phase === "over") {
+        if (id === "rematch") { this.newMatch(); }
+        else if (id === "setup") { this.showConfig(); }
+        return;
+      }
+      const human = !(s.mode === "cpu" && t.isCpu) && s.phase === "aiming";
+      if (!human && id !== "menu") return;
+      if (id === "fire") this.fire();
+      else if (id === "angleDown") t.angle = Math.max(5, t.angle - 2);
+      else if (id === "angleUp") t.angle = Math.min(175, t.angle + 2);
+      else if (id === "powerDown") t.power = Math.max(10, t.power - 2);
+      else if (id === "powerUp") t.power = Math.min(100, t.power + 2);
+      else if (id === "weaponPrev") s.weaponIdx = (s.weaponIdx + TANK_WEAPON_ORDER.length - 1) % TANK_WEAPON_ORDER.length;
+      else if (id === "weaponNext") s.weaponIdx = (s.weaponIdx + 1) % TANK_WEAPON_ORDER.length;
+      else if (id === "moveLeft") s.heldMove = -1;
+      else if (id === "moveRight") s.heldMove = 1;
+    },
+    releaseHold() { this.state.heldMove = 0; },
+
+    // --- Firing / resolution --------------------------------------------
+    fire() {
+      const s = this.state, t = s.tanks[s.active];
+      if (s.phase !== "aiming") return;
+      const weapon = TANK_WEAPONS[TANK_WEAPON_ORDER[s.weaponIdx]];
+      const tx = t.x, ty = this.turretY(t);
+      const foe = s.tanks[1 - s.active];
+      const tanks = [{ x: foe.x, y: this.turretY(foe), r: s.cfg.tankR, idx: 1 - s.active }];
+      s.projectiles = [];
+      for (let i = 0; i < weapon.shots; i++) {
+        const spread = weapon.shots > 1 ? (i - (weapon.shots - 1) / 2) * weapon.spreadDeg : 0;
+        const v = tankAimVelocity(s.cfg, t.angle + spread, t.power);
+        const trace = tankTrace(s.cfg, s.ground, tx, ty, v.vx, v.vy, s.wind, weapon.gravMult, tanks);
+        s.projectiles.push({ path: trace.points, stop: trace.stop, i: 0, trail: [], weapon });
+      }
+      s.phase = "firing"; s.aiming = false;
+    },
+
+    stepProjectiles(dt) {
+      const s = this.state;
+      let anyLive = false;
+      for (const pr of s.projectiles) {
+        if (pr.done) continue;
+        pr.i += Math.max(1, Math.round(60 * dt));
+        if (pr.i >= pr.path.length - 1) { pr.i = pr.path.length - 1; pr.done = true; }
+        else anyLive = true;
+        const pt = pr.path[pr.i];
+        pr.cur = pt;
+        pr.trail.push({ x: pt.x, y: pt.y });
+        if (pr.trail.length > 16) pr.trail.shift();
+      }
+      if (!anyLive) this.resolveShots();
+    },
+
+    resolveShots() {
+      const s = this.state;
+      for (const pr of s.projectiles) {
+        const st = pr.stop, w = pr.weapon;
+        const r = w.radius * this.worldW, crater = w.crater * this.worldW;
+        if (st.type !== "edgeL" && st.type !== "edgeR") {
+          tankCarve(s.ground, s.cfg, st.x, st.y, crater);
+          this.burst(st.x, st.y, w.color, st.type === "tank" ? 22 : 14);
+          for (let k = 0; k < s.tanks.length; k++) {
+            const tk = s.tanks[k];
+            const d = Math.hypot(tk.x - st.x, this.turretY(tk) - st.y);
+            const dmg = tankBlastDamage(w, d, r);
+            if (dmg > 0) { tk.hp = Math.max(0, tk.hp - dmg); this.burst(tk.x, this.turretY(tk), TANK_COLORS[tk.colorKey].body, 10); }
+          }
+        }
+      }
+      s.projectiles = [];
+      // tanks settle onto the new terrain
+      for (const tk of s.tanks) tk.x = Math.max(s.cfg.tankR, Math.min(this.worldW - s.cfg.tankR, tk.x));
+      const dead = s.tanks.findIndex((t) => t.hp <= 0);
+      if (dead >= 0) {
+        s.phase = "over"; s.winner = 1 - dead;
+        this.burst(s.tanks[dead].x, this.turretY(s.tanks[dead]), "#ffcc33", 40);
+        return;
+      }
+      s.active = 1 - s.active;
+      this.beginTurn();
+    },
+
+    burst(x, y, color, n) {
+      const s = this.state;
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * Math.PI * 2, sp = (0.2 + Math.random() * 0.8) * this.worldW * 0.5;
+        s.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - this.worldW * 0.1, life: 0.4 + Math.random() * 0.4, t: 0, color });
+      }
+    },
+
+    moveActive(dt) {
+      const s = this.state, t = s.tanks[s.active];
+      if (!s.heldMove || t.fuel <= 0 || s.phase !== "aiming") return;
+      const speed = this.worldW * 0.12;
+      let dxpx = s.heldMove * speed * dt;
+      const cost = (Math.abs(dxpx) / s.cfg.fuelPx) * 100;
+      if (cost > t.fuel) dxpx *= t.fuel / cost;
+      const foe = s.tanks[1 - s.active];
+      let nx = t.x + dxpx;
+      nx = Math.max(s.cfg.tankR, Math.min(this.worldW - s.cfg.tankR, nx));
+      if (Math.abs(nx - foe.x) < s.cfg.tankR * 2.5) nx = t.x; // don't climb into the foe
+      t.fuel = Math.max(0, t.fuel - (Math.abs(nx - t.x) / s.cfg.fuelPx) * 100);
+      t.x = nx;
+    },
+
+    // --- CPU ------------------------------------------------------------
+    cpuTakeTurn() {
+      const s = this.state, me = s.tanks[s.active], foe = s.tanks[1 - s.active];
+      const tier = TANK_TIERS[s.difficulty] || TANK_TIERS.moderate;
+      // sometimes pick heavy when close, otherwise standard
+      s.weaponIdx = (Math.abs(me.x - foe.x) < this.worldW * 0.3 && Math.random() < 0.5) ? 1 : 0;
+      const weapon = TANK_WEAPONS[TANK_WEAPON_ORDER[s.weaponIdx]];
+      const shot = tankCpuChooseShot(s.cfg, s.ground,
+        { angleStep: tier.angleStep, powerStep: tier.powerStep, angleErr: tier.angleErr, powerErr: tier.powerErr },
+        { x: me.x, y: this.turretY(me) }, { x: foe.x, y: this.turretY(foe) }, s.wind, weapon.gravMult, Math.random);
+      me.angle = shot.angle; me.power = shot.power;
+      this.fire();
+    },
+
+    // --- Loop -----------------------------------------------------------
+    update(dt) {
+      const s = this.state;
+      if (s.msgTimer > 0) s.msgTimer -= dt;
+      for (const p of s.particles) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += this.worldW * 0.6 * dt; }
+      s.particles = s.particles.filter((p) => p.t < p.life);
+      if (s.phase === "aiming") {
+        this.moveActive(dt);
+        const t = s.tanks[s.active];
+        if (s.mode === "cpu" && t.isCpu && s.cpuTimer > 0) {
+          s.cpuTimer -= dt;
+          if (s.cpuTimer <= 0) this.cpuTakeTurn();
+        }
+      } else if (s.phase === "firing") {
+        this.stepProjectiles(dt);
+      }
+    },
+
+    gameLoop(now) {
+      if (!this.canvas) return;
+      const dt = Math.min((now - this.lastT) / 1000, 0.05);
+      this.lastT = now;
+      this.update(dt);
+      this.draw();
+      this.animId = requestAnimationFrame((t) => this.gameLoop(t));
+    },
+    startLoop() { this.lastT = performance.now(); if (this.animId) cancelAnimationFrame(this.animId); this.animId = requestAnimationFrame((t) => this.gameLoop(t)); },
+    stopLoop() { if (this.animId) { cancelAnimationFrame(this.animId); this.animId = null; } },
+
+    // --- Drawing --------------------------------------------------------
+    draw() {
+      const ctx = this.ctx, W = this.worldW, H = this.worldH, s = this.state;
+      if (!s.cfg) return;
+      this.applyWorldTransform();
+      this.drawSky(ctx, W, H);
+      this.drawTerrain(ctx, W, H);
+      for (let i = 0; i < s.tanks.length; i++) this.drawTank(ctx, s.tanks[i], i);
+      if (s.phase === "aiming") this.drawAimArc(ctx);
+      for (const pr of s.projectiles) this.drawProjectile(ctx, pr);
+      this.drawParticles(ctx);
+      this.drawHud(ctx, W, H);
+      this.drawControls(ctx, W, H);
+      if (s.msgTimer > 0 && s.phase !== "over") this.drawBanner(ctx, W, H, s.turnMsg);
+      if (s.phase === "over") this.drawGameOver(ctx, W, H);
+      if (this.rotated) this.drawRotateHint(ctx, W, H);
+    },
+
+    drawSky(ctx, W, H) {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, "#2d6ab0"); g.addColorStop(0.7, "#8fc4e8"); g.addColorStop(1, "#cfe7f3");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      ctx.save();
+      const sx = W * 0.16, sy = H * 0.2, sr = H * 0.07;
+      const gg = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr * 3);
+      gg.addColorStop(0, "rgba(255,255,255,0.95)"); gg.addColorStop(0.3, "rgba(255,255,240,0.5)"); gg.addColorStop(1, "rgba(255,255,240,0)");
+      ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(sx, sy, sr * 3, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#fffbe0"; ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    },
+
+    drawTerrain(ctx, W, H) {
+      const g = this.state.ground;
+      ctx.beginPath(); ctx.moveTo(0, H);
+      for (let x = 0; x < W; x++) ctx.lineTo(x, g[x]);
+      ctx.lineTo(W, H); ctx.closePath();
+      const grad = ctx.createLinearGradient(0, H * 0.3, 0, H);
+      grad.addColorStop(0, "#5fa83b"); grad.addColorStop(0.12, "#3f7d2a"); grad.addColorStop(0.3, "#6b4a2a"); grad.addColorStop(1, "#3b2817");
+      ctx.fillStyle = grad; ctx.fill();
+      ctx.strokeStyle = "#7fce52"; ctx.lineWidth = Math.max(2, H * 0.01);
+      ctx.beginPath(); ctx.moveTo(0, g[0]); for (let x = 1; x < W; x++) ctx.lineTo(x, g[x]); ctx.stroke();
+    },
+
+    drawTank(ctx, t, idx) {
+      const s = this.state, r = s.cfg.tankR, x = t.x, y = this.turretY(t);
+      const col = TANK_COLORS[t.colorKey];
+      const faded = t.hp <= 0;
+      ctx.save();
+      if (faded) ctx.globalAlpha = 0.35;
+      // treads
+      ctx.fillStyle = col.dark;
+      ctx.beginPath(); ctx.roundRect(x - r, y + r * 0.35, r * 2, r * 0.8, r * 0.3); ctx.fill();
+      // hull
+      ctx.fillStyle = col.body;
+      ctx.beginPath(); ctx.roundRect(x - r * 0.85, y - r * 0.1, r * 1.7, r * 0.7, r * 0.2); ctx.fill();
+      // turret
+      ctx.beginPath(); ctx.arc(x, y, r * 0.55, Math.PI, 0); ctx.fill();
+      // barrel
+      const live = (idx === s.active && s.phase === "aiming");
+      const ang = t.angle * Math.PI / 180;
+      const bl = r * 1.7;
+      ctx.strokeStyle = col.dark; ctx.lineWidth = r * 0.35; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(x, y - r * 0.2);
+      ctx.lineTo(x + Math.cos(ang) * bl, y - r * 0.2 - Math.sin(ang) * bl); ctx.stroke();
+      ctx.restore();
+      if (live) { // highlight whose turn
+        ctx.save(); ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 2; ctx.setLineDash([4, 3]);
+        ctx.beginPath(); ctx.arc(x, y, r * 1.9, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+      }
+    },
+
+    drawAimArc(ctx) {
+      const s = this.state, t = s.tanks[s.active];
+      if (s.mode === "cpu" && t.isCpu) return;
+      const weapon = TANK_WEAPONS[TANK_WEAPON_ORDER[s.weaponIdx]];
+      const v = tankAimVelocity(s.cfg, t.angle, t.power);
+      const trace = tankTrace(s.cfg, s.ground, t.x, this.turretY(t), v.vx, v.vy, s.wind, weapon.gravMult, null);
+      ctx.save(); ctx.setLineDash([5, 6]); ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 2;
+      ctx.beginPath();
+      const pts = trace.points;
+      ctx.moveTo(pts[0].x, pts[0].y);
+      const lim = Math.min(pts.length, 55);
+      for (let i = 1; i < lim; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.stroke(); ctx.restore();
+    },
+
+    drawProjectile(ctx, pr) {
+      if (!pr.cur) return;
+      ctx.save();
+      for (let i = 0; i < pr.trail.length; i++) {
+        const p = pr.trail[i], a = (i / pr.trail.length) * 0.5;
+        ctx.fillStyle = "rgba(120,120,120," + a + ")";
+        ctx.beginPath(); ctx.arc(p.x, p.y, this.state.cfg.tankR * 0.4 * (i / pr.trail.length + 0.3), 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.fillStyle = "#333"; ctx.beginPath(); ctx.arc(pr.cur.x, pr.cur.y, this.state.cfg.tankR * 0.3, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = pr.weapon.color; ctx.beginPath(); ctx.arc(pr.cur.x, pr.cur.y, this.state.cfg.tankR * 0.18, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    },
+
+    drawParticles(ctx) {
+      for (const p of this.state.particles) {
+        const a = Math.max(0, 1 - p.t / p.life);
+        ctx.globalAlpha = a; ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, this.state.cfg.tankR * 0.3 * a + 1, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    },
+
+    drawHud(ctx, W, H) {
+      const s = this.state, pad = W * 0.02, barW = W * 0.26, barH = H * 0.05;
+      ctx.save();
+      ctx.font = "bold " + Math.round(H * 0.045) + "px system-ui, sans-serif";
+      ctx.textBaseline = "top";
+      // life bars
+      for (let i = 0; i < 2; i++) {
+        const t = s.tanks[i], col = TANK_COLORS[t.colorKey];
+        const x = i === 0 ? pad : W - pad - barW, y = pad;
+        ctx.textAlign = i === 0 ? "left" : "right";
+        ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.beginPath(); ctx.roundRect(x, y, barW, barH, 4); ctx.fill();
+        for (let h = 0; h < TANK_MAX_HP; h++) {
+          const seg = barW / TANK_MAX_HP, sx = x + h * seg + 1.5;
+          ctx.fillStyle = h < t.hp ? col.body : "rgba(255,255,255,0.12)";
+          ctx.beginPath(); ctx.roundRect(sx, y + 1.5, seg - 3, barH - 3, 3); ctx.fill();
+        }
+        ctx.fillStyle = "#fff";
+        const label = (s.mode === "cpu" && t.isCpu ? "CPU" : "P" + (i + 1));
+        ctx.fillText(label, i === 0 ? x : x + barW, y + barH + 2);
+      }
+      // center readout: angle / power / wind
+      const t = s.tanks[s.active];
+      ctx.textAlign = "center"; ctx.fillStyle = "#fff";
+      ctx.fillText("∠" + Math.round(t.angle) + "°   PWR " + Math.round(t.power) + "   WIND " + this.windStr(), W / 2, pad);
+      // fuel bar under the readout
+      const fw = W * 0.2, fx = W / 2 - fw / 2, fy = pad + H * 0.055;
+      ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.roundRect(fx, fy, fw, H * 0.03, 3); ctx.fill();
+      ctx.fillStyle = "#ffd24a"; ctx.beginPath(); ctx.roundRect(fx, fy, fw * (t.fuel / 100), H * 0.03, 3); ctx.fill();
+      ctx.font = Math.round(H * 0.03) + "px system-ui"; ctx.fillStyle = "#333"; ctx.textBaseline = "middle";
+      ctx.fillText("FUEL", W / 2, fy + H * 0.015);
+      ctx.restore();
+    },
+    windStr() { const w = Math.round(this.state.wind * 20); return (w > 0 ? "▶" : w < 0 ? "◀" : "") + Math.abs(w); },
+
+    // Builds the control bar, drawing each button and recording its hitbox.
+    drawControls(ctx, W, H) {
+      const s = this.state;
+      s.buttons = [];
+      const barH = H * 0.15, y = H - barH, bh = barH * 0.72, by = y + (barH - bh) / 2;
+      ctx.save();
+      ctx.fillStyle = "rgba(10,10,16,0.55)"; ctx.fillRect(0, y, W, barH);
+      // menu (always available)
+      this.btn(ctx, "menu", W * 0.012, by, bh * 1.2, bh, "☰", "#cfd3dc");
+      if (s.phase === "over") { ctx.restore(); return; }
+      const t = s.tanks[s.active];
+      const human = !(s.mode === "cpu" && t.isCpu);
+      const dim = human ? 1 : 0.4;
+      ctx.globalAlpha = dim;
+      let x = W * 0.08;
+      const gap = W * 0.012, bw = bh;
+      // move
+      this.btn(ctx, "moveLeft", x, by, bw, bh, "◄", "#9ad0ff"); x += bw + 2;
+      this.btn(ctx, "moveRight", x, by, bw, bh, "►", "#9ad0ff"); x += bw + gap * 2;
+      // angle
+      this.btn(ctx, "angleDown", x, by, bw, bh, "∠-", "#fff"); x += bw + 2;
+      this.btn(ctx, "angleUp", x, by, bw, bh, "∠+", "#fff"); x += bw + gap * 2;
+      // power
+      this.btn(ctx, "powerDown", x, by, bw, bh, "P-", "#fff"); x += bw + 2;
+      this.btn(ctx, "powerUp", x, by, bw, bh, "P+", "#fff"); x += bw + gap * 2;
+      // weapon selector
+      const wName = TANK_WEAPONS[TANK_WEAPON_ORDER[s.weaponIdx]];
+      this.btn(ctx, "weaponPrev", x, by, bw * 0.7, bh, "‹", "#fff"); x += bw * 0.7 + 2;
+      const ww = W * 0.15;
+      ctx.fillStyle = "rgba(255,255,255,0.1)"; ctx.beginPath(); ctx.roundRect(x, by, ww, bh, 6); ctx.fill();
+      ctx.fillStyle = wName.color; ctx.font = "bold " + Math.round(bh * 0.32) + "px system-ui"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(wName.name, x + ww / 2, by + bh / 2);
+      x += ww + 2;
+      this.btn(ctx, "weaponNext", x, by, bw * 0.7, bh, "›", "#fff"); x += bw * 0.7 + gap * 2;
+      // FIRE (big, right)
+      const firew = W - x - W * 0.02;
+      ctx.globalAlpha = dim;
+      this.btn(ctx, "fire", x, by, Math.max(firew, bw * 2), bh, "FIRE!", "#fff", "#d9453f");
+      ctx.restore();
+    },
+
+    btn(ctx, id, x, y, w, h, label, fg, bg) {
+      this.state.buttons.push({ id, x, y, w, h });
+      ctx.save();
+      ctx.fillStyle = bg || "rgba(255,255,255,0.14)";
+      ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.25)"; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = fg; ctx.font = "bold " + Math.round(h * 0.4) + "px system-ui, sans-serif";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(label, x + w / 2, y + h / 2 + 1);
+      ctx.restore();
+    },
+
+    drawBanner(ctx, W, H, text) {
+      ctx.save();
+      ctx.font = "bold " + Math.round(H * 0.07) + "px system-ui, sans-serif";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      const w = ctx.measureText(text).width + W * 0.06, bx = W / 2 - w / 2, by = H * 0.24;
+      ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.beginPath(); ctx.roundRect(bx, by, w, H * 0.11, 8); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.fillText(text, W / 2, by + H * 0.055);
+      ctx.restore();
+    },
+
+    drawGameOver(ctx, W, H) {
+      const s = this.state;
+      ctx.save();
+      ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(0, 0, W, H);
+      const win = s.tanks[s.winner], col = TANK_COLORS[win.colorKey];
+      const who = (s.mode === "cpu" && win.isCpu) ? "Computer wins!" : "Player " + (s.winner + 1) + " wins!";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = col.body; ctx.font = "bold " + Math.round(H * 0.11) + "px system-ui, sans-serif";
+      ctx.fillText(who, W / 2, H * 0.34);
+      s.buttons = s.buttons.filter((b) => b.id === "menu"); // keep menu; add over buttons
+      const bw = W * 0.26, bh = H * 0.13, gap = W * 0.04, by = H * 0.52;
+      this.btn(ctx, "rematch", W / 2 - bw - gap / 2, by, bw, bh, "Rematch", "#fff", "#4a9e4a");
+      this.btn(ctx, "setup", W / 2 + gap / 2, by, bw, bh, "Change Setup", "#fff", "#555");
+      ctx.restore();
+    },
+
+    drawRotateHint(ctx, W, H) {
+      if (!tankStore.getBool("rotatedOnce")) {
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.25)"; ctx.font = Math.round(H * 0.035) + "px system-ui";
+        ctx.textAlign = "right"; ctx.textBaseline = "bottom";
+        ctx.fillStyle = "rgba(255,255,255,0.6)";
+        ctx.fillText("↻ turn phone", W - 6, H * 0.78);
+        ctx.restore();
+      }
+    },
+
+    syncConfigUI() {
+      const s = this.state;
+      document.getElementById("tank-mode-cpu").classList.toggle("active", s.mode === "cpu");
+      document.getElementById("tank-mode-2p").classList.toggle("active", s.mode === "2p");
+      document.getElementById("tank-difficulty-wrap").hidden = s.mode !== "cpu";
+      document.getElementById("tank-p2-wrap").hidden = s.mode !== "2p";
+      document.querySelectorAll('#tank-config input[name="tank-difficulty"]').forEach((r) => { r.checked = r.value === s.difficulty; });
+      document.querySelectorAll("#tank-p1-colors .tank-color-btn").forEach((x) => x.classList.toggle("selected", x.dataset.color === s.p1Color));
+      document.querySelectorAll("#tank-p2-colors .tank-color-btn").forEach((x) => x.classList.toggle("selected", x.dataset.color === s.p2Color));
+    },
+
+    showConfig() {
+      this.stopLoop();
+      document.getElementById("tank-config").hidden = false;
+      document.getElementById("tank-canvas-wrap").hidden = true;
+    },
+    showMatch() {
+      document.getElementById("tank-config").hidden = true;
+      document.getElementById("tank-canvas-wrap").hidden = false;
+      this.sizeCanvas();
+      this.newMatch();
+      this.startLoop();
+    },
+  };
+
+  modules.tank = {
+    _wired: false,
+    onEnter() {
+      tank.initCanvas();
+      tank.state.p1Color = tankStore.getString("p1Color", "red", TANK_COLORS);
+      tank.state.p2Color = tankStore.getString("p2Color", "blue", TANK_COLORS);
+      tank.state.mode = tankStore.getString("mode", "cpu", { cpu: 1, "2p": 1 });
+      tank.state.difficulty = tankStore.getString("difficulty", "moderate", DIFFICULTIES);
+
+      if (!this._wired) {
+        this._wired = true;
+        const cfgEl = document.getElementById("tank-config");
+
+        document.getElementById("tank-mode-cpu").addEventListener("click", () => { tank.state.mode = "cpu"; tankStore.setString("mode", "cpu"); tank.syncConfigUI(); });
+        document.getElementById("tank-mode-2p").addEventListener("click", () => { tank.state.mode = "2p"; tankStore.setString("mode", "2p"); tank.syncConfigUI(); });
+
+        cfgEl.querySelectorAll('input[name="tank-difficulty"]').forEach((r) => r.addEventListener("change", (e) => {
+          if (!DIFFICULTIES[e.target.value]) return;
+          tank.state.difficulty = e.target.value; tankStore.setString("difficulty", e.target.value);
+        }));
+
+        const wireColors = (sel, key) => {
+          document.querySelectorAll(sel).forEach((b) => b.addEventListener("click", () => {
+            const c = b.dataset.color; if (!TANK_COLORS[c]) return;
+            tank.state[key] = c; tankStore.setString(key, c);
+            document.querySelectorAll(sel).forEach((x) => x.classList.toggle("selected", x === b));
+          }));
+        };
+        wireColors("#tank-p1-colors .tank-color-btn", "p1Color");
+        wireColors("#tank-p2-colors .tank-color-btn", "p2Color");
+
+        document.getElementById("tank-start-btn").addEventListener("click", () => {
+          if (tank.state.mode === "2p" && tank.state.p1Color === tank.state.p2Color) {
+            // nudge p2 to a different color so the tanks are distinguishable
+            const alt = Object.keys(TANK_COLORS).find((c) => c !== tank.state.p1Color);
+            tank.state.p2Color = alt; tankStore.setString("p2Color", alt);
+            document.querySelectorAll("#tank-p2-colors .tank-color-btn").forEach((x) => x.classList.toggle("selected", x.dataset.color === alt));
+          }
+          try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock("landscape").catch(() => {}); } catch (e) { /* unsupported */ }
+          if (!tankStore.getBool("tutorialSeen")) {
+            showModal(document.getElementById("tank-tutorial-modal"));
+          } else {
+            tank.showMatch();
+          }
+        });
+
+        // tutorial steps
+        let tutStep = 0;
+        const tutSteps = document.querySelectorAll(".tank-tut-step");
+        const tutPrev = document.getElementById("tank-tut-prev"), tutNext = document.getElementById("tank-tut-next");
+        const showTut = () => { tutSteps.forEach((st, i) => { st.hidden = i !== tutStep; }); tutPrev.hidden = tutStep === 0; tutNext.textContent = tutStep === tutSteps.length - 1 ? "Battle!" : "Next →"; };
+        tutNext.addEventListener("click", () => {
+          if (tutStep < tutSteps.length - 1) { tutStep++; showTut(); }
+          else { tankStore.setBool("tutorialSeen", true); hideModal(document.getElementById("tank-tutorial-modal")); tank.showMatch(); }
+        });
+        tutPrev.addEventListener("click", () => { if (tutStep > 0) { tutStep--; showTut(); } });
+        tank._showTut = showTut;
+
+        // canvas input
+        tank.canvas.addEventListener("pointerdown", (e) => { e.preventDefault(); tank.onDown(e); });
+        tank.canvas.addEventListener("pointermove", (e) => { tank.onMove(e); });
+        ["pointerup", "pointercancel", "pointerleave"].forEach((ev) => tank.canvas.addEventListener(ev, () => { tank.onUp(); tank.releaseHold(); }));
+
+        window.addEventListener("resize", () => {
+          if (router.current !== "tank" || document.getElementById("tank-canvas-wrap").hidden) return;
+          const frac = tank.state.tanks.map((t) => t.x / tank.worldW);
+          tank.sizeCanvas();
+          if (tank.state.cfg) {
+            tank.state.cfg = tankCfg(tank.worldW, tank.worldH);
+            const p1x = Math.round(tank.worldW * 0.12), p2x = Math.round(tank.worldW * 0.88);
+            tank.state.ground = tankGenTerrain(tank.state.cfg, Math.random, p1x, p2x);
+            tank.state.tanks.forEach((t, i) => { t.x = Math.round((frac[i] || (i ? 0.88 : 0.12)) * tank.worldW); });
+          }
+          tank.draw();
+        });
+      }
+
+      tank.syncConfigUI();
+      if (tank.rotated) tankStore.setBool("rotatedOnce", true);
+      tank.showConfig();
+    },
+
+    onLeave() {
+      tank.stopLoop();
+      hideModal(document.getElementById("tank-tutorial-modal"));
+    },
+  };
+  // Debug handle (read-only introspection for manual testing; harmless).
+  try { if (typeof window !== "undefined") window.__tank = tank; } catch (e) { /* ignore */ }
+
+  // ================================================================
+  // 23. INIT & LOCALSTORAGE MIGRATION
   // ================================================================
   function migrateStorage() {
     try {

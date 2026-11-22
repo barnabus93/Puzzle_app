@@ -142,6 +142,18 @@
             </svg>
             <span class="tile-label">PIPE FLOW</span>
           </button>
+          <button class="game-tile" data-game="tank">
+            <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
+              <rect width="64" height="64" rx="6" fill="#7fb6e0"/>
+              <rect y="46" width="64" height="18" fill="#4a8a3a"/>
+              <path d="M2 46 Q16 40 30 46 T62 46" fill="#5fa83b" stroke="none"/>
+              <path d="M8 44 Q32 18 56 44" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.8"/>
+              <circle cx="56" cy="20" r="3.5" fill="#ffd24a"/>
+              <g><rect x="6" y="40" width="14" height="6" rx="2" fill="#e0455a"/><rect x="9" y="36" width="8" height="5" rx="2" fill="#e0455a"/><rect x="14" y="30" width="9" height="2.5" rx="1" fill="#7a1f2b" transform="rotate(-38 14 31)"/></g>
+              <g><rect x="44" y="40" width="14" height="6" rx="2" fill="#3ac7d6"/><rect x="47" y="36" width="8" height="5" rx="2" fill="#3ac7d6"/><rect x="41" y="30" width="9" height="2.5" rx="1" fill="#1a5a63" transform="rotate(38 50 31)"/></g>
+            </svg>
+            <span class="tile-label">TANK DUEL</span>
+          </button>
           <div class="game-tile game-tile--disabled">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="6" fill="#1f1c19" opacity="0.5"/>
@@ -1207,6 +1219,101 @@
           <div class="modal-actions" style="justify-content:space-between;">
             <button id="pipes-tut-prev" type="button" class="danger-btn" hidden>&larr; Back</button>
             <button id="pipes-tut-next" type="button" class="primary-btn">Next &rarr;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- TANK DUEL SCREEN                                              -->
+    <!-- ============================================================ -->
+    <div id="screen-tank" class="screen" hidden>
+      <!-- Pre-match config (portrait DOM). The match itself is all on-canvas. -->
+      <div id="tank-config" class="tank-config">
+        <header class="app-header">
+          <button class="menu-btn" type="button" data-back aria-label="Back to menu">&larr; MENU</button>
+          <div class="counter">TANK DUEL</div>
+          <span style="width:40px"></span>
+        </header>
+        <div class="tank-config-body">
+          <div class="soccer-mode-toggle">
+            <button id="tank-mode-cpu" class="soccer-mode-btn active" type="button">1P vs CPU</button>
+            <button id="tank-mode-2p" class="soccer-mode-btn" type="button">2 Players</button>
+          </div>
+
+          <div id="tank-difficulty-wrap" class="field">
+            <div class="tank-field-label">Computer difficulty</div>
+            <div class="tank-difficulty-row">
+              <label class="radio"><input type="radio" name="tank-difficulty" value="simple" /><span>Simple</span></label>
+              <label class="radio"><input type="radio" name="tank-difficulty" value="moderate" checked /><span>Moderate</span></label>
+              <label class="radio"><input type="radio" name="tank-difficulty" value="difficult" /><span>Difficult</span></label>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="tank-field-label">Player 1 tank</div>
+            <div id="tank-p1-colors" class="tank-color-grid">
+              <button class="tank-color-btn" type="button" data-color="red"><span class="tank-swatch" style="background:#e0455a"></span>Red</button>
+              <button class="tank-color-btn" type="button" data-color="blue"><span class="tank-swatch" style="background:#3ac7d6"></span>Blue</button>
+              <button class="tank-color-btn" type="button" data-color="green"><span class="tank-swatch" style="background:#5fd068"></span>Green</button>
+              <button class="tank-color-btn" type="button" data-color="yellow"><span class="tank-swatch" style="background:#f2c94c"></span>Yellow</button>
+              <button class="tank-color-btn" type="button" data-color="purple"><span class="tank-swatch" style="background:#a95fe0"></span>Purple</button>
+              <button class="tank-color-btn" type="button" data-color="orange"><span class="tank-swatch" style="background:#ff9f43"></span>Orange</button>
+            </div>
+          </div>
+
+          <div id="tank-p2-wrap" class="field" hidden>
+            <div class="tank-field-label">Player 2 tank</div>
+            <div id="tank-p2-colors" class="tank-color-grid">
+              <button class="tank-color-btn" type="button" data-color="red"><span class="tank-swatch" style="background:#e0455a"></span>Red</button>
+              <button class="tank-color-btn" type="button" data-color="blue"><span class="tank-swatch" style="background:#3ac7d6"></span>Blue</button>
+              <button class="tank-color-btn" type="button" data-color="green"><span class="tank-swatch" style="background:#5fd068"></span>Green</button>
+              <button class="tank-color-btn" type="button" data-color="yellow"><span class="tank-swatch" style="background:#f2c94c"></span>Yellow</button>
+              <button class="tank-color-btn" type="button" data-color="purple"><span class="tank-swatch" style="background:#a95fe0"></span>Purple</button>
+              <button class="tank-color-btn" type="button" data-color="orange"><span class="tank-swatch" style="background:#ff9f43"></span>Orange</button>
+            </div>
+          </div>
+
+          <button id="tank-start-btn" type="button" class="primary-btn tank-start-btn">Start Battle &rarr;</button>
+          <p class="tank-rotate-note">Tip: turn your phone sideways for the battle.</p>
+        </div>
+      </div>
+
+      <!-- Match canvas (fills the screen; HUD + buttons are drawn on it). -->
+      <div id="tank-canvas-wrap" class="tank-canvas-wrap" hidden>
+        <canvas id="tank-canvas"></canvas>
+      </div>
+
+      <!-- Tank Duel tutorial modal -->
+      <div id="tank-tutorial-modal" class="modal" role="dialog" aria-modal="true" hidden>
+        <div class="modal-backdrop"></div>
+        <div class="modal-card tutorial-card" style="max-width:360px;">
+          <h2 style="text-align:center;">How to Play</h2>
+          <div id="tank-tutorial-steps">
+            <div class="tank-tut-step" data-step="0">
+              <div class="soccer-tut-icon">&#128266;</div>
+              <p class="tutorial-caption"><strong>Turn your phone</strong></p>
+              <p class="tutorial-caption">The battle is landscape. Turn your phone sideways so it's upright, then take turns firing.</p>
+            </div>
+            <div class="tank-tut-step" data-step="1" hidden>
+              <div class="soccer-tut-icon">&#127919;</div>
+              <p class="tutorial-caption"><strong>Aim &amp; fire</strong></p>
+              <p class="tutorial-caption">Drag on the field to point your barrel &mdash; farther = more power. A dotted line previews the shot. Fine-tune with the &ang; and P buttons, then tap FIRE. Watch the wind!</p>
+            </div>
+            <div class="tank-tut-step" data-step="2" hidden>
+              <div class="soccer-tut-icon">&#128165;</div>
+              <p class="tutorial-caption"><strong>Weapons &amp; terrain</strong></p>
+              <p class="tutorial-caption">Switch between Standard, Heavy, and Spread shells. Hits blow craters in the ground, so the battlefield keeps changing.</p>
+            </div>
+            <div class="tank-tut-step" data-step="3" hidden>
+              <div class="soccer-tut-icon">&#9981;</div>
+              <p class="tutorial-caption"><strong>Move &amp; win</strong></p>
+              <p class="tutorial-caption">Use &#9664;&#9658; to reposition &mdash; but you only have a little fuel each turn. First to knock out the other tank's 5 hits wins!</p>
+            </div>
+          </div>
+          <div class="modal-actions" style="justify-content:space-between;">
+            <button id="tank-tut-prev" type="button" class="danger-btn" hidden>&larr; Back</button>
+            <button id="tank-tut-next" type="button" class="primary-btn">Next &rarr;</button>
           </div>
         </div>
       </div>
