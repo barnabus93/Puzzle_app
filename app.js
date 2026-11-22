@@ -5645,12 +5645,13 @@
   function tankTrace(cfg, ground, x0, y0, vx0, vy0, wind, gravMult, tanks) {
     const g = cfg.gravity * (gravMult || 1), wa = cfg.windAccel * wind;
     const dt = 1 / 120, maxT = 12;
-    let x = x0, y = y0, vx = vx0, vy = vy0, t = 0;
+    let x = x0, y = y0, vx = vx0, vy = vy0, t = 0, step = 0;
     const points = [{ x, y }];
     while (t < maxT) {
       vx += wa * dt; vy += g * dt;
       x += vx * dt; y += vy * dt; t += dt;
-      if ((points.length & 3) === 0) points.push({ x, y });
+      step++;
+      if (step % 3 === 0) points.push({ x, y }); // record the arc ~40x/sec so it can be animated
       if (x < 0) return { points, stop: { type: "edgeL", x, y } };
       if (x >= cfg.worldW) return { points, stop: { type: "edgeR", x, y } };
       if (tanks) {
@@ -5726,7 +5727,7 @@
       phase: "aiming",            // aiming | firing | over
       wind: 0, weaponIdx: 0,
       aiming: false,
-      projectiles: [], particles: [],
+      projectiles: [], particles: [], explosions: [],
       buttons: [], heldMove: 0,
       cpuTimer: 0, turnMsg: "", msgTimer: 0,
       winner: -1,
@@ -5780,7 +5781,7 @@
       const cpu = s.mode === "cpu";
       s.tanks = [mk(p1x, s.p1Color, false), mk(p2x, cpu ? s.p2Color : s.p2Color, cpu)];
       s.active = 0; s.weaponIdx = 0; s.winner = -1; s.phase = "aiming";
-      s.projectiles = []; s.particles = [];
+      s.projectiles = []; s.particles = []; s.explosions = [];
       this.beginTurn();
     },
 
@@ -5886,15 +5887,24 @@
     stepProjectiles(dt) {
       const s = this.state;
       let anyLive = false;
+      const PPS = 42; // path points consumed per second — controls how long the arc takes to watch
       for (const pr of s.projectiles) {
         if (pr.done) continue;
-        pr.i += Math.max(1, Math.round(60 * dt));
-        if (pr.i >= pr.path.length - 1) { pr.i = pr.path.length - 1; pr.done = true; }
+        pr.elapsed = (pr.elapsed || 0) + dt;
+        let idx = pr.elapsed * PPS;
+        if (idx >= pr.path.length - 1) { idx = pr.path.length - 1; pr.done = true; }
         else anyLive = true;
-        const pt = pr.path[pr.i];
-        pr.cur = pt;
-        pr.trail.push({ x: pt.x, y: pt.y });
-        if (pr.trail.length > 16) pr.trail.shift();
+        const i0 = Math.floor(idx), i1 = Math.min(i0 + 1, pr.path.length - 1), a = idx - i0;
+        const p0 = pr.path[i0], p1 = pr.path[i1];
+        pr.cur = { x: p0.x + (p1.x - p0.x) * a, y: p0.y + (p1.y - p0.y) * a };
+        // smoke puff every so often along the flight (independent of frame rate)
+        pr.smokeAcc = (pr.smokeAcc || 0) + dt;
+        if (pr.smokeAcc >= 0.02) {
+          pr.smokeAcc = 0;
+          pr.trail.push({ x: pr.cur.x, y: pr.cur.y, t: 0 });
+        }
+        for (const q of pr.trail) q.t += dt;
+        while (pr.trail.length && pr.trail[0].t > 0.9) pr.trail.shift();
       }
       if (!anyLive) this.resolveShots();
     },
@@ -5906,7 +5916,8 @@
         const r = w.radius * this.worldW, crater = w.crater * this.worldW;
         if (st.type !== "edgeL" && st.type !== "edgeR") {
           tankCarve(s.ground, s.cfg, st.x, st.y, crater);
-          this.burst(st.x, st.y, w.color, st.type === "tank" ? 22 : 14);
+          this.explode(st.x, st.y, r * 1.6, w.color);
+          this.burst(st.x, st.y, w.color, st.type === "tank" ? 34 : 22);
           for (let k = 0; k < s.tanks.length; k++) {
             const tk = s.tanks[k];
             const d = Math.hypot(tk.x - st.x, this.turretY(tk) - st.y);
@@ -5932,8 +5943,14 @@
       const s = this.state;
       for (let i = 0; i < n; i++) {
         const a = Math.random() * Math.PI * 2, sp = (0.2 + Math.random() * 0.8) * this.worldW * 0.5;
-        s.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - this.worldW * 0.1, life: 0.4 + Math.random() * 0.4, t: 0, color });
+        const c = Math.random() < 0.4 ? "#ffd27a" : (Math.random() < 0.5 ? "#8a8a90" : color); // sparks + smoke + weapon tint
+        s.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - this.worldW * 0.1, life: 0.4 + Math.random() * 0.5, t: 0, color: c });
       }
+    },
+
+    // A short-lived flash + shockwave ring where a shell lands.
+    explode(x, y, r, color) {
+      this.state.explosions.push({ x, y, r, t: 0, life: 0.42, color });
     },
 
     moveActive(dt) {
@@ -5971,6 +5988,8 @@
       if (s.msgTimer > 0) s.msgTimer -= dt;
       for (const p of s.particles) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += this.worldW * 0.6 * dt; }
       s.particles = s.particles.filter((p) => p.t < p.life);
+      for (const e of s.explosions) e.t += dt;
+      s.explosions = s.explosions.filter((e) => e.t < e.life);
       if (s.phase === "aiming") {
         this.moveActive(dt);
         const t = s.tanks[s.active];
@@ -6004,6 +6023,7 @@
       for (let i = 0; i < s.tanks.length; i++) this.drawTank(ctx, s.tanks[i], i);
       if (s.phase === "aiming") this.drawAimArc(ctx);
       for (const pr of s.projectiles) this.drawProjectile(ctx, pr);
+      this.drawExplosions(ctx);
       this.drawParticles(ctx);
       this.drawHud(ctx, W, H);
       this.drawControls(ctx, W, H);
@@ -6082,15 +6102,41 @@
 
     drawProjectile(ctx, pr) {
       if (!pr.cur) return;
+      const R = this.state.cfg.tankR;
       ctx.save();
-      for (let i = 0; i < pr.trail.length; i++) {
-        const p = pr.trail[i], a = (i / pr.trail.length) * 0.5;
-        ctx.fillStyle = "rgba(120,120,120," + a + ")";
-        ctx.beginPath(); ctx.arc(p.x, p.y, this.state.cfg.tankR * 0.4 * (i / pr.trail.length + 0.3), 0, Math.PI * 2); ctx.fill();
+      // smoke plume: each puff grows and fades as it ages
+      for (const p of pr.trail) {
+        const age = Math.min(1, p.t / 0.9);
+        const alpha = (1 - age) * 0.5;
+        const rad = R * (0.35 + age * 0.9);
+        ctx.fillStyle = "rgba(110,110,115," + alpha + ")";
+        ctx.beginPath(); ctx.arc(p.x, p.y, rad, 0, Math.PI * 2); ctx.fill();
       }
-      ctx.fillStyle = "#333"; ctx.beginPath(); ctx.arc(pr.cur.x, pr.cur.y, this.state.cfg.tankR * 0.3, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = pr.weapon.color; ctx.beginPath(); ctx.arc(pr.cur.x, pr.cur.y, this.state.cfg.tankR * 0.18, 0, Math.PI * 2); ctx.fill();
+      // the shell: a glowing bright core
+      ctx.shadowColor = pr.weapon.color; ctx.shadowBlur = R * 1.2;
+      ctx.fillStyle = "#222"; ctx.beginPath(); ctx.arc(pr.cur.x, pr.cur.y, R * 0.42, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = pr.weapon.color; ctx.beginPath(); ctx.arc(pr.cur.x, pr.cur.y, R * 0.3, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(pr.cur.x - R * 0.08, pr.cur.y - R * 0.08, R * 0.12, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
+    },
+
+    drawExplosions(ctx) {
+      for (const e of this.state.explosions) {
+        const p = e.t / e.life;            // 0 -> 1
+        const rr = e.r * (0.35 + p * 1.0);
+        ctx.save();
+        ctx.globalAlpha = 1 - p;
+        const g = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, rr);
+        g.addColorStop(0, "#ffffff");
+        g.addColorStop(0.35, e.color);
+        g.addColorStop(0.7, "rgba(255,130,40,0.5)");
+        g.addColorStop(1, "rgba(255,120,40,0)");
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(e.x, e.y, rr, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = (1 - p) * 0.85; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(e.x, e.y, rr * 1.05, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
     },
 
     drawParticles(ctx) {
