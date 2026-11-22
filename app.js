@@ -5537,10 +5537,12 @@
   // Weapons. radius/crater are fractions of worldW; maxDmg is the damage of a
   // near-direct hit (within half the blast radius); gravMult heavies the arc.
   // shots>1 fires a small fan (spread). Every weapon is unlimited.
+  // ammo = shots allowed per tank per match (0 = unlimited). Only the
+  // Standard shell is unlimited; Heavy and Spread are rationed.
   const TANK_WEAPONS = {
-    standard: { name: "Standard", radius: 0.045, crater: 0.045, maxDmg: 1, gravMult: 1.0, shots: 1, spreadDeg: 0, color: "#ffd24a" },
-    heavy:    { name: "Heavy",    radius: 0.075, crater: 0.08,  maxDmg: 2, gravMult: 1.35, shots: 1, spreadDeg: 0, color: "#ff6b3a" },
-    spread:   { name: "Spread",   radius: 0.03,  crater: 0.028, maxDmg: 1, gravMult: 1.0, shots: 3, spreadDeg: 7, color: "#7fe8ff" },
+    standard: { name: "Standard", radius: 0.045, crater: 0.045, maxDmg: 1, gravMult: 1.0, shots: 1, spreadDeg: 0, color: "#ffd24a", ammo: 0 },
+    heavy:    { name: "Heavy",    radius: 0.075, crater: 0.08,  maxDmg: 2, gravMult: 1.35, shots: 1, spreadDeg: 0, color: "#ff6b3a", ammo: 3 },
+    spread:   { name: "Spread",   radius: 0.03,  crater: 0.028, maxDmg: 1, gravMult: 1.0, shots: 3, spreadDeg: 7, color: "#7fe8ff", ammo: 3 },
   };
   const TANK_WEAPON_ORDER = ["standard", "heavy", "spread"];
 
@@ -5773,6 +5775,7 @@
         x, colorKey, isCpu,
         hp: TANK_MAX_HP, fuel: 100,
         angle: x < this.worldW / 2 ? 55 : 125, power: 65,
+        ammo: { heavy: TANK_WEAPONS.heavy.ammo, spread: TANK_WEAPONS.spread.ammo },
       });
       const cpu = s.mode === "cpu";
       s.tanks = [mk(p1x, s.p1Color, false), mk(p2x, cpu ? s.p2Color : s.p2Color, cpu)];
@@ -5851,11 +5854,22 @@
     },
     releaseHold() { this.state.heldMove = 0; },
 
+    // Shots of `key` the tank has left; Infinity when the weapon's ammo is 0
+    // (unlimited, i.e. the Standard shell).
+    ammoLeft(t, key) {
+      const max = TANK_WEAPONS[key].ammo;
+      if (!max) return Infinity;
+      return (t.ammo && typeof t.ammo[key] === "number") ? t.ammo[key] : 0;
+    },
+
     // --- Firing / resolution --------------------------------------------
     fire() {
       const s = this.state, t = s.tanks[s.active];
       if (s.phase !== "aiming") return;
-      const weapon = TANK_WEAPONS[TANK_WEAPON_ORDER[s.weaponIdx]];
+      const key = TANK_WEAPON_ORDER[s.weaponIdx];
+      const weapon = TANK_WEAPONS[key];
+      if (this.ammoLeft(t, key) <= 0) { this.showMsg("Out of " + weapon.name + " shells"); return; }
+      if (weapon.ammo) t.ammo[key] -= 1;
       const tx = t.x, ty = this.turretY(t);
       const foe = s.tanks[1 - s.active];
       const tanks = [{ x: foe.x, y: this.turretY(foe), r: s.cfg.tankR, idx: 1 - s.active }];
@@ -5941,8 +5955,8 @@
     cpuTakeTurn() {
       const s = this.state, me = s.tanks[s.active], foe = s.tanks[1 - s.active];
       const tier = TANK_TIERS[s.difficulty] || TANK_TIERS.moderate;
-      // sometimes pick heavy when close, otherwise standard
-      s.weaponIdx = (Math.abs(me.x - foe.x) < this.worldW * 0.3 && Math.random() < 0.5) ? 1 : 0;
+      // sometimes spend a Heavy shell when close, otherwise standard
+      s.weaponIdx = (this.ammoLeft(me, "heavy") > 0 && Math.abs(me.x - foe.x) < this.worldW * 0.3 && Math.random() < 0.5) ? 1 : 0;
       const weapon = TANK_WEAPONS[TANK_WEAPON_ORDER[s.weaponIdx]];
       const shot = tankCpuChooseShot(s.cfg, s.ground,
         { angleStep: tier.angleStep, powerStep: tier.powerStep, angleErr: tier.angleErr, powerErr: tier.powerErr },
@@ -6147,13 +6161,22 @@
       // power
       this.btn(ctx, "powerDown", x, by, bw, bh, "P-", "#fff"); x += bw + 2;
       this.btn(ctx, "powerUp", x, by, bw, bh, "P+", "#fff"); x += bw + gap * 2;
-      // weapon selector
-      const wName = TANK_WEAPONS[TANK_WEAPON_ORDER[s.weaponIdx]];
+      // weapon selector (shows remaining ammo; Standard is unlimited)
+      const wKey = TANK_WEAPON_ORDER[s.weaponIdx], wName = TANK_WEAPONS[wKey];
+      const left = this.ammoLeft(t, wKey);
+      const empty = left <= 0;
       this.btn(ctx, "weaponPrev", x, by, bw * 0.7, bh, "‹", "#fff"); x += bw * 0.7 + 2;
       const ww = W * 0.15;
       ctx.fillStyle = "rgba(255,255,255,0.1)"; ctx.beginPath(); ctx.roundRect(x, by, ww, bh, 6); ctx.fill();
-      ctx.fillStyle = wName.color; ctx.font = "bold " + Math.round(bh * 0.32) + "px system-ui"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText(wName.name, x + ww / 2, by + bh / 2);
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = empty ? "rgba(255,255,255,0.35)" : wName.color;
+      ctx.font = "bold " + Math.round(bh * 0.3) + "px system-ui";
+      ctx.fillText(wName.name, x + ww / 2, by + (wName.ammo ? bh * 0.36 : bh * 0.5));
+      if (wName.ammo) {
+        ctx.font = Math.round(bh * 0.24) + "px system-ui";
+        ctx.fillStyle = empty ? "#ff6b6b" : "rgba(255,255,255,0.75)";
+        ctx.fillText(empty ? "EMPTY" : "x" + left + " left", x + ww / 2, by + bh * 0.72);
+      }
       x += ww + 2;
       this.btn(ctx, "weaponNext", x, by, bw * 0.7, bh, "›", "#fff"); x += bw * 0.7 + gap * 2;
       // FIRE (big, right)
