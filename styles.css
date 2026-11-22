@@ -108,19 +108,16 @@ body {
 }
 
 .arcade-title {
-  font-family: var(--pixel-font);
-  font-size: clamp(1.6rem, 8vw, 2.6rem);
-  text-align: center;
-  line-height: 1.4;
   margin: 0;
-  color: #fff;
-  text-shadow:
-    0 0 7px #0ff,
-    0 0 14px #0ff,
-    0 0 28px #0ff,
-    0 0 56px #0088ff,
-    0 0 3px rgba(255, 0, 255, 0.5);
-  letter-spacing: 0.05em;
+  line-height: 0;
+  text-align: center;
+}
+.arcade-logo {
+  display: block;
+  width: min(84%, 340px);
+  height: auto;
+  margin: 0 auto;
+  filter: drop-shadow(0 0 16px rgba(0, 200, 255, 0.35));
 }
 
 .arcade-subtitle {
