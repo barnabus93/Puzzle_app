@@ -952,9 +952,19 @@
         <!-- Fighter selection overlay -->
         <div id="arena-select" class="arena-select">
           <h2 class="soccer-select-title">Choose Your Fighter</h2>
-          <div class="soccer-mode-toggle">
-            <button id="arena-mode-robots" class="soccer-mode-btn active" type="button">Robots</button>
-            <button id="arena-mode-spaceships" class="soccer-mode-btn" type="button">Spaceships</button>
+          <div class="arena-kind-row">
+            <span class="arena-kind-label">You</span>
+            <div class="soccer-mode-toggle">
+              <button id="arena-you-robot" class="soccer-mode-btn active" type="button">Robot</button>
+              <button id="arena-you-ship" class="soccer-mode-btn" type="button">Spaceship</button>
+            </div>
+          </div>
+          <div class="arena-kind-row">
+            <span class="arena-kind-label">Opponent</span>
+            <div class="soccer-mode-toggle">
+              <button id="arena-opp-robot" class="soccer-mode-btn active" type="button">Robot</button>
+              <button id="arena-opp-ship" class="soccer-mode-btn" type="button">Spaceship</button>
+            </div>
           </div>
           <div class="arena-fighter-choices">
             <button class="arena-fighter-btn" type="button" data-side="red">
@@ -1103,13 +1113,13 @@
           <div id="arena-tutorial-steps">
             <div class="arena-tut-step" data-step="0">
               <div class="soccer-tut-icon">&#129302;&#128640;</div>
-              <p class="tutorial-caption"><strong>Robots or Spaceships</strong></p>
-              <p class="tutorial-caption">Choose your combat style at the top of the fighter-select screen, then pick a color &mdash; either works with any color.</p>
+              <p class="tutorial-caption"><strong>Robot vs Spaceship</strong></p>
+              <p class="tutorial-caption">Pick a type for yourself and a type for your opponent &mdash; robots and spaceships can even fight each other! Then choose your color.</p>
             </div>
             <div class="arena-tut-step" data-step="1" hidden>
               <div class="soccer-tut-icon">&#127918;</div>
               <p class="tutorial-caption"><strong>Move</strong></p>
-              <p class="tutorial-caption">Robots: the d-pad walks left/right, and Up jumps &mdash; jumping dodges attacks! Spaceships: the d-pad flies Up/Down only.</p>
+              <p class="tutorial-caption">Robots: the d-pad walks left/right, and Up jumps &mdash; jump to reach a flying ship! Spaceships: the d-pad flies Up/Down; dive low to shoot a robot on the ground.</p>
             </div>
             <div class="arena-tut-step" data-step="2" hidden>
               <div class="soccer-tut-icon">&#129360;&#128163;</div>

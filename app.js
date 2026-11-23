@@ -4168,7 +4168,7 @@
   const ARENA_ROCKET = { dmg: 12, speed: 260, cooldown: 420, radius: 5 };
   const ARENA_SHIP_MOVE_SPEED = 170; // px/s vertical (player; CPU scales by tier.moveSpeedMult)
 
-  const ARENA_MODES = { robots: "Robots", spaceships: "Spaceships" };
+  const ARENA_KINDS = { robot: "Robot", ship: "Spaceship" };
 
   // Difficulty tunes CPU *behavior*, not raw damage/health multipliers —
   // same convention as HEN_DIFFICULTY (spawn/speed) and RANGER_TIERS
@@ -4191,13 +4191,13 @@
     yellow: { label: "Yellow", color: "#f2c94c", dark: "#8a6a12" },
   };
 
-  function arenaFighterName(side, mode) {
-    return ARENA_FIGHTERS[side].label + " " + (mode === "spaceships" ? "Ship" : "Bot");
+  function arenaFighterName(side, kind) {
+    return ARENA_FIGHTERS[side].label + " " + (kind === "ship" ? "Ship" : "Bot");
   }
 
   function makeArenaFighter(side, x, facing, isCpu) {
     return {
-      side, isCpu, x, y: 0, vy: 0, facing, grounded: true,
+      side, kind: "robot", isCpu, x, y: 0, vy: 0, facing, grounded: true,
       health: ARENA_MAX_HEALTH,
       action: "idle", actionUntil: 0, attackCooldownUntil: 0, hitstunUntil: 0,
     };
@@ -4209,7 +4209,7 @@
   // and no hitstun (getting hit doesn't lock out control, just flashes).
   function makeArenaShip(side, x, y, isCpu) {
     return {
-      side, isCpu, x, y,
+      side, kind: "ship", isCpu, x, y,
       health: ARENA_MAX_HEALTH,
       action: "idle", actionUntil: 0, nextFireTime: 0,
     };
@@ -4231,7 +4231,7 @@
     animId: null, lastFrame: 0,
     els: {},
     state: {
-      mode: "robots",
+      playerKind: "robot", cpuKind: "robot",
       difficulty: "moderate",
       wins: 0,
       playerSide: "red",
@@ -4291,6 +4291,22 @@
       return ARENA_MOVE_SPEED * tier.moveSpeedMult;
     },
 
+    // Canvas-space body box {cx,cy,hw,hh} used for all collisions, by kind.
+    // A robot's y is its height above the floor; a ship's y is a canvas y.
+    arenaBodyRect(f) {
+      if (f.kind === "ship") {
+        return { cx: f.x, cy: f.y, hw: this.shipW * 0.5, hh: this.shipH * 0.5 };
+      }
+      const feetY = this.floorY - f.y;
+      return { cx: f.x, cy: feetY - this.fighterH * 0.45, hw: this.fighterW * 0.4, hh: this.fighterH * 0.5 };
+    },
+
+    // Route a landed hit to the right damage model for the defender's kind.
+    arenaHit(defender, dmg, now, attackerFacing) {
+      if (defender.kind === "ship") this.applyShipDamage(defender, dmg, now);
+      else this.applyDamage(defender, dmg, attackerFacing || 1, now);
+    },
+
     // --- Match lifecycle ---
     // cpuSide is chosen by the caller (the fighter-select UI rolls it once,
     // at pick time, so the matchup preview shown before "Start Match"
@@ -4298,14 +4314,13 @@
     newMatch(playerSide, cpuSide) {
       const s = this.state;
       s.playerSide = playerSide;
-      if (s.mode === "spaceships") {
-        s.playerFighter = makeArenaShip(playerSide, this.shipPlayerX, this.fieldH / 2, false);
-        s.cpuFighter = makeArenaShip(cpuSide, this.shipCpuX, this.fieldH / 2, true);
-        s.rockets = [];
-      } else {
-        s.playerFighter = makeArenaFighter(playerSide, this.floorMinX + this.fighterW, 1, false);
-        s.cpuFighter = makeArenaFighter(cpuSide, this.floorMaxX - this.fighterW, -1, true);
-      }
+      s.playerFighter = s.playerKind === "ship"
+        ? makeArenaShip(playerSide, this.shipPlayerX, this.fieldH / 2, false)
+        : makeArenaFighter(playerSide, this.floorMinX + this.fighterW, 1, false);
+      s.cpuFighter = s.cpuKind === "ship"
+        ? makeArenaShip(cpuSide, this.shipCpuX, this.fieldH / 2, true)
+        : makeArenaFighter(cpuSide, this.floorMaxX - this.fighterW, -1, true);
+      s.rockets = [];
       s.playerInput = makeArenaInput();
       s.cpuInput = makeArenaInput();
       s.cpuNextDecision = 0;
@@ -4326,10 +4341,20 @@
       input.left = false; input.right = false; input.block = false;
       if (cpu.action === "ko" || player.action === "ko") return;
       const dist = Math.abs(player.x - cpu.x);
-      if (dist > ARENA_KICK.range) {
-        if (player.x > cpu.x) input.right = true; else input.left = true;
+      // always close horizontal distance toward the opponent
+      if (dist > ARENA_KICK.range) { if (player.x > cpu.x) input.right = true; else input.left = true; }
+
+      if (player.kind === "ship") {
+        // a flying target: jump to reach it when it's close and low enough
+        const canReach = player.y >= this.floorY - this.fighterH * 1.25;
+        if (dist <= ARENA_KICK.range * 1.1) {
+          if (cpu.grounded && canReach && Math.random() < 0.75) input.jumpPressed = true;
+          if (Math.random() < tier.attackChance) { if (Math.random() < 0.5) input.punchPressed = true; else input.kickPressed = true; }
+        }
         return;
       }
+
+      if (dist > ARENA_KICK.range) return; // still approaching a ground foe
       const roll = Math.random();
       if (roll < tier.attackChance) {
         if (Math.random() < 0.5) input.punchPressed = true; else input.kickPressed = true;
@@ -4398,13 +4423,21 @@
     // out of range, or facing the wrong way. Blocking reduces damage
     // rather than negating it, so blocking indefinitely still loses.
     resolveAttack(attacker, defender, cfg, now) {
-      if (defender.action === "ko" || !defender.grounded) return;
+      if (defender.action === "ko") return;
       const dist = Math.abs(defender.x - attacker.x);
       const isFacing = (defender.x - attacker.x) * attacker.facing >= 0;
       if (dist > cfg.range || !isFacing) return;
+      if (defender.kind === "ship") {
+        // the robot's fists reach up as it jumps; a ship only gets clipped
+        // when it's within that vertical reach (low, or at the jump apex).
+        const strikeY = this.floorY - attacker.y - this.fighterH * 0.55;
+        if (Math.abs(defender.y - strikeY) > this.fighterH * 0.6) return;
+      } else if (!defender.grounded) {
+        return; // an airborne robot dodges (unchanged)
+      }
       let dmg = cfg.dmg;
-      if (defender.action === "block") dmg *= (1 - ARENA_BLOCK_REDUCTION);
-      this.applyDamage(defender, dmg, attacker.facing, now);
+      if (defender.kind !== "ship" && defender.action === "block") dmg *= (1 - ARENA_BLOCK_REDUCTION);
+      this.arenaHit(defender, dmg, now, attacker.facing);
     },
 
     applyDamage(f, dmg, attackerFacing, now) {
@@ -4442,7 +4475,10 @@
       const input = s.cpuInput;
       input.up = false; input.down = false;
       if (cpu.action === "ko" || player.action === "ko") return;
-      const diff = player.y - cpu.y;
+      // line up the ship's flight height with the opponent's body center,
+      // which for a robot is its canvas y, not its "height above floor".
+      const targetY = this.arenaBodyRect(player).cy;
+      const diff = targetY - cpu.y;
       if (Math.abs(diff) > 12) { if (diff > 0) input.down = true; else input.up = true; }
       if (Math.random() < tier.attackChance) input.firePressed = true;
     },
@@ -4484,10 +4520,10 @@
         if (r.dead) continue;
         const target = r.isCpu ? s.playerFighter : s.cpuFighter;
         if (target.action === "ko") continue;
-        const dx = Math.abs(r.x - target.x), dy = Math.abs(r.y - target.y);
-        if (dx < ARENA_ROCKET.radius + this.shipW * 0.5 && dy < this.shipH * 0.5) {
+        const box = this.arenaBodyRect(target);
+        if (Math.abs(r.x - box.cx) < ARENA_ROCKET.radius + box.hw && Math.abs(r.y - box.cy) < box.hh) {
           r.dead = true;
-          this.applyShipDamage(target, ARENA_ROCKET.dmg, now);
+          this.arenaHit(target, ARENA_ROCKET.dmg, now, r.vx >= 0 ? 1 : -1);
         }
       }
       s.rockets = s.rockets.filter((r) => !r.dead && r.x > -20 && r.x < this.fieldW + 20);
@@ -4512,22 +4548,21 @@
     update(dt, now) {
       const s = this.state;
       if (s.paused || s.over) return;
-      if (s.mode === "spaceships") {
+      const p = s.playerFighter, c = s.cpuFighter;
+      const anyShip = p.kind === "ship" || c.kind === "ship";
+      if (anyShip) {
         for (const layer of this.starLayers) {
           for (const star of layer.stars) {
             star.x -= layer.speed * dt;
             if (star.x < 0) { star.x = this.fieldW; star.y = Math.random() * this.fieldH; }
           }
         }
-        this.cpuThinkShip(now);
-        this.updateShip(s.playerFighter, s.playerInput, dt, now);
-        this.updateShip(s.cpuFighter, s.cpuInput, dt, now);
-        this.updateRockets(dt, now);
-      } else {
-        this.cpuThink(now);
-        this.updateFighter(s.playerFighter, s.playerInput, dt, now, s.cpuFighter);
-        this.updateFighter(s.cpuFighter, s.cpuInput, dt, now, s.playerFighter);
       }
+      // CPU brain and per-fighter update, each by its own kind
+      if (c.kind === "ship") this.cpuThinkShip(now); else this.cpuThink(now);
+      if (p.kind === "ship") this.updateShip(p, s.playerInput, dt, now); else this.updateFighter(p, s.playerInput, dt, now, c);
+      if (c.kind === "ship") this.updateShip(c, s.cpuInput, dt, now); else this.updateFighter(c, s.cpuInput, dt, now, p);
+      if (anyShip) this.updateRockets(dt, now);
 
       for (const p of s.particles) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; }
       s.particles = s.particles.filter((p) => p.t < 0.4);
@@ -4727,24 +4762,18 @@
 
     draw() {
       this.ctx.clearRect(0, 0, this.fieldW, this.fieldH);
-      const s = this.state;
-      if (s.mode === "spaceships") {
-        this.drawSpaceBackdrop();
-        this.drawStarfield();
-        if (!s.playerFighter) return;
-        this.drawParticles();
-        for (const r of s.rockets) this.drawRocket(r);
-        this.drawShip(s.playerFighter);
-        this.drawShip(s.cpuFighter);
-        return;
-      }
-      this.drawBackground();
-      if (!s.playerFighter) return;
+      const s = this.state, p = s.playerFighter, c = s.cpuFighter;
+      // Space backdrop only for a ship-vs-ship fight; any fight with a robot
+      // uses the floor arena (the ship just flies over it).
+      const bothShips = p && c && p.kind === "ship" && c.kind === "ship";
+      if (bothShips) { this.drawSpaceBackdrop(); this.drawStarfield(); }
+      else { this.drawBackground(); }
+      if (!p) return;
       this.drawParticles();
-      // draw the fighter further back (smaller x... actually just draw by
-      // x order so the nearer one overlaps correctly) left-to-right
-      const pair = [s.playerFighter, s.cpuFighter].sort((a, b) => a.x - b.x);
-      for (const f of pair) this.drawFighter(f);
+      for (const r of s.rockets) this.drawRocket(r);
+      // robots drawn first (on the ground, x-sorted for overlap), ships on top
+      [p, c].filter((f) => f.kind !== "ship").sort((a, b) => a.x - b.x).forEach((f) => this.drawFighter(f));
+      [p, c].filter((f) => f.kind === "ship").forEach((f) => this.drawShip(f));
     },
   };
 
@@ -4766,7 +4795,8 @@
 
       arena.state.wins = arenaStore.getInt("wins", 0);
       arena.state.difficulty = arenaStore.getString("difficulty", "moderate", DIFFICULTIES);
-      arena.state.mode = arenaStore.getString("mode", "robots", ARENA_MODES);
+      arena.state.playerKind = arenaStore.getString("playerKind", "robot", ARENA_KINDS);
+      arena.state.cpuKind = arenaStore.getString("cpuKind", "robot", ARENA_KINDS);
 
       if (!this._wired) {
         this._wired = true;
@@ -4806,45 +4836,46 @@
         const startBtn = document.getElementById("arena-start-btn");
         const matchupEl = document.getElementById("arena-matchup");
         const dpadEl = document.getElementById("arena-dpad");
-        const modeRobotsBtn = document.getElementById("arena-mode-robots");
-        const modeShipsBtn = document.getElementById("arena-mode-spaceships");
+        const youRobotBtn = document.getElementById("arena-you-robot");
+        const youShipBtn = document.getElementById("arena-you-ship");
+        const oppRobotBtn = document.getElementById("arena-opp-robot");
+        const oppShipBtn = document.getElementById("arena-opp-ship");
 
         function refreshMatchupPreview() {
           if (!selectedSide) return;
           const theme = ARENA_FIGHTERS[selectedSide];
           const cpuTheme = ARENA_FIGHTERS[selectedCpuSide];
           document.getElementById("arena-matchup-you-badge").style.background = theme.color;
-          document.getElementById("arena-matchup-you-name").textContent = arenaFighterName(selectedSide, arena.state.mode);
+          document.getElementById("arena-matchup-you-name").textContent = arenaFighterName(selectedSide, arena.state.playerKind);
           document.getElementById("arena-matchup-cpu-badge").style.background = cpuTheme.color;
-          document.getElementById("arena-matchup-cpu-name").textContent = arenaFighterName(selectedCpuSide, arena.state.mode);
+          document.getElementById("arena-matchup-cpu-name").textContent = arenaFighterName(selectedCpuSide, arena.state.cpuKind);
         }
 
-        // Applies arena.state.mode to: the fighter-choice button labels,
-        // the control layout (hide left/right for ships, swap punch/kick
-        // for a single fire button), and the live matchup preview if a
-        // color is already picked. Called on load and on every toggle
-        // click -- never resets the color selection.
-        function applyMode() {
-          const mode = arena.state.mode;
-          modeRobotsBtn.classList.toggle("active", mode === "robots");
-          modeShipsBtn.classList.toggle("active", mode === "spaceships");
+        // Reflects the two kind toggles into: the toggle button states, the
+        // color-choice button labels (named for the player's kind), the
+        // control layout (hide left/right + punch/kick for a ship player,
+        // show the fire button), and the matchup preview. Never resets color.
+        function applyKinds() {
+          const pk = arena.state.playerKind, ck = arena.state.cpuKind;
+          youRobotBtn.classList.toggle("active", pk === "robot");
+          youShipBtn.classList.toggle("active", pk === "ship");
+          oppRobotBtn.classList.toggle("active", ck === "robot");
+          oppShipBtn.classList.toggle("active", ck === "ship");
           document.querySelectorAll(".arena-fighter-btn").forEach((b) => {
-            b.querySelector(".arena-fighter-btn-name").textContent = arenaFighterName(b.dataset.side, mode);
+            b.querySelector(".arena-fighter-btn-name").textContent = arenaFighterName(b.dataset.side, pk);
           });
-          dpadEl.classList.toggle("ship-mode", mode === "spaceships");
-          document.getElementById("arena-punch-btn").hidden = mode === "spaceships";
-          document.getElementById("arena-kick-btn").hidden = mode === "spaceships";
-          document.getElementById("arena-fire-btn").hidden = mode !== "spaceships";
+          dpadEl.classList.toggle("ship-mode", pk === "ship");
+          document.getElementById("arena-punch-btn").hidden = pk === "ship";
+          document.getElementById("arena-kick-btn").hidden = pk === "ship";
+          document.getElementById("arena-fire-btn").hidden = pk !== "ship";
           refreshMatchupPreview();
         }
-        function pickMode(mode) {
-          if (mode === arena.state.mode) return;
-          arena.state.mode = mode;
-          arenaStore.setString("mode", mode);
-          applyMode();
-        }
-        modeRobotsBtn.addEventListener("click", () => pickMode("robots"));
-        modeShipsBtn.addEventListener("click", () => pickMode("spaceships"));
+        function pickPlayerKind(k) { if (k === arena.state.playerKind) return; arena.state.playerKind = k; arenaStore.setString("playerKind", k); applyKinds(); }
+        function pickCpuKind(k) { if (k === arena.state.cpuKind) return; arena.state.cpuKind = k; arenaStore.setString("cpuKind", k); applyKinds(); }
+        youRobotBtn.addEventListener("click", () => pickPlayerKind("robot"));
+        youShipBtn.addEventListener("click", () => pickPlayerKind("ship"));
+        oppRobotBtn.addEventListener("click", () => pickCpuKind("robot"));
+        oppShipBtn.addEventListener("click", () => pickCpuKind("ship"));
 
         function pickSide(side) {
           selectedSide = side;
@@ -4868,7 +4899,8 @@
           matchEl.hidden = true;
           arena.stopLoop();
         };
-        applyMode();
+        arena._applyKinds = applyKinds;
+        applyKinds();
         startBtn.addEventListener("click", () => {
           if (!selectedSide) return;
           selectEl.hidden = true;
@@ -4942,6 +4974,7 @@
       }
 
       arena.updateHeader();
+      if (arena._applyKinds) arena._applyKinds(); // reflect stored kinds in the config UI
       arena.showSelect();
 
       if (!arenaStore.getBool("tutorialSeen")) {
@@ -4985,6 +5018,8 @@
     if (k === "arrowdown" || k === "s") { input.block = false; input.down = false; }
     if (k === "arrowup" || k === "w") input.up = false;
   }
+  // Debug handle (read-only introspection for manual testing; harmless).
+  try { if (typeof window !== "undefined") window.__arena = arena; } catch (e) { /* ignore */ }
 
   // ================================================================
   // 21. PIPE FLOW — rotate the pipes to connect the source to the drain

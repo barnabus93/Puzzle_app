@@ -1277,6 +1277,21 @@ fieldset.field legend {
   padding: 8px 0;
 }
 .arena-select[hidden] { display: none !important; }
+.arena-kind-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+.arena-kind-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex: 0 0 auto;
+}
+.arena-kind-row .soccer-mode-toggle { flex: 1 1 auto; }
 .arena-fighter-choices {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
