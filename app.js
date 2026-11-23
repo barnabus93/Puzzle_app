@@ -111,6 +111,7 @@
   // ================================================================
   // 5. TITLE SCREEN MODULE
   // ================================================================
+  const titleStore = makeStore("title");
   modules.title = {
     onEnter() {
       const tiles = document.querySelectorAll("#screen-title .game-tile[data-game]");
@@ -121,7 +122,6 @@
       };
       tiles.forEach((t) => t.addEventListener("click", this._handler));
 
-      // The list scrolls; show a bottom fade only while more games are below.
       const screen = document.getElementById("screen-title");
       this._screen = screen;
       this._updateMore = () => {
@@ -130,11 +130,29 @@
       };
       screen.addEventListener("scroll", this._updateMore);
       window.addEventListener("resize", this._updateMore);
-      this._updateMore();
+
+      // Category tabs: show only tiles whose data-category matches (or "all").
+      const tabs = document.querySelectorAll("#screen-title .game-tab");
+      const allTiles = document.querySelectorAll("#screen-title .game-tile");
+      const valid = { puzzle: 1, action: 1, versus: 1 };
+      const showTab = (cat) => {
+        if (!valid[cat]) cat = "puzzle";
+        tabs.forEach((t) => t.classList.toggle("active", t.dataset.tab === cat));
+        allTiles.forEach((t) => {
+          const c = t.dataset.category;
+          t.hidden = !(c === cat || c === "all");
+        });
+        screen.scrollTop = 0;
+        this._updateMore();
+      };
+      this._tabHandler = (e) => { const cat = e.currentTarget.dataset.tab; titleStore.setString("tab", cat); showTab(cat); };
+      tabs.forEach((t) => t.addEventListener("click", this._tabHandler));
+      showTab(titleStore.getString("tab", "puzzle", valid));
     },
     onLeave() {
       const tiles = document.querySelectorAll("#screen-title .game-tile[data-game]");
       if (this._handler) tiles.forEach((t) => t.removeEventListener("click", this._handler));
+      if (this._tabHandler) document.querySelectorAll("#screen-title .game-tab").forEach((t) => t.removeEventListener("click", this._tabHandler));
       if (this._screen && this._updateMore) {
         this._screen.removeEventListener("scroll", this._updateMore);
         window.removeEventListener("resize", this._updateMore);

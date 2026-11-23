@@ -23,8 +23,13 @@
       <div class="title-content">
         <h1 class="arcade-title"><img class="arcade-logo" src="brain-arcade-logo.png" alt="Brain Arcade" /></h1>
         <p class="arcade-subtitle">SELECT YOUR GAME</p>
+        <div class="game-tabs" role="tablist">
+          <button class="game-tab active" type="button" role="tab" data-tab="puzzle">Puzzle</button>
+          <button class="game-tab" type="button" role="tab" data-tab="action">Action</button>
+          <button class="game-tab" type="button" role="tab" data-tab="versus">Versus</button>
+        </div>
         <div class="game-tiles">
-          <button class="game-tile" data-game="slider">
+          <button class="game-tile" data-game="slider" data-category="puzzle">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="6" fill="#1f1c19"/>
               <rect x="4" y="4" width="24" height="12" rx="3" fill="#d9a42e"/>
@@ -37,7 +42,7 @@
             </svg>
             <span class="tile-label">SLIDING BLOCKS</span>
           </button>
-          <button class="game-tile" data-game="arrow">
+          <button class="game-tile" data-game="arrow" data-category="puzzle">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="6" fill="#1f1c19"/>
               <polygon points="32,8 40,20 36,20 36,32 28,32 28,20 24,20" fill="#c8302b"/>
@@ -47,7 +52,7 @@
             </svg>
             <span class="tile-label">ARROW ESCAPE</span>
           </button>
-          <button class="game-tile" data-game="hen">
+          <button class="game-tile" data-game="hen" data-category="action">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="6" fill="#1f1c19"/>
               <rect y="0" width="64" height="12" fill="#2d6e3a"/>
@@ -61,7 +66,7 @@
             </svg>
             <span class="tile-label">HEN CROSSING</span>
           </button>
-          <button class="game-tile" data-game="onefill">
+          <button class="game-tile" data-game="onefill" data-category="puzzle">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="6" fill="#1f1c19"/>
               <rect x="8" y="8" width="48" height="48" rx="3" fill="#151520"/>
@@ -90,7 +95,7 @@
             <span class="tile-label">SOCCER CHALLENGE</span>
           </button>
           -->
-          <button class="game-tile" data-game="bubble">
+          <button class="game-tile" data-game="bubble" data-category="action">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="6" fill="#1a1633"/>
               <circle cx="20" cy="18" r="9" fill="#e0455a"/>
@@ -103,7 +108,7 @@
             </svg>
             <span class="tile-label">BUBBLE BLAST</span>
           </button>
-          <button class="game-tile" data-game="ranger">
+          <button class="game-tile" data-game="ranger" data-category="action">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="6" fill="#0b0a1a"/>
               <circle cx="12" cy="10" r="1.4" fill="#fff"/>
@@ -119,7 +124,7 @@
             </svg>
             <span class="tile-label">SPACE RANGER</span>
           </button>
-          <button class="game-tile" data-game="arena">
+          <button class="game-tile" data-game="arena" data-category="versus">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="6" fill="#241c2e"/>
               <rect x="6" y="40" width="52" height="4" fill="#3a2e44"/>
@@ -134,7 +139,7 @@
             </svg>
             <span class="tile-label">ROBOT ARENA</span>
           </button>
-          <button class="game-tile" data-game="pipes">
+          <button class="game-tile" data-game="pipes" data-category="puzzle">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="6" fill="#1c1a22"/>
               <path d="M0 22 H22 A10 10 0 0 1 32 32 V44 A10 10 0 0 0 42 54 H64" fill="none" stroke="#6d6a78" stroke-width="12" stroke-linecap="butt"/>
@@ -144,7 +149,7 @@
             </svg>
             <span class="tile-label">PIPE FLOW</span>
           </button>
-          <button class="game-tile" data-game="tank">
+          <button class="game-tile" data-game="tank" data-category="versus">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="6" fill="#7fb6e0"/>
               <rect y="46" width="64" height="18" fill="#4a8a3a"/>
@@ -156,7 +161,7 @@
             </svg>
             <span class="tile-label">TANK DUEL</span>
           </button>
-          <div class="game-tile game-tile--disabled">
+          <div class="game-tile game-tile--disabled" data-category="all">
             <svg class="tile-icon" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="6" fill="#1f1c19" opacity="0.5"/>
               <text x="32" y="36" text-anchor="middle" font-size="20" fill="#555">?</text>

@@ -152,6 +152,36 @@ body {
   50% { opacity: 1; }
 }
 
+.game-tabs {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+}
+.game-tab {
+  flex: 1 1 0;
+  font-family: var(--pixel-font);
+  font-size: clamp(0.5rem, 2.2vw, 0.62rem);
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: 9px;
+  padding: 11px 4px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 150ms, color 150ms;
+}
+.game-tab.active {
+  background: rgba(0, 255, 255, 0.14);
+  color: #bffcff;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.18);
+}
+
 .game-tiles {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -159,6 +189,7 @@ body {
   width: 100%;
   margin-top: 10px;
 }
+.game-tile[hidden] { display: none !important; }
 
 .game-tile {
   display: flex;
