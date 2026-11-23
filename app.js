@@ -5726,7 +5726,7 @@
       tanks: [], active: 0,
       phase: "aiming",            // aiming | firing | over
       wind: 0, weaponIdx: 0,
-      aiming: false,
+      aiming: false, aimX: 0, aimY: 0,
       projectiles: [], particles: [], explosions: [],
       buttons: [], heldMove: 0,
       cpuTimer: 0, turnMsg: "", msgTimer: 0,
@@ -5810,8 +5810,9 @@
       const t = s.tanks[s.active];
       if (s.mode === "cpu" && t.isCpu) return;
       if (s.phase !== "aiming") return;
-      // drag anywhere in the play field to aim
-      if (p.y > this.worldH * 0.14 && p.y < this.worldH * 0.80) {
+      // drag anywhere in the open field (above the control bar) to aim —
+      // the barrel follows the finger freely in any direction.
+      if (p.y < this.worldH * 0.84) {
         s.aiming = true; this.updateAim(p);
       }
     },
@@ -5822,15 +5823,19 @@
     },
     onUp() { this.state.aiming = false; },
 
+    // The barrel points from the turret toward wherever the finger is (free
+    // 2D direction), and how far the finger is from the tank sets the power.
     updateAim(p) {
       const s = this.state, t = s.tanks[s.active];
       const tx = t.x, ty = this.turretY(t);
       const dx = p.x - tx, dy = p.y - ty;
+      s.aimX = p.x; s.aimY = p.y;
       let ang = Math.atan2(-dy, dx) * 180 / Math.PI;
       if (ang < 0) ang = 0; if (ang > 180) ang = 180;
       t.angle = Math.max(5, Math.min(175, ang));
       const len = Math.hypot(dx, dy);
-      t.power = Math.max(10, Math.min(100, (len / (this.worldW * 0.42)) * 100));
+      // full power reachable with a comfortable ~thumb-length drag
+      t.power = Math.max(5, Math.min(100, (len / (this.worldW * 0.26)) * 100));
     },
 
     pressButton(id) {
@@ -6086,18 +6091,35 @@
     },
 
     drawAimArc(ctx) {
-      const s = this.state, t = s.tanks[s.active];
+      const s = this.state, t = s.tanks[s.active], R = s.cfg.tankR;
       if (s.mode === "cpu" && t.isCpu) return;
       const weapon = TANK_WEAPONS[TANK_WEAPON_ORDER[s.weaponIdx]];
+      const tx = t.x, ty = this.turretY(t);
       const v = tankAimVelocity(s.cfg, t.angle, t.power);
-      const trace = tankTrace(s.cfg, s.ground, t.x, this.turretY(t), v.vx, v.vy, s.wind, weapon.gravMult, null);
-      ctx.save(); ctx.setLineDash([5, 6]); ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 2;
-      ctx.beginPath();
-      const pts = trace.points;
-      ctx.moveTo(pts[0].x, pts[0].y);
-      const lim = Math.min(pts.length, 55);
-      for (let i = 1; i < lim; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.stroke(); ctx.restore();
+      const trace = tankTrace(s.cfg, s.ground, tx, ty, v.vx, v.vy, s.wind, weapon.gravMult, null);
+      const pts = trace.points, stop = trace.stop;
+      ctx.save();
+      // the whole predicted path, so moving the finger reshapes the entire arc
+      ctx.setLineDash([5, 7]); ctx.strokeStyle = "rgba(255,255,255,0.8)"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.stroke(); ctx.setLineDash([]);
+      // marker where it's predicted to land
+      if (stop.type === "ground" || stop.type === "tank") {
+        ctx.strokeStyle = "rgba(255,215,90,0.95)"; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(stop.x, stop.y, R * 0.7, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(stop.x - R * 0.5, stop.y); ctx.lineTo(stop.x + R * 0.5, stop.y);
+        ctx.moveTo(stop.x, stop.y - R * 0.5); ctx.lineTo(stop.x, stop.y + R * 0.5); ctx.stroke();
+      }
+      // aim handle: a line from the barrel to the finger shows the launch
+      // vector (direction = angle, length = power) you're setting.
+      if (s.aiming) {
+        ctx.strokeStyle = "rgba(120,220,255,0.95)"; ctx.lineWidth = 3; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(s.aimX, s.aimY); ctx.stroke();
+        ctx.fillStyle = "rgba(120,220,255,0.95)";
+        ctx.beginPath(); ctx.arc(s.aimX, s.aimY, R * 0.38, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
     },
 
     drawProjectile(ctx, pr) {
