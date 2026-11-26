@@ -1566,3 +1566,6 @@ fieldset.field legend {
   height: 100%;
   touch-action: none;
 }
+
+/* a tile that links to a standalone game page */
+a.game-tile { text-decoration: none; }
