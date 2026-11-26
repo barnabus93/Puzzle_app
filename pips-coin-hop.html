@@ -48,12 +48,13 @@
     display: block; width: 320px; height: 288px; background: #e0f8d0;
     image-rendering: pixelated; image-rendering: crisp-edges;
   }
-  #playBtn {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    background: transparent; border: 0; padding: 0; margin: 0;
+  /* invisible touch targets laid over the canvas-drawn buttons */
+  .ov {
+    position: absolute; background: transparent; border: 0; padding: 0; margin: 0;
     opacity: 0; cursor: pointer; display: none;
   }
-  #playBtn.show { display: block; }
+  .ov.show { display: block; }
+  #playBtn { inset: 0; width: 100%; height: 100%; }
   #label {
     grid-area: label; text-align: center; color: #9a9ab0;
     font-size: 12px; letter-spacing: 2px; line-height: 1.4;
@@ -97,7 +98,14 @@
     <div id="ledrow"><span id="led"></span><span>POWER</span></div>
     <div id="screen">
       <canvas id="c" width="160" height="144"></canvas>
-      <button id="playBtn" type="button" aria-label="Play"></button>
+      <button id="playBtn" class="ov" type="button" aria-label="Play"></button>
+      <button id="lvl1" class="ov" type="button" aria-label="Level 1"></button>
+      <button id="lvl2" class="ov" type="button" aria-label="Level 2"></button>
+      <button id="lvl3" class="ov" type="button" aria-label="Level 3"></button>
+      <button id="lvl4" class="ov" type="button" aria-label="Level 4"></button>
+      <button id="lvl5" class="ov" type="button" aria-label="Level 5"></button>
+      <button id="nextBtn" class="ov" type="button" aria-label="Next level"></button>
+      <button id="menuBtn" class="ov" type="button" aria-label="Menu"></button>
     </div>
   </div>
   <div id="label">PIP'S COIN HOP</div>
@@ -117,15 +125,15 @@
 // Constants
 // ---------------------------------------------------------------------------
 const PAL = ['#e0f8d0', '#88c070', '#346856', '#081820']; // lightest .. darkest
-const TILE = 8, MW = 200, MH = 18, VW = 160, VH = 144, HUD_H = 11;
+const TILE = 8, MH = 18, VW = 160, VH = 144, HUD_H = 11;
 const GROUND_Y = 120;           // ground surface (top of row 15)
-const FLAG_C = 190;             // flag pole column
 const C = {
   ACCEL: 0.12, MAXV: 1.3, FRIC_G: 0.75, FRIC_A: 0.92,
   GRAV: 0.22, TERM: 4, JUMP_V: -4.4, JUMP_CUT: -1.6,
   COYOTE: 6, JBUF: 7,
   W: 8, SMALL_H: 11, BIG_H: 15,
-  SNAIL_V: 0.3, SPROUT_V: 0.6, STOMP_TOL: 7,
+  SNAIL_V: 0.3, BUG_V: 0.45, BUG_HOP: -2.2, BUG_REST: 50,
+  SPROUT_V: 0.6, STOMP_TOL: 7, PLAT_V: 0.5,
   KNOCK: 14, BLINK: 60, GROW_FRAMES: 40,
 };
 
@@ -135,10 +143,11 @@ ctx.imageSmoothingEnabled = false;
 
 // ---------------------------------------------------------------------------
 // Sprites: pixel strings ('0'-'3' = palette index, '.' = clear), compiled to
-// offscreen canvases along with a horizontally flipped copy.
+// offscreen canvases along with a horizontally flipped copy. `remap` swaps
+// shade roles so one piece of art can be reused by a darker or lighter theme.
 // ---------------------------------------------------------------------------
 function mkCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
-function compile(rows) {
+function compile(rows, remap) {
   const h = rows.length, w = rows[0].length;
   const c = mkCanvas(w, h), f = mkCanvas(w, h);
   const g = c.getContext('2d'), gf = f.getContext('2d');
@@ -146,8 +155,9 @@ function compile(rows) {
     for (let x = 0; x < w; x++) {
       const ch = rows[y][x];
       if (ch >= '0' && ch <= '3') {
-        g.fillStyle = PAL[+ch]; g.fillRect(x, y, 1, 1);
-        gf.fillStyle = PAL[+ch]; gf.fillRect(w - 1 - x, y, 1, 1);
+        const col = PAL[remap ? remap[+ch] : +ch];
+        g.fillStyle = col; g.fillRect(x, y, 1, 1);
+        gf.fillStyle = col; gf.fillRect(w - 1 - x, y, 1, 1);
       }
     }
   }
@@ -213,132 +223,52 @@ const cboxRows = (X) => [
   '33333333',
 ];
 
+// Tile art (ids: 1 top, 2 fill, 3 brick, 5 used box, 6 stone; 4/7 are boxes)
+const ART = {
+  grass: ['33333333', '11011101', '11111111', '21211121', '22222222', '23222322', '22222222', '22322232'],
+  dirt: ['22222222', '23222322', '22222222', '22232223', '22222222', '32222232', '22222222', '22322222'],
+  brick: ['33333333', '11131111', '22232222', '33333333', '11111131', '22222232', '33333333', '11131111'],
+  used: ['33333333', '32222223', '32322323', '32222223', '32222223', '32322323', '32222223', '33333333'],
+  stone: ['33333333', '30000013', '30111123', '30111123', '30111123', '30111123', '31222223', '33333333'],
+  flowers: ['33333333', '11101111', '10111011', '11111111', '21112111', '22222222', '22232222', '22222223'],
+  cloud: ['.333333.', '30000003', '30000003', '30000003', '30000113', '30011113', '31111113', '.333333.'],
+  caveTop: ['11111111', '21212121', '22222222', '22322232', '22222222', '23222322', '22222222', '22232222'],
+  caveFill: ['22222222', '22322232', '22222222', '32222322', '22222222', '22232223', '22222222', '23222222'],
+  crystal: ['11111111', '10012221', '10122321', '11223321', '12233211', '12332101', '12321001', '11111111'],
+  sand: ['33333333', '11100111', '10111110', '11111111', '11101111', '11111111', '11111011', '21111111'],
+  sandFill: ['11111111', '11121111', '11111112', '12111111', '11111211', '11211111', '11111111', '21112111'],
+  nightTop: ['00000000', '01000010', '10101010', '11111111', '11211121', '11111111', '12111211', '11111111'],
+  nightFill: ['11111111', '11211121', '11111111', '21112111', '11111111', '11121112', '11111111', '12111111'],
+};
+const ID = null; // identity remap
+const TILESETS = {
+  meadow: { 1: [ART.grass, ID], 2: [ART.dirt, ID], 3: [ART.brick, ID], 5: [ART.used, ID], 6: [ART.stone, ID] },
+  clouds: { 1: [ART.flowers, ID], 2: [ART.dirt, ID], 3: [ART.brick, ID], 5: [ART.used, ID], 6: [ART.cloud, ID] },
+  cave: { 1: [ART.caveTop, ID], 2: [ART.caveFill, ID], 3: [ART.brick, [0, 2, 3, 1]], 5: [ART.used, [0, 1, 2, 1]], 6: [ART.crystal, ID] },
+  shore: { 1: [ART.sand, ID], 2: [ART.sandFill, ID], 3: [ART.brick, ID], 5: [ART.used, ID], 6: [ART.stone, ID] },
+  night: { 1: [ART.nightTop, ID], 2: [ART.nightFill, ID], 3: [ART.brick, [0, 1, 2, 2]], 5: [ART.used, [0, 1, 2, 1]], 6: [ART.stone, [0, 1, 2, 1]] },
+};
+for (const k in TILESETS) for (const id in TILESETS[k]) { const [rows, rm] = TILESETS[k][id]; TILESETS[k][id] = compile(rows, rm); }
+
 const SPR = {
   small: pipSet(PIP_SMALL_TOP),
   big: pipSet(PIP_BIG_TOP),
-  tiles: {
-    1: compile([
-      '33333333',
-      '11011101',
-      '11111111',
-      '21211121',
-      '22222222',
-      '23222322',
-      '22222222',
-      '22322232',
-    ]),
-    2: compile([
-      '22222222',
-      '23222322',
-      '22222222',
-      '22232223',
-      '22222222',
-      '32222232',
-      '22222222',
-      '22322222',
-    ]),
-    3: compile([
-      '33333333',
-      '11131111',
-      '22232222',
-      '33333333',
-      '11111131',
-      '22222232',
-      '33333333',
-      '11131111',
-    ]),
-    5: compile([
-      '33333333',
-      '32222223',
-      '32322323',
-      '32222223',
-      '32222223',
-      '32322323',
-      '32222223',
-      '33333333',
-    ]),
-    6: compile([
-      '33333333',
-      '30000013',
-      '30111123',
-      '30111123',
-      '30111123',
-      '30111123',
-      '31222223',
-      '33333333',
-    ]),
-  },
   cboxA: compile(cboxRows('1')),
   cboxB: compile(cboxRows('0')),
   sboxA: compile(sboxRows('0')),
   sboxB: compile(sboxRows('1')),
-  coin: compile([
-    '..3333..',
-    '.310013.',
-    '31011213',
-    '31011213',
-    '31011213',
-    '31111213',
-    '.311113.',
-    '..3333..',
-  ]),
-  coinTurn: compile([
-    '...33...',
-    '..3103..',
-    '..3123..',
-    '..3123..',
-    '..3123..',
-    '..3123..',
-    '..3113..',
-    '...33...',
-  ]),
-  gem: compile([
-    '...33...',
-    '..3003..',
-    '.300013.',
-    '30001113',
-    '31111223',
-    '.312223.',
-    '..3223..',
-    '...33...',
-  ]),
-  snailA: compile([
-    '..3333....',
-    '.322223..3',
-    '32233223.3',
-    '3232232333',
-    '3233222313',
-    '3222223113',
-    '3111111113',
-    '.33333333.',
-  ]),
-  snailB: compile([
-    '..3333....',
-    '.322223.3.',
-    '32233223.3',
-    '3232232333',
-    '3233222313',
-    '3222223113',
-    '3111111113',
-    '3.333333.3',
-  ]),
-  snailFlat: compile([
-    '..3333....',
-    '3222222333',
-    '3111111113',
-    '.33333333.',
-  ]),
-  sprout: compile([
-    '.33..33.',
-    '31133113',
-    '31133113',
-    '.333333.',
-    '...32...',
-    '...32...',
-    '..3223..',
-    '.333333.',
-  ]),
+  coin: compile(['..3333..', '.310013.', '31011213', '31011213', '31011213', '31111213', '.311113.', '..3333..']),
+  coinTurn: compile(['...33...', '..3103..', '..3123..', '..3123..', '..3123..', '..3123..', '..3113..', '...33...']),
+  gem: compile(['...33...', '..3003..', '.300013.', '30001113', '31111223', '.312223.', '..3223..', '...33...']),
+  snailA: compile(['..3333....', '.322223..3', '32233223.3', '3232232333', '3233222313', '3222223113', '3111111113', '.33333333.']),
+  snailB: compile(['..3333....', '.322223.3.', '32233223.3', '3232232333', '3233222313', '3222223113', '3111111113', '3.333333.3']),
+  snailFlat: compile(['..3333....', '3222222333', '3111111113', '.33333333.']),
+  bugA: compile(['.......3.3', '..333333..', '.32112233.', '3211122303', '3222222333', '.32222223.', '..333333..', '.3..3..3..']),
+  bugB: compile(['......3.3.', '..333333..', '.32112233.', '3211122303', '3222222333', '.32222223.', '..333333..', '..3..3..3.']),
+  bugFlat: compile(['..333333..', '3222222333', '.33333333.']),
+  sprout: compile(['.33..33.', '31133113', '31133113', '.333333.', '...32...', '...32...', '..3223..', '.333333.']),
   debris: compile(['3333', '3113', '3123', '3333']),
+  lock: compile(['..333..', '.3...3.', '.3...3.', '3333333', '3322233', '3332333', '3332333', '3333333']),
   hudCoin: compile(['.00.', '0110', '0110', '0110', '0110', '0110', '.00.']),
   hudSprout: compile(['00.00', '01010', '.000.', '..0..', '..0..', '.000.']),
   hudGemFull: compile(['..0..', '.010.', '01110', '01110', '.010.', '..0..']),
@@ -406,24 +336,31 @@ function draw3x5(str, x, y, col) {
 // Map + collision
 // ---------------------------------------------------------------------------
 // 0 empty, 1 grass top, 2 dirt, 3 brick, 4 coin box, 5 used box, 6 stone, 7 sprout box
-const map = new Uint8Array(MW * MH);
+let MW = 200;
+let map = new Uint8Array(MW * MH);
 function tileAt(c, r) { if (c < 0 || c >= MW) return 6; if (r < 0 || r >= MH) return 0; return map[r * MW + c]; }
 function setTile(c, r, v) { if (c >= 0 && c < MW && r >= 0 && r < MH) map[r * MW + c] = v; }
 function solid(c, r) { if (c < 0 || c >= MW) return true; if (r < 0 || r >= MH) return false; return map[r * MW + c] !== 0; }
+
+// Horizontal move with tile resolution. Returns true if a wall stopped it.
+function moveX(b, dx) {
+  b.x += dx;
+  const top = Math.floor(b.y / TILE), bot = Math.floor((b.y + b.h - 0.001) / TILE);
+  if (dx > 0) {
+    const c = Math.floor((b.x + b.w - 0.001) / TILE);
+    for (let r = top; r <= bot; r++) if (solid(c, r)) { b.x = c * TILE - b.w; return true; }
+  } else if (dx < 0) {
+    const c = Math.floor(b.x / TILE);
+    for (let r = top; r <= bot; r++) if (solid(c, r)) { b.x = (c + 1) * TILE; return true; }
+  }
+  return false;
+}
 
 // AABB vs tiles: move on X and resolve, then on Y and resolve. When the head
 // hits, pick the bumped tile (center, else left, else right) before snapping.
 function moveBody(b) {
   const res = { ground: false, head: null, wall: false };
-  b.x += b.vx;
-  let top = Math.floor(b.y / TILE), bot = Math.floor((b.y + b.h - 0.001) / TILE);
-  if (b.vx > 0) {
-    const c = Math.floor((b.x + b.w - 0.001) / TILE);
-    for (let r = top; r <= bot; r++) if (solid(c, r)) { b.x = c * TILE - b.w; b.vx = 0; res.wall = true; break; }
-  } else if (b.vx < 0) {
-    const c = Math.floor(b.x / TILE);
-    for (let r = top; r <= bot; r++) if (solid(c, r)) { b.x = (c + 1) * TILE; b.vx = 0; res.wall = true; break; }
-  }
+  if (moveX(b, b.vx)) { b.vx = 0; res.wall = true; }
   b.y += b.vy;
   const l = Math.floor(b.x / TILE), rc = Math.floor((b.x + b.w - 0.001) / TILE);
   if (b.vy > 0) {
@@ -443,9 +380,18 @@ function moveBody(b) {
   return res;
 }
 
+// Moving platforms ping-pong across their span at PLAT_V px/frame. Position is
+// a pure function of time so the bot can replay any phase exactly.
+function pingpong(v, R) { if (R <= 0) return 0; const m = ((v % (2 * R)) + 2 * R) % (2 * R); return m <= R ? m : 2 * R - m; }
+function platX(d, t) { return d.c0 * TILE + pingpong(d.phase + t * d.speed, d.span * TILE - d.w); }
+function platPeriod(d) { return Math.round(2 * (d.span * TILE - d.w) / d.speed); }
+
 // One fixed-timestep tick of Pip's movement. Pure: only touches the body and
-// the map (read-only), so the reachability bot can drive it directly.
-function physics(b, inp) {
+// reads the map, so the reachability bot drives it directly. `plats` is the
+// list of moving platforms at this tick ({x,y,w,dx}); platforms are solid from
+// the top only, and a body standing on one is carried by its dx.
+function physics(b, inp, plats) {
+  if (plats && b.ride != null && plats[b.ride]) moveX(b, plats[b.ride].dx);
   if (inp.jumpPressed) b.jbuf = C.JBUF; else if (b.jbuf > 0) b.jbuf--;
   if (b.onGround) b.coyote = C.COYOTE; else if (b.coyote > 0) b.coyote--;
   if (inp.dir) {
@@ -460,7 +406,18 @@ function physics(b, inp) {
   if (b.jbuf > 0 && b.coyote > 0) { b.vy = C.JUMP_V; b.jbuf = 0; b.coyote = 0; jumped = true; }
   if (!inp.jump && b.vy < C.JUMP_CUT) b.vy = C.JUMP_CUT;
   b.vy += C.GRAV; if (b.vy > C.TERM) b.vy = C.TERM;
+  const oldFeet = b.y + b.h, falling = b.vy >= 0;
   const r = moveBody(b);
+  b.ride = null;
+  if (plats && plats.length && !r.ground && falling) {
+    const nf = b.y + b.h;
+    for (let i = 0; i < plats.length; i++) {
+      const p = plats[i];
+      if (b.x < p.x + p.w && b.x + b.w > p.x && oldFeet <= p.y + 0.01 && nf >= p.y) {
+        b.y = p.y - b.h; b.vy = 0; r.ground = true; b.ride = i; break;
+      }
+    }
+  }
   b.onGround = r.ground;
   return { r, jumped };
 }
@@ -468,76 +425,245 @@ function physics(b, inp) {
 function overlap(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 function coinRect(k) { return { x: k.x + 1, y: k.y + 1, w: 6, h: 6 }; }
 function gemRect(g) { return { x: g.x + 1, y: g.y + 1, w: 6, h: 6 }; }
-const FLAG_RECT = { x: FLAG_C * TILE + 3, y: 24, w: 2, h: GROUND_Y - 24 };
 
 // ---------------------------------------------------------------------------
-// Level
+// Levels (data). Each build() uses the same small set of helpers.
 // ---------------------------------------------------------------------------
-let coins = [], gems = [], snails = [], sprouts = [], debris = [], pops = [], bumps = [];
-let coinTotal = 0, boxTotal = 0;
+const LEVELS = [
+  {
+    name: 'MEADOW', len: 200, flag: 190, theme: 'meadow',
+    build(L) {
+      L.gaps([[22, 2], [38, 3], [68, 2], [99, 3], [126, 2], [160, 3]]);
+      // -- start
+      L.line(6, 9, 13);
+      L.blocks(11, 11, 'CBSBC');
+      L.arc(22, 2);
+      L.hill(28, 33, 13); L.line(29, 32, 12);
+      L.arc(38, 3);
+      // -- gem 1: stone step, then a high stone perch
+      L.stone(46, 48, 11); L.line(46, 48, 10);
+      L.stone(51, 52, 8); L.gem(51 * TILE + 4, 7 * TILE);
+      L.blocks(60, 11, 'BCBB'); L.line(64, 65, 13);
+      L.arc(68, 2);
+      // -- stone staircase up to a plateau
+      L.pillar(74, 14); L.pillar(75, 13); L.pillar(76, 12); L.pillar(77, 11); L.pillar(78, 11); L.pillar(79, 11);
+      L.line(77, 79, 10);
+      L.blocks(89, 11, 'CBSBC');
+      L.arc(99, 3);
+      // -- gem 2: three stone steps going up
+      L.stone(108, 109, 12); L.line(108, 109, 11);
+      L.stone(112, 113, 9); L.line(112, 113, 8);
+      L.stone(116, 117, 6); L.gem(116 * TILE + 4, 5 * TILE);
+      L.arc(126, 2);
+      L.hill(133, 140, 12); L.line(134, 139, 11);
+      L.blocks(145, 11, 'BSBC');
+      // -- gem 3: stone step and a tall perch
+      L.stone(151, 152, 11);
+      L.stone(154, 155, 7); L.gem(154 * TILE + 4, 6 * TILE);
+      L.arc(160, 3);
+      L.line(166, 169, 13);
+      // -- final staircase, then the flag
+      L.stairs(178);
+      for (const c of [31, 56, 85, 120, 137, 170]) L.enemy(c, 'snail');
+    },
+  },
+  {
+    // New idea: the hopping bug (first on a long flat stretch, later by gaps).
+    name: 'CLOUD HILLS', len: 220, flag: 212, theme: 'clouds',
+    build(L) {
+      L.gaps([[40, 2], [62, 3], [90, 2], [118, 3], [146, 2], [172, 3], [196, 2]]);
+      L.line(5, 9, 13); L.blocks(11, 11, 'CBSC');
+      L.stone(18, 20, 11); L.line(18, 20, 10); L.stone(23, 25, 8); L.line(23, 25, 7);
+      L.line(28, 33, 13); L.enemy(30, 'bug');              // bug intro: flat ground, no gap near
+      L.arc(40, 2);
+      L.hill(47, 52, 13); L.line(48, 51, 12); L.blocks(55, 11, 'BCB'); L.enemy(54, 'snail');
+      L.arc(62, 3);
+      L.stone(70, 71, 12); L.line(70, 71, 11); L.stone(74, 75, 9); L.line(74, 75, 8);
+      L.stone(78, 79, 6); L.gem(78 * TILE + 4, 5 * TILE);
+      L.enemy(82, 'bug');                                  // bug by a gap
+      L.arc(90, 2);
+      L.blocks(97, 11, 'CSCBC'); L.line(103, 107, 13);
+      L.hill(108, 113, 12); L.line(109, 112, 11); L.enemy(110, 'bug');
+      L.arc(118, 3);
+      L.stone(126, 128, 11); L.line(126, 128, 10); L.stone(131, 133, 8); L.line(131, 133, 7);
+      L.stone(136, 137, 5); L.gem(136 * TILE + 4, 4 * TILE);
+      L.enemy(140, 'snail');
+      L.arc(146, 2);
+      L.blocks(153, 11, 'BSC'); L.line(158, 163, 13); L.enemy(160, 'bug');
+      L.stone(162, 163, 11); L.stone(165, 166, 7); L.gem(165 * TILE + 4, 6 * TILE);
+      L.arc(172, 3);
+      L.line(180, 184, 13); L.enemy(186, 'snail');
+      L.stone(188, 190, 11); L.line(188, 190, 10);
+      L.arc(196, 2);
+      L.stairs(201);
+    },
+  },
+  {
+    // New idea: brick ceilings with coin rows above them (stone caps let small
+    // Pip hop across; big Pip can smash through from below).
+    name: 'CRYSTAL CAVE', len: 220, flag: 211, theme: 'cave',
+    build(L) {
+      L.gaps([[36, 2], [64, 3], [96, 2], [124, 3], [150, 2], [178, 3]]);
+      L.line(5, 8, 13); L.blocks(10, 11, 'CSC');
+      L.ceiling(15, 11);                                   // intro: over solid ground
+      L.ceiling(25, 12); L.enemy(28, 'snail');             // a low one (16px clearance)
+      L.arc(36, 2);
+      L.blocks(42, 11, 'BCB'); L.hill(47, 53, 13); L.line(48, 52, 12); L.enemy(50, 'bug'); L.line(56, 60, 13);
+      L.arc(64, 3);
+      L.stone(72, 73, 11); L.line(72, 73, 10); L.stone(76, 77, 8); L.gem(76 * TILE + 4, 7 * TILE);
+      L.enemy(80, 'snail'); L.ceiling(82, 11);
+      L.arc(96, 2);
+      L.blocks(102, 11, 'CSCC'); L.line(108, 113, 13); L.enemy(110, 'bug');
+      L.ceiling(114, 12);                                  // near a gap
+      L.arc(124, 3);
+      L.stone(131, 132, 12); L.line(131, 132, 11); L.stone(135, 136, 9); L.line(135, 136, 8);
+      L.stone(139, 140, 6); L.gem(139 * TILE + 4, 5 * TILE);
+      L.enemy(144, 'snail');
+      L.arc(150, 2);
+      L.blocks(156, 11, 'BCSB'); L.stone(163, 164, 11); L.stone(166, 167, 7); L.gem(166 * TILE + 4, 6 * TILE);
+      L.line(169, 173, 13); L.enemy(171, 'bug');
+      L.arc(178, 3);
+      L.ceiling(186, 11); L.enemy(196, 'snail');
+      L.stairs(199);
+      for (const [c, n] of [[4, 10], [9, 16], [22, 12], [33, 18], [44, 9], [58, 14], [69, 11], [79, 17], [92, 10],
+        [106, 15], [121, 12], [128, 18], [146, 9], [154, 14], [176, 12], [183, 16], [195, 10], [206, 14]]) L.stal(c, n);
+    },
+  },
+  {
+    // New idea: slow moving platforms (first over solid ground, then over gaps).
+    name: 'SANDY SHORE', len: 230, flag: 222, theme: 'shore',
+    build(L) {
+      L.gaps([[34, 2], [58, 5], [84, 3], [108, 6], [134, 2], [162, 5], [190, 3]]);
+      L.line(5, 9, 13); L.blocks(11, 11, 'CSCB');
+      L.plat(18, 10, 3, 12); L.line(19, 26, 10);            // intro: rides over solid ground
+      L.stone(29, 31, 9); L.line(29, 31, 8);               // a ledge you reach from it
+      L.arc(34, 2);
+      L.hill(40, 45, 13); L.line(41, 44, 12); L.blocks(48, 11, 'BCB'); L.enemy(50, 'snail');
+      L.plat(58, 5, 2, 15); L.line(58, 62, 13);            // first gap crossing
+      L.stone(67, 68, 11); L.stone(71, 72, 8); L.gem(71 * TILE + 4, 7 * TILE);
+      L.line(75, 80, 13); L.enemy(77, 'bug');
+      L.arc(84, 3);
+      L.blocks(92, 11, 'CSCC'); L.enemy(98, 'snail'); L.line(100, 103, 13);
+      L.plat(108, 6, 3, 15); L.line(108, 113, 13);
+      L.stone(118, 119, 12); L.line(118, 119, 11); L.stone(122, 123, 9); L.line(122, 123, 8);
+      L.stone(126, 127, 6); L.gem(126 * TILE + 4, 5 * TILE);
+      L.enemy(130, 'bug');
+      L.arc(134, 2);
+      L.hill(141, 148, 12); L.line(142, 147, 11); L.enemy(145, 'snail'); L.blocks(152, 11, 'BSC');
+      L.plat(162, 5, 2, 15); L.line(162, 166, 13);
+      L.stone(172, 173, 11); L.stone(175, 176, 7); L.gem(175 * TILE + 4, 6 * TILE);
+      L.line(179, 186, 13); L.enemy(183, 'bug');
+      L.arc(190, 3);
+      L.line(197, 201, 13); L.blocks(203, 11, 'CBC'); L.enemy(206, 'snail');
+      L.stairs(210);
+      for (const c of [3, 15, 38, 52, 65, 88, 104, 116, 139, 157, 170, 195, 208, 226]) L.palm(c);
+    },
+  },
+  {
+    // Finale: everything from before, plus a longer flag run.
+    name: 'STARRY NIGHT', len: 240, flag: 230, theme: 'night',
+    build(L) {
+      L.gaps([[30, 2], [70, 3], [92, 5], [116, 2], [146, 3], [160, 6], [178, 2]]);
+      L.line(5, 9, 13); L.blocks(11, 11, 'CSCB'); L.enemy(22, 'snail');
+      L.arc(30, 2);
+      L.hill(36, 41, 13); L.line(37, 40, 12); L.enemy(39, 'bug');
+      L.stone(45, 47, 11); L.line(45, 47, 10); L.stone(50, 51, 8); L.gem(50 * TILE + 4, 7 * TILE);
+      L.ceiling(56, 12); L.enemy(65, 'snail');
+      L.arc(70, 3);
+      L.blocks(77, 11, 'BCSC'); L.line(83, 87, 13); L.enemy(85, 'bug');
+      L.plat(92, 5, 2, 15); L.line(92, 96, 13);
+      L.stone(101, 102, 12); L.line(101, 102, 11); L.stone(105, 106, 9); L.line(105, 106, 8);
+      L.stone(109, 110, 6); L.gem(109 * TILE + 4, 5 * TILE);
+      L.arc(116, 2);
+      L.plat(122, 10, 3, 12); L.line(123, 130, 10); L.stone(133, 135, 9); L.line(133, 135, 8); L.enemy(138, 'snail');
+      L.arc(146, 3);
+      L.blocks(152, 11, 'CBC');
+      L.plat(160, 6, 3, 15); L.line(160, 165, 13);
+      L.stone(170, 171, 11); L.stone(173, 174, 7); L.gem(173 * TILE + 4, 6 * TILE);
+      L.arc(178, 2);
+      L.ceiling(184, 11); L.enemy(193, 'bug'); L.blocks(196, 11, 'BSB'); L.enemy(200, 'snail'); L.line(198, 203, 13);
+      L.stairs(206); L.line(214, 224, 13);
+    },
+  },
+];
+
+let level = 1, theme = TILESETS.meadow, themeName = 'meadow', FLAG_C = 190;
+let FLAG_RECT = { x: 0, y: 24, w: 2, h: GROUND_Y - 24 };
+let coins = [], gems = [], enemies = [], sprouts = [], debris = [], pops = [], bumps = [], decor = [];
+let platDefs = [], plats = [], ptime = 0;
+let coinTotal = 0, boxTotal = 0, sproutTotal = 0;
 const START = { x: 3 * TILE, feet: GROUND_Y };
 
-function buildLevel() {
-  map.fill(0);
-  coins = []; gems = []; snails = []; sprouts = []; debris = []; pops = []; bumps = [];
+function buildLevel(n) {
+  const def = LEVELS[n - 1];
+  level = n; MW = def.len; map = new Uint8Array(MW * MH);
+  themeName = def.theme; theme = TILESETS[def.theme];
+  FLAG_C = def.flag; FLAG_RECT = { x: FLAG_C * TILE + 3, y: 24, w: 2, h: GROUND_Y - 24 };
+  coins = []; gems = []; enemies = []; sprouts = []; debris = []; pops = []; bumps = []; decor = []; platDefs = [];
   for (let c = 0; c < MW; c++) { setTile(c, 15, 1); setTile(c, 16, 2); setTile(c, 17, 2); }
-  const GAPS = [[22, 2], [38, 3], [68, 2], [99, 3], [126, 2], [160, 3]];
-  for (const [g, w] of GAPS) for (let c = g; c < g + w; c++) for (let r = 15; r < MH; r++) setTile(c, r, 0);
-
-  const hill = (c0, c1, top) => { for (let c = c0; c <= c1; c++) { setTile(c, top, 1); for (let r = top + 1; r < MH; r++) setTile(c, r, 2); } };
-  const stone = (c0, c1, r) => { for (let c = c0; c <= c1; c++) setTile(c, r, 6); };
-  const pillar = (c, top) => { for (let r = top; r < 15; r++) setTile(c, r, 6); };
-  const blocks = (c0, r, pat) => { const m = { B: 3, C: 4, S: 7 }; [...pat].forEach((ch, i) => { if (m[ch]) setTile(c0 + i, r, m[ch]); }); };
+  const spawns = [];
   const coin = (px, py) => coins.push({ x: px, y: py, got: false, ph: (coins.length * 13) % 64 });
-  const line = (c0, c1, r) => { for (let c = c0; c <= c1; c++) coin(c * TILE, r * TILE); };
-  const arc = (g, w) => { // a hop-shaped arc of coins over a gap
-    const n = w + 2;
-    for (let i = 0; i < n; i++) coin((g - 1 + i) * TILE, 13 * TILE - Math.round(Math.sin(Math.PI * i / (n - 1)) * 16));
+  const L = {
+    gaps: (list) => { for (const [g, w] of list) for (let c = g; c < g + w; c++) for (let r = 15; r < MH; r++) setTile(c, r, 0); },
+    hill: (c0, c1, top) => { for (let c = c0; c <= c1; c++) { setTile(c, top, 1); for (let r = top + 1; r < MH; r++) setTile(c, r, 2); } },
+    stone: (c0, c1, r) => { for (let c = c0; c <= c1; c++) setTile(c, r, 6); },
+    pillar: (c, top) => { for (let r = top; r < 15; r++) setTile(c, r, 6); },
+    blocks: (c0, r, pat) => { const m = { B: 3, C: 4, S: 7 }; [...pat].forEach((ch, i) => { if (m[ch]) setTile(c0 + i, r, m[ch]); }); },
+    coin,
+    line: (c0, c1, r) => { for (let c = c0; c <= c1; c++) coin(c * TILE, r * TILE); },
+    arc: (g, w) => { // a hop-shaped arc of coins over a gap
+      const n = w + 2;
+      for (let i = 0; i < n; i++) coin((g - 1 + i) * TILE, 13 * TILE - Math.round(Math.sin(Math.PI * i / (n - 1)) * 16));
+    },
+    gem: (px, py) => gems.push({ x: px, y: py, got: false }),
+    enemy: (c, type) => spawns.push([c, type]),
+    // stone caps either side of a 3-brick ceiling, with a coin row above it
+    ceiling: (c, r) => { L.stone(c, c + 1, r); L.blocks(c + 2, r, 'BBB'); L.stone(c + 5, c + 6, r); L.line(c, c + 6, r - 2); },
+    stairs: (c) => {
+      L.pillar(c, 14); L.pillar(c + 1, 13); L.pillar(c + 2, 12); L.pillar(c + 3, 11); L.pillar(c + 4, 11);
+      coin(c * TILE, 13 * TILE); coin((c + 1) * TILE, 12 * TILE); coin((c + 2) * TILE, 11 * TILE);
+      coin((c + 3) * TILE, 10 * TILE); coin((c + 4) * TILE, 10 * TILE);
+    },
+    plat: (c0, span, wTiles, topRow) => platDefs.push({ c0, span, w: wTiles * TILE, y: topRow * TILE, speed: C.PLAT_V, phase: 0 }),
+    palm: (c) => decor.push({ type: 'palm', c }),
+    stal: (c, len) => decor.push({ type: 'stal', c, len }),
   };
-  const gem = (px, py) => gems.push({ x: px, y: py, got: false });
-
-  // -- start
-  line(6, 9, 13);
-  blocks(11, 11, 'CBSBC');
-  arc(22, 2);
-  hill(28, 33, 13); line(29, 32, 12);
-  arc(38, 3);
-  // -- gem 1: stone step, then a high stone perch
-  stone(46, 48, 11); line(46, 48, 10);
-  stone(51, 52, 8); gem(51 * TILE + 4, 7 * TILE);
-  blocks(60, 11, 'BCBB'); line(64, 65, 13);
-  arc(68, 2);
-  // -- stone staircase up to a plateau
-  pillar(74, 14); pillar(75, 13); pillar(76, 12); pillar(77, 11); pillar(78, 11); pillar(79, 11);
-  line(77, 79, 10);
-  blocks(89, 11, 'CBSBC');
-  arc(99, 3);
-  // -- gem 2: three stone steps going up
-  stone(108, 109, 12); line(108, 109, 11);
-  stone(112, 113, 9); line(112, 113, 8);
-  stone(116, 117, 6); gem(116 * TILE + 4, 5 * TILE);
-  arc(126, 2);
-  hill(133, 140, 12); line(134, 139, 11);
-  blocks(145, 11, 'BSBC');
-  // -- gem 3: stone step and a tall perch
-  stone(151, 152, 11);
-  stone(154, 155, 7); gem(154 * TILE + 4, 6 * TILE);
-  arc(160, 3);
-  line(166, 169, 13);
-  // -- final staircase, then the flag
-  pillar(178, 14); pillar(179, 13); pillar(180, 12); pillar(181, 11); pillar(182, 11);
-  coin(178 * TILE, 13 * TILE); coin(179 * TILE, 12 * TILE); coin(180 * TILE, 11 * TILE);
-  coin(181 * TILE, 10 * TILE); coin(182 * TILE, 10 * TILE);
-
-  for (const c of [31, 56, 85, 120, 137, 170]) {
+  def.build(L);
+  for (const [c, type] of spawns) {
     let r = 0; while (r < MH && !solid(c, r)) r++;
-    snails.push({ x: c * TILE, y: r * TILE - 7, w: 8, h: 7, vx: 0, vy: 0, dir: -1, alive: true, squash: 0, anim: 0, onGround: true });
+    enemies.push({ type, x: c * TILE, y: r * TILE - 7, w: 8, h: 7, vx: 0, vy: 0, dir: -1, alive: true, squash: 0,
+      anim: 0, onGround: true, rest: 20 + (c % 30) });
   }
-
+  ptime = 0;
+  plats = platDefs.map((d) => ({ x: platX(d, 0), y: d.y, w: d.w, dx: 0, def: d }));
   let cb = 0, sb = 0;
   for (let i = 0; i < map.length; i++) { if (map[i] === 4) cb++; if (map[i] === 7) sb++; }
   coinTotal = coins.length + cb;
-  boxTotal = cb + sb;
+  boxTotal = cb + sb; sproutTotal = sb;
+}
+
+// ---------------------------------------------------------------------------
+// Progress (localStorage, optional)
+// ---------------------------------------------------------------------------
+const SAVE_KEY = 'pipsCoinHop.v1';
+let progress = { unlocked: 1, best: {} };
+function loadProgress() {
+  try {
+    const s = window.localStorage.getItem(SAVE_KEY);
+    if (!s) return;
+    const o = JSON.parse(s);
+    if (o && typeof o.unlocked === 'number') {
+      progress = { unlocked: Math.max(1, Math.min(LEVELS.length, o.unlocked | 0)), best: (o.best && typeof o.best === 'object') ? o.best : {} };
+    }
+  } catch (e) { /* storage unavailable: play without saving */ }
+}
+function saveProgress() { try { window.localStorage.setItem(SAVE_KEY, JSON.stringify(progress)); } catch (e) { /* ignore */ } }
+function bestFor(n) { const b = progress.best[n]; return { coins: (b && b.coins) | 0, gems: (b && b.gems) | 0 }; }
+function recordWin() {
+  const b = bestFor(level);
+  progress.best[level] = { coins: Math.max(b.coins, coinsGot), gems: Math.max(b.gems, gemsGot) };
+  progress.unlocked = Math.max(progress.unlocked, Math.min(LEVELS.length, level + 1));
+  saveProgress();
 }
 
 // ---------------------------------------------------------------------------
@@ -576,8 +702,9 @@ const SFX = {
   grow() { seq([262, 330, 392, 523, 330, 392, 523, 659], 0.065, 'square', 0.18); },
   shrink() { seq([659, 523, 392, 262], 0.07, 'square', 0.18); },
   gem() { seq([784, 988, 1175, 1568], 0.07, 'square', 0.2, 0.12); },
-  win() { seq([523, 659, 784, 1047, 0.01, 784, 1047], 0.14, 'square', 0.2); seq([262, 330, 392, 523, 0.01, 392, 523], 0.14, 'triangle', 0.3); },
+  win() { seq([523, 659, 784, 1047, 0, 784, 1047], 0.14, 'square', 0.2); seq([262, 330, 392, 523, 0, 392, 523], 0.14, 'triangle', 0.3); },
   whoosh() { tone(900, 0.35, 'triangle', 0.35, 110); },
+  select() { tone(660, 0.05, 'square', 0.15); },
 };
 
 // ---------------------------------------------------------------------------
@@ -585,7 +712,7 @@ const SFX = {
 // ---------------------------------------------------------------------------
 const held = { left: new Set(), right: new Set(), jump: new Set() };
 const keys = { left: false, right: false, jump: false };
-let prevJump = false;
+let prevJump = false, prevDir = 0;
 
 function bindPad(id, k) {
   const el = document.getElementById(id);
@@ -594,7 +721,7 @@ function bindPad(id, k) {
     held[k].add(e.pointerId);
     try { el.releasePointerCapture(e.pointerId); } catch (_) { /* not captured */ }
     el.classList.add('on');
-    if (k === 'jump' && state === 'title') startGame();
+    if (k === 'jump' && state === 'title') goSelect();
   };
   const up = (e) => { held[k].delete(e.pointerId); if (!held[k].size) el.classList.remove('on'); };
   el.addEventListener('pointerdown', down);
@@ -613,17 +740,18 @@ const KEYMAP = {
 window.addEventListener('keydown', (e) => {
   ensureAudio();
   const k = KEYMAP[e.key];
-  if (k || e.key === 'ArrowDown' || e.key === 'Enter') e.preventDefault();
-  if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
-    if (state === 'title' || (state === 'win' && canRestart())) { startGame(); if (k) keys[k] = true; return; }
+  if (k || e.key === 'ArrowDown' || e.key === 'Enter' || e.key === 'Escape') e.preventDefault();
+  if (!e.repeat) {
+    const start = e.key === 'Enter' || e.key === ' ';
+    if (start && state === 'title') { goSelect(); if (k) keys[k] = true; return; }
+    if (start && state === 'select') { startLevel(selIdx + 1); if (k) keys[k] = true; return; }
+    if (start && winReady()) { primaryAction(); if (k) keys[k] = true; return; }
+    if (e.key === 'Escape' && (state === 'play' || state === 'grow' || winReady())) { goSelect(); return; }
   }
   if (k) keys[k] = true;
 });
 window.addEventListener('keyup', (e) => { const k = KEYMAP[e.key]; if (k) keys[k] = false; });
 window.addEventListener('blur', () => { keys.left = keys.right = keys.jump = false; for (const k in held) held[k].clear(); });
-
-const playBtn = document.getElementById('playBtn');
-playBtn.addEventListener('click', () => { ensureAudio(); if (state === 'title' || (state === 'win' && canRestart())) startGame(); });
 
 // no page scroll / zoom
 document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
@@ -639,33 +767,87 @@ function readInput() {
 }
 
 // ---------------------------------------------------------------------------
-// Game state
+// Screens: title -> level select -> play -> win
 // ---------------------------------------------------------------------------
 let state = 'title';
-let frame = 0, cam = 0, growT = 0, winT = 0;
+let frame = 0, cam = 0, growT = 0, winT = 0, selIdx = 0;
 let coinsGot = 0, gemsGot = 0;
-const P = { x: 0, y: 0, w: C.W, h: C.SMALL_H, vx: 0, vy: 0, onGround: false, coyote: 0, jbuf: 0, face: 1,
+const P = { x: 0, y: 0, w: C.W, h: C.SMALL_H, vx: 0, vy: 0, onGround: false, coyote: 0, jbuf: 0, face: 1, ride: null,
   big: false, blink: 0, knock: 0, knockDir: 0, anim: 0 };
 const safe = { x: START.x, feet: START.feet };
 
+// select-screen tiles (canvas px) and their larger invisible touch targets
+const SEL = [[12, 22], [60, 22], [108, 22], [36, 70], [84, 70]];
+const SEL_SIZE = 40;
+const ovEls = {
+  play: document.getElementById('playBtn'),
+  lvl: [1, 2, 3, 4, 5].map((n) => document.getElementById('lvl' + n)),
+  next: document.getElementById('nextBtn'),
+  menu: document.getElementById('menuBtn'),
+};
+function placeOv(el, x, y, w, h) {
+  el.style.left = (x / VW * 100) + '%'; el.style.top = (y / VH * 100) + '%';
+  el.style.width = (w / VW * 100) + '%'; el.style.height = (h / VH * 100) + '%';
+}
+SEL.forEach(([x, y], i) => placeOv(ovEls.lvl[i], x - 4, y - 4, SEL_SIZE + 8, SEL_SIZE + 8));
+
+function winButtons() {
+  const primary = level < LEVELS.length ? 'NEXT LEVEL' : 'PLAY AGAIN';
+  const w1 = textW(primary) + 16, w2 = textW('MENU') + 16, gap = 8;
+  const x1 = Math.floor((VW - (w1 + gap + w2)) / 2), y = 98;
+  return { primary, b1: { x: x1, y, w: w1, h: 18 }, b2: { x: x1 + w1 + gap, y, w: w2, h: 18 } };
+}
+
+function updateOverlays() {
+  ovEls.play.classList.toggle('show', state === 'title');
+  ovEls.lvl.forEach((el, i) => el.classList.toggle('show', state === 'select'));
+  const w = winReady();
+  ovEls.next.classList.toggle('show', w);
+  ovEls.menu.classList.toggle('show', w);
+  if (w) {
+    const B = winButtons();
+    placeOv(ovEls.next, B.b1.x - 3, B.b1.y - 9, B.b1.w + 6, B.b1.h + 18);
+    placeOv(ovEls.menu, B.b2.x - 3, B.b2.y - 9, B.b2.w + 6, B.b2.h + 18);
+    ovEls.next.setAttribute('aria-label', level < LEVELS.length ? 'Next level' : 'Play again');
+  }
+}
+
+ovEls.play.addEventListener('click', () => { ensureAudio(); if (state === 'title') goSelect(); });
+ovEls.lvl.forEach((el, i) => el.addEventListener('click', () => {
+  ensureAudio();
+  if (state !== 'select') return;
+  if (i + 1 <= progress.unlocked) startLevel(i + 1);
+  else { selIdx = i; SFX.bonk(); }
+}));
+ovEls.next.addEventListener('click', () => { ensureAudio(); if (winReady()) primaryAction(); });
+ovEls.menu.addEventListener('click', () => { ensureAudio(); if (winReady()) goSelect(); });
+
+function winReady() { return state === 'win' && winT >= 150; }
+function primaryAction() { startLevel(level < LEVELS.length ? level + 1 : level); }
+
+function goSelect() {
+  // point the cursor at: the newest level (from the title), the next level
+  // (after a win), or the level just left (from play)
+  const want = state === 'title' ? progress.unlocked : state === 'win' ? level + 1 : level;
+  state = 'select';
+  selIdx = Math.max(0, Math.min(progress.unlocked, want) - 1);
+  prevJump = true; prevDir = 0;
+  updateOverlays();
+}
+
 function resetPip() {
-  Object.assign(P, { x: START.x, w: C.W, h: C.SMALL_H, vx: 0, vy: 0, onGround: true, coyote: 0, jbuf: 0, face: 1,
+  Object.assign(P, { x: START.x, w: C.W, h: C.SMALL_H, vx: 0, vy: 0, onGround: true, coyote: 0, jbuf: 0, face: 1, ride: null,
     big: false, blink: 0, knock: 0, knockDir: 0, anim: 0 });
   P.y = START.feet - P.h;
   safe.x = START.x; safe.feet = START.feet;
 }
-function canRestart() { return state === 'win' && winT >= 150; }
 
-function startGame() {
-  buildLevel(); resetPip();
+function startLevel(n) {
+  buildLevel(n); resetPip(); // always small at the start of a level
   coinsGot = 0; gemsGot = 0; frame = 0; cam = 0; growT = 0; winT = 0;
-  prevJump = true; // the key/tap that started the game must not also jump
+  prevJump = true; // the key/tap that started the level must not also jump
   state = 'play';
-  updatePlayBtn();
-}
-function updatePlayBtn() {
-  playBtn.classList.toggle('show', state === 'title' || canRestart());
-  playBtn.setAttribute('aria-label', state === 'win' ? 'Play again' : 'Play');
+  updateOverlays();
 }
 
 // ---------------------------------------------------------------------------
@@ -682,8 +864,8 @@ function setBig(big) {
 function hitTile(c, r) {
   const t = tileAt(c, r);
   bumps.push({ c, r, t: 0 });
-  // squash any snail standing on the bumped block
-  for (const s of snails) {
+  // squash any enemy standing on the bumped block
+  for (const s of enemies) {
     if (s.alive && !s.squash && Math.abs(s.y + s.h - r * TILE) < 1.5 && s.x < c * TILE + TILE && s.x + s.w > c * TILE) { s.squash = 30; SFX.stomp(); }
   }
   if (t === 4) {
@@ -707,7 +889,7 @@ function hitTile(c, r) {
 function groundBelow(c, r) { for (let rr = r; rr < MH; rr++) if (solid(c, rr)) return true; return false; }
 
 function updateSafeSpot() {
-  if (!P.onGround || P.knock) return;
+  if (!P.onGround || P.knock || P.ride != null) return;
   const fr = Math.floor((P.y + P.h + 1) / TILE);
   const lc = Math.floor(P.x / TILE), rc = Math.floor((P.x + P.w - 1) / TILE);
   const bc = Math.floor((P.face > 0 ? P.x - 6 : P.x + P.w - 1 + 6) / TILE);
@@ -716,8 +898,13 @@ function updateSafeSpot() {
 }
 
 function respawn() {
-  P.x = safe.x; P.y = safe.feet - P.h; P.vx = 0; P.vy = 0; P.knock = 0;
+  P.x = safe.x; P.y = safe.feet - P.h; P.vx = 0; P.vy = 0; P.knock = 0; P.ride = null;
   P.onGround = true; P.blink = C.BLINK + 30; SFX.whoosh();
+}
+
+function updatePlats() {
+  ptime++;
+  for (const p of plats) { const nx = platX(p.def, ptime); p.dx = nx - p.x; p.x = nx; }
 }
 
 function updatePlay() {
@@ -727,7 +914,8 @@ function updatePlay() {
     P.vx = P.knockDir * 1.2;
     if (P.knock === 0) P.blink = C.BLINK;
   }
-  const res = physics(P, inp);
+  updatePlats();
+  const res = physics(P, inp, plats);
   if (res.jumped) SFX.jump();
   if (res.r.head) hitTile(res.r.head.c, res.r.head.r);
   if (P.blink > 0) P.blink--;
@@ -740,10 +928,10 @@ function updatePlay() {
 
   updateSprouts();
   if (state !== 'play') return; // a sprout may have started the grow pause
-  updateSnails(inp);
+  updateEnemies(inp);
   updateFx();
 
-  if (overlap(P, FLAG_RECT)) { state = 'win'; winT = 0; P.vx = 0; SFX.win(); }
+  if (overlap(P, FLAG_RECT)) { state = 'win'; winT = 0; P.vx = 0; SFX.win(); recordWin(); }
 }
 
 function updateSprouts() {
@@ -776,17 +964,38 @@ function updateSprouts() {
   }
 }
 
-function updateSnails(inp) {
-  for (const s of snails) {
+// Is it safe for a bug to hop `dir`? (no wall in the way, ground at the
+// landing spot and right in front of it)
+function bugSafe(s, dir) {
+  const fr = Math.floor((s.y + s.h + 1) / TILE);
+  const front = dir > 0 ? s.x + s.w + 0.5 : s.x - 0.5;
+  const land = front + dir * 10;
+  const wallC = Math.floor((dir > 0 ? s.x + s.w + 1 : s.x - 1) / TILE);
+  if (solid(wallC, Math.floor((s.y + s.h - 1) / TILE))) return false;
+  return solid(Math.floor(front / TILE), fr) && solid(Math.floor(land / TILE), fr);
+}
+
+function updateEnemies(inp) {
+  for (const s of enemies) {
     if (!s.alive) continue;
     if (s.squash) { if (--s.squash === 0) s.alive = false; continue; }
     if (s.x < cam - 40 || s.x > cam + VW + 40) continue; // only simulate near the camera
-    s.vx = s.dir * C.SNAIL_V;
+    if (s.type === 'bug') {
+      if (s.onGround) {
+        s.vx = 0;
+        if (--s.rest <= 0) {
+          if (!bugSafe(s, s.dir)) s.dir = -s.dir;
+          s.vy = C.BUG_HOP; s.vx = bugSafe(s, s.dir) ? s.dir * C.BUG_V : 0; s.rest = C.BUG_REST; s.onGround = false;
+        }
+      }
+    } else {
+      s.vx = s.dir * C.SNAIL_V;
+    }
     s.vy = Math.min(C.TERM, s.vy + C.GRAV);
     const r = moveBody(s);
     s.onGround = r.ground;
     if (r.wall) s.dir = -s.dir;
-    else if (s.onGround) {
+    else if (s.type === 'snail' && s.onGround) {
       const fc = Math.floor((s.dir > 0 ? s.x + s.w + 0.5 : s.x - 0.5) / TILE);
       if (!solid(fc, Math.floor((s.y + s.h + 1) / TILE))) s.dir = -s.dir;
     }
@@ -813,6 +1022,18 @@ function updateFx() {
   pops = pops.filter((p) => p.t < 22);
 }
 
+function updateSelect() {
+  const inp = readInput();
+  if (inp.dir && inp.dir !== prevDir) {
+    const n = Math.max(0, Math.min(LEVELS.length - 1, selIdx + inp.dir));
+    if (n !== selIdx) { selIdx = n; SFX.select(); }
+  }
+  prevDir = inp.dir;
+  if (inp.jumpPressed) {
+    if (selIdx + 1 <= progress.unlocked) startLevel(selIdx + 1); else SFX.bonk();
+  }
+}
+
 function update() {
   frame++;
   if (state === 'play') updatePlay();
@@ -822,9 +1043,11 @@ function update() {
   } else if (state === 'win') {
     winT++;
     if (P.onGround && winT > 6 && winT < 100) P.vy = -2.4; // happy hops
-    physics(P, { dir: 0, jump: true, jumpPressed: false });
+    physics(P, { dir: 0, jump: true, jumpPressed: false }, null);
     updateFx();
-    if (winT === 150) updatePlayBtn();
+    if (winT === 150) updateOverlays();
+  } else if (state === 'select') {
+    updateSelect();
   } else if (state === 'title') {
     readInput();
   }
@@ -844,32 +1067,110 @@ function disc(cx, cy, r, col, topOnly) { // a filled circle from 1px rect rows
     ctx.fillRect(cx - hw, cy + dy, hw * 2 + 1, 1);
   }
 }
+function hump(cx, base, rx, ry, col) { // a low, wide rounded hump (dunes)
+  ctx.fillStyle = PAL[col];
+  for (let dy = 0; dy <= ry; dy++) {
+    const hw = Math.floor(rx * Math.sqrt(1 - (dy / ry) * (dy / ry)) + 0.5);
+    ctx.fillRect(cx - hw, base - dy, hw * 2 + 1, 1);
+  }
+}
+function cloud(x, y, outline, fill) {
+  const puffs = [[0, 3, 5], [7, 0, 7], [15, 3, 5]];
+  for (const p of puffs) disc(x + p[0], y + p[1], p[2] + 1, outline, false);
+  for (const p of puffs) disc(x + p[0], y + p[1], p[2], fill, false);
+  ctx.fillStyle = PAL[fill]; ctx.fillRect(x - 6, y + 6, 28, 3);
+  ctx.fillStyle = PAL[outline]; ctx.fillRect(x - 5, y + 9, 26, 1);
+}
+// repeat a pattern horizontally with parallax factor f and period w
+function repeatX(f, w, items, fn) {
+  const o = Math.floor(cam * f) % w;
+  for (let k = -1; k <= 1; k++) for (const it of items) fn(it, it.x - o + k * w);
+}
+
 const CLOUDS = [{ x: 14, y: 22 }, { x: 96, y: 36 }, { x: 170, y: 18 }, { x: 236, y: 42 }];
 const HILLS = [{ x: 30, r: 26 }, { x: 104, r: 40 }, { x: 178, r: 20 }, { x: 222, r: 30 }];
+const SKY_CLOUDS = [{ x: 8, y: 18 }, { x: 60, y: 44 }, { x: 112, y: 24 }, { x: 160, y: 54 }, { x: 214, y: 30 }, { x: 262, y: 48 }];
+const BANK = [{ x: 0, r: 16 }, { x: 26, r: 12 }, { x: 50, r: 18 }, { x: 80, r: 13 }, { x: 104, r: 17 }, { x: 132, r: 12 }, { x: 156, r: 15 }, { x: 182, r: 18 }, { x: 210, r: 13 }, { x: 236, r: 16 }];
+const CRYSTALS = [{ x: 12, y: 40 }, { x: 52, y: 70 }, { x: 88, y: 32 }, { x: 128, y: 58 }, { x: 170, y: 84 }, { x: 206, y: 44 }, { x: 240, y: 76 }];
+const DUNES = [{ x: 20, rx: 46, ry: 14 }, { x: 110, rx: 60, ry: 20 }, { x: 200, rx: 40, ry: 12 }];
+const STARS = []; for (let i = 0; i < 60; i++) STARS.push({ x: (i * 53 + (i * i * 7) % 31) % 320, y: 14 + (i * 37 + i * i) % 84, tw: i % 5 });
+const NIGHT_HILLS = [{ x: 40, r: 34 }, { x: 140, r: 46 }, { x: 230, r: 28 }];
+
 function drawBackground() {
-  ctx.fillStyle = PAL[0]; ctx.fillRect(0, 0, VW, VH);
-  const cw = 300, co = Math.floor(cam * 0.12) % cw;
-  for (let k = -1; k <= 1; k++) {
-    for (const cl of CLOUDS) {
-      const x = cl.x - co + k * cw;
-      if (x < -40 || x > VW + 40) continue;
-      const puffs = [[0, 3, 5], [7, 0, 7], [15, 3, 5]];
-      for (const p of puffs) disc(x + p[0], cl.y + p[1], p[2] + 1, 1, false);
-      for (const p of puffs) disc(x + p[0], cl.y + p[1], p[2], 0, false);
-      ctx.fillStyle = PAL[0]; ctx.fillRect(x - 6, cl.y + 6, 28, 3);
-      ctx.fillStyle = PAL[1]; ctx.fillRect(x - 5, cl.y + 9, 26, 1);
-    }
-  }
-  const hw = 260, ho = Math.floor(cam * 0.3) % hw;
-  for (let k = -1; k <= 1; k++) {
-    for (const h of HILLS) {
-      const x = h.x - ho + k * hw;
-      if (x < -h.r - 4 || x > VW + h.r + 4) continue;
+  if (themeName === 'meadow') {
+    ctx.fillStyle = PAL[0]; ctx.fillRect(0, 0, VW, VH);
+    repeatX(0.12, 300, CLOUDS, (cl, x) => { if (x > -40 && x < VW + 40) cloud(x, cl.y, 1, 0); });
+    repeatX(0.3, 260, HILLS, (h, x) => {
+      if (x < -h.r - 4 || x > VW + h.r + 4) return;
       disc(x, GROUND_Y, h.r + 1, 2, true);
       disc(x, GROUND_Y, h.r, 1, true);
       ctx.fillStyle = PAL[2];
       ctx.fillRect(x - Math.floor(h.r / 3), GROUND_Y - Math.floor(h.r / 2), 2, 1);
       ctx.fillRect(x + Math.floor(h.r / 4), GROUND_Y - Math.floor(h.r / 3), 2, 1);
+    });
+  } else if (themeName === 'clouds') {
+    ctx.fillStyle = PAL[0]; ctx.fillRect(0, 0, VW, VH);
+    repeatX(0.1, 320, SKY_CLOUDS, (cl, x) => { if (x > -40 && x < VW + 40) cloud(x, cl.y, 1, 0); });
+    repeatX(0.22, 260, BANK, (b, x) => { if (x > -b.r - 2 && x < VW + b.r + 2) disc(x, GROUND_Y + 2, b.r + 1, 1, true); });
+    repeatX(0.22, 260, BANK, (b, x) => { if (x > -b.r - 2 && x < VW + b.r + 2) disc(x, GROUND_Y + 2, b.r, 0, true); });
+  } else if (themeName === 'cave') {
+    ctx.fillStyle = PAL[3]; ctx.fillRect(0, 0, VW, VH);
+    repeatX(0.25, 280, CRYSTALS, (cr, x) => {
+      if (x < -8 || x > VW + 8) return;
+      ctx.fillStyle = PAL[2];
+      for (let i = 0; i < 5; i++) ctx.fillRect(x - i, cr.y + i, 1 + i * 2, 1);
+      for (let i = 0; i < 4; i++) ctx.fillRect(x - 3 + i, cr.y + 5 + i, 7 - i * 2, 1);
+      ctx.fillStyle = PAL[1]; ctx.fillRect(x, cr.y + 1, 1, 2);
+    });
+    ctx.fillStyle = PAL[2]; ctx.fillRect(0, HUD_H, VW, 2);
+  } else if (themeName === 'shore') {
+    ctx.fillStyle = PAL[0]; ctx.fillRect(0, 0, VW, VH);
+    disc(128, 30, 10, 1, false); disc(128, 30, 8, 0, false); disc(128, 30, 6, 1, false);
+    ctx.fillStyle = PAL[1]; ctx.fillRect(0, 92, VW, GROUND_Y - 92);
+    ctx.fillStyle = PAL[0];
+    const wo = Math.floor(cam * 0.15);
+    for (let y = 96; y < GROUND_Y; y += 6) for (let x = -((wo + y * 3) % 24); x < VW; x += 24) ctx.fillRect(x, y, 6, 1);
+    repeatX(0.3, 250, DUNES, (d, x) => {
+      if (x < -d.rx - 2 || x > VW + d.rx + 2) return;
+      hump(x, GROUND_Y, d.rx + 1, d.ry + 1, 2); hump(x, GROUND_Y, d.rx, d.ry, 1);
+      ctx.fillStyle = PAL[0]; ctx.fillRect(x - 6, GROUND_Y - d.ry + 3, 3, 1); ctx.fillRect(x + 10, GROUND_Y - d.ry + 6, 2, 1);
+    });
+  } else if (themeName === 'night') {
+    ctx.fillStyle = PAL[3]; ctx.fillRect(0, 0, VW, VH);
+    repeatX(0.05, 320, STARS, (s, x) => {
+      if (x < 0 || x >= VW) return;
+      const ph = (Math.floor(frame / 12) + s.tw) % 6;
+      if (ph === 0) return;
+      ctx.fillStyle = PAL[ph === 3 ? 1 : 0]; ctx.fillRect(x, s.y, 1, 1);
+      if (ph === 2 && s.tw === 0) { ctx.fillStyle = PAL[1]; ctx.fillRect(x - 1, s.y, 1, 1); ctx.fillRect(x + 1, s.y, 1, 1); ctx.fillRect(x, s.y - 1, 1, 1); ctx.fillRect(x, s.y + 1, 1, 1); }
+    });
+    disc(124, 30, 9, 0, false); disc(129, 27, 8, 3, false);
+    repeatX(0.3, 300, NIGHT_HILLS, (h, x) => { if (x > -h.r - 2 && x < VW + h.r + 2) disc(x, GROUND_Y, h.r, 2, true); });
+  }
+}
+
+function surfaceY(c) { let r = 0; while (r < MH && !solid(c, r)) r++; return r * TILE; }
+function drawDecor() {
+  for (const d of decor) {
+    const x = d.c * TILE - cam;
+    if (x < -24 || x > VW + 24) continue;
+    if (d.type === 'stal') { // hanging stalactite, non-solid
+      for (let k = 0; k < d.len; k++) {
+        const w = Math.max(1, Math.round(6 * (1 - k / d.len)));
+        ctx.fillStyle = PAL[2]; ctx.fillRect(x + 4 - Math.floor(w / 2), HUD_H + 2 + k, w, 1);
+        ctx.fillStyle = PAL[1]; ctx.fillRect(x + 4 - Math.floor(w / 2), HUD_H + 2 + k, 1, 1);
+      }
+    } else if (d.type === 'palm') { // palm tree, non-solid
+      const base = surfaceY(d.c);
+      const bend = [0, 0, 1, 1, 2, 3, 4];
+      for (let i = 0; i < bend.length; i++) {
+        ctx.fillStyle = PAL[2]; ctx.fillRect(x + 3 + bend[i], base - 5 - i * 5, 3, 5);
+        ctx.fillStyle = PAL[3]; ctx.fillRect(x + 3 + bend[i], base - 5 - i * 5, 3, 1);
+      }
+      const tx = x + 4 + bend[bend.length - 1], ty = base - bend.length * 5 - 2;
+      const fr = (dx, dy, len, sx, sy) => { for (let k = 0; k < len; k++) { ctx.fillStyle = PAL[3]; ctx.fillRect(tx + dx + k * sx, ty + dy + Math.floor(k * sy), 2, 2); ctx.fillStyle = PAL[1]; ctx.fillRect(tx + dx + k * sx, ty + dy + Math.floor(k * sy), 1, 1); } };
+      fr(0, 0, 7, 1, 0.5); fr(0, 0, 7, -1, 0.5); fr(0, 0, 5, 1, -0.4); fr(0, 0, 5, -1, -0.4);
+      ctx.fillStyle = PAL[3]; ctx.fillRect(tx - 1, ty + 1, 3, 3);
     }
   }
 }
@@ -888,21 +1189,28 @@ function drawTiles() {
       let s;
       if (t === 4) s = blink ? SPR.cboxA : SPR.cboxB;
       else if (t === 7) s = blink ? SPR.sboxA : SPR.sboxB;
-      else s = SPR.tiles[t];
+      else s = theme[t];
       drawSpr(s, c * TILE - cam, r * TILE + bumpOffset(c, r));
     }
+  }
+  for (const p of plats) {
+    const x = Math.floor(p.x) - cam;
+    if (x < -p.w || x > VW) continue;
+    for (let i = 0; i < p.w; i += TILE) drawSpr(theme[6], x + i, p.y);
   }
 }
 
 function drawFlag() {
   const x = FLAG_C * TILE + 3 - cam;
   if (x < -20 || x > VW + 4) return;
-  ctx.fillStyle = PAL[3]; ctx.fillRect(x, 26, 2, GROUND_Y - 26);
-  disc(x + 1, 24, 2, 3, false); ctx.fillStyle = PAL[0]; ctx.fillRect(x, 23, 1, 1);
+  const dark = themeName === 'cave' || themeName === 'night';
+  const pole = dark ? 1 : 3;
+  ctx.fillStyle = PAL[pole]; ctx.fillRect(x, 26, 2, GROUND_Y - 26);
+  disc(x + 1, 24, 2, pole, false); ctx.fillStyle = PAL[0]; ctx.fillRect(x, 23, 1, 1);
   const wave = state === 'win' ? (Math.floor(frame / 8) % 2) : 0;
-  for (let i = 0; i < 9; i++) { ctx.fillStyle = PAL[3]; ctx.fillRect(x + 2, 28 + i + wave, 11 - i, 1); }
-  for (let i = 1; i < 8; i++) { ctx.fillStyle = PAL[1]; ctx.fillRect(x + 2, 28 + i + wave, 9 - i, 1); }
-  ctx.fillStyle = PAL[3]; ctx.fillRect(x - 2, GROUND_Y - 2, 6, 2);
+  for (let i = 0; i < 9; i++) { ctx.fillStyle = PAL[pole]; ctx.fillRect(x + 2, 28 + i + wave, 11 - i, 1); }
+  for (let i = 1; i < 8; i++) { ctx.fillStyle = PAL[dark ? 0 : 1]; ctx.fillRect(x + 2, 28 + i + wave, 9 - i, 1); }
+  ctx.fillStyle = PAL[pole]; ctx.fillRect(x - 2, GROUND_Y - 2, 6, 2);
 }
 
 function drawEntities() {
@@ -925,10 +1233,13 @@ function drawEntities() {
       drawSpr(SPR.sprout, x, sp.y); ctx.restore();
     } else drawSpr(SPR.sprout, x, sp.y);
   }
-  for (const s of snails) {
+  for (const s of enemies) {
     if (!s.alive) continue;
     const x = s.x - cam; if (x < -12 || x > VW + 4) continue;
-    if (s.squash) drawSpr(SPR.snailFlat, x - 1, s.y + s.h - 4, s.dir < 0);
+    if (s.type === 'bug') {
+      if (s.squash) drawSpr(SPR.bugFlat, x - 1, s.y + s.h - 3, s.dir < 0);
+      else drawSpr(!s.onGround || Math.floor(s.anim / 10) % 2 ? SPR.bugB : SPR.bugA, x - 1, s.y + s.h - 8, s.dir < 0);
+    } else if (s.squash) drawSpr(SPR.snailFlat, x - 1, s.y + s.h - 4, s.dir < 0);
     else drawSpr(Math.floor(s.anim / 16) % 2 ? SPR.snailB : SPR.snailA, x - 1, s.y + s.h - 8, s.dir < 0);
   }
   for (const p of pops) drawSpr(SPR.coin, p.x - cam, p.y);
@@ -968,6 +1279,12 @@ function button(label, y, on) {
   ctx.fillStyle = on ? PAL[2] : PAL[3]; ctx.fillRect(x + 1, y + 1, w - 2, 13);
   drawText(label, x + 8, y + 5, 0);
 }
+function boxButton(label, b, primary, on) {
+  ctx.fillStyle = PAL[3]; ctx.fillRect(b.x, b.y, b.w, b.h);
+  if (primary) { ctx.fillStyle = on ? PAL[2] : PAL[3]; ctx.fillRect(b.x + 1, b.y + 1, b.w - 2, b.h - 2); }
+  else { ctx.fillStyle = PAL[0]; ctx.fillRect(b.x + 2, b.y + 2, b.w - 4, b.h - 4); }
+  drawText(label, b.x + 8, b.y + Math.floor((b.h - 5) / 2), primary ? 0 : 3);
+}
 
 function drawTitle() {
   panel(18, 20, 124, 82);
@@ -979,25 +1296,63 @@ function drawTitle() {
   drawTextC('TAP PLAY OR PRESS ENTER', VH - 8, 0);
 }
 
+function drawSelect() {
+  ctx.fillStyle = PAL[0]; ctx.fillRect(0, 0, VW, VH);
+  ctx.fillStyle = PAL[3]; ctx.fillRect(0, 0, VW, 15);
+  drawTextC('PICK A LEVEL', 5, 0);
+  for (let i = 0; i < LEVELS.length; i++) {
+    const [x, y] = SEL[i], S = SEL_SIZE;
+    const open = i + 1 <= progress.unlocked;
+    if (i === selIdx && Math.floor(frame / 15) % 2 === 0) { ctx.fillStyle = PAL[1]; ctx.fillRect(x - 3, y - 3, S + 6, S + 6); }
+    ctx.fillStyle = PAL[3]; ctx.fillRect(x, y, S, S);
+    ctx.fillStyle = open ? PAL[3] : PAL[1]; ctx.fillRect(x + 1, y + 1, S - 2, S - 2);
+    ctx.fillStyle = PAL[2]; ctx.fillRect(x + 2, y + 2, S - 4, 1); ctx.fillRect(x + 2, y + S - 3, S - 4, 1);
+    ctx.fillRect(x + 2, y + 2, 1, S - 4); ctx.fillRect(x + S - 3, y + 2, 1, S - 4);
+    if (open) {
+      const num = String(i + 1);
+      drawText(num, x + Math.floor((S - textW(num, 3)) / 2), y + 6, 0, 3);
+      const g = bestFor(i + 1).gems;
+      for (let k = 0; k < 3; k++) drawSpr(k < g ? SPR.hudGemFull : SPR.hudGemEmpty, x + 8 + k * 9, y + 28);
+    } else {
+      drawSpr(SPR.lock, x + 16, y + 10);
+      drawText(String(i + 1), x + 18, y + 26, 2);
+    }
+  }
+  const open = selIdx + 1 <= progress.unlocked;
+  ctx.fillStyle = PAL[3]; ctx.fillRect(0, VH - 22, VW, 22);
+  drawTextC((selIdx + 1) + ' ' + LEVELS[selIdx].name, VH - 18, 0);
+  if (!open) drawTextC('FINISH LEVEL ' + selIdx + ' FIRST', VH - 9, 1);
+  else {
+    const b = bestFor(selIdx + 1);
+    drawTextC(b.coins ? 'BEST ' + b.coins + ' COINS' : 'TAP TO PLAY', VH - 9, 1);
+  }
+}
+
 function drawWin() {
   if (winT < 110) return;
-  panel(14, 22, 132, 102);
-  drawTextC('YOU DID IT!', 32, 3);
-  drawTextC('COINS ' + coinsGot + '/' + coinTotal, 50, 3);
-  drawTextC('GEMS ' + gemsGot + '/3', 62, 3);
+  panel(14, 20, 132, 106);
+  drawTextC('YOU DID IT!', 30, 3);
+  drawTextC('COINS ' + coinsGot + '/' + coinTotal, 46, 3);
+  drawTextC('GEMS ' + gemsGot + '/3', 58, 3);
   if (coinsGot === coinTotal && gemsGot === 3) {
-    if (Math.floor(frame / 12) % 4 !== 3) drawTextC('PERFECT!', 77, 2, 1);
+    if (Math.floor(frame / 12) % 4 !== 3) drawTextC('PERFECT!', 72, 2, 1);
+  } else if (level === LEVELS.length) drawTextC('ALL LEVELS DONE!', 76, 2);
+  if (winT >= 150) {
+    const B = winButtons();
+    boxButton(B.primary, B.b1, true, Math.floor(frame / 30) % 2 === 0);
+    boxButton('MENU', B.b2, false, false);
   }
-  if (winT >= 150) button('PLAY AGAIN', 98, Math.floor(frame / 30) % 2 === 0);
 }
 
 function draw() {
+  if (state === 'select') { drawSelect(); return; }
   drawBackground();
+  drawDecor();
   drawTiles();
   drawFlag();
   drawEntities();
   if (state !== 'title') drawPip();
-  else { P.onGround = true; P.vx = 0; drawSpr(SPR.small.idle, START.x - 1, START.feet - C.SMALL_H - (Math.floor(frame / 20) % 2)); }
+  else drawSpr(SPR.small.idle, START.x - 1, START.feet - C.SMALL_H - (Math.floor(frame / 20) % 2));
   if (state === 'title') drawTitle();
   else { drawHUD(); if (state === 'win') drawWin(); }
 }
@@ -1035,18 +1390,22 @@ function loop(t) {
   requestAnimationFrame(loop);
 }
 
-buildLevel(); resetPip(); updatePlayBtn();
+loadProgress();
+buildLevel(1); resetPip(); updateOverlays();
 requestAnimationFrame(loop);
 
 // Debug hook for tests and the reachability bot.
 window.__g = {
-  get map() { return map; }, MW, MH, TILE, VW, VH, GROUND_Y, FLAG_C, C, START,
-  moveBody, physics, solid, tileAt, overlap, coinRect, gemRect, FLAG_RECT,
-  get coins() { return coins; }, get gems() { return gems; }, get snails() { return snails; },
-  get sprouts() { return sprouts; }, get P() { return P; }, get state() { return state; },
-  get coinTotal() { return coinTotal; }, get boxTotal() { return boxTotal; },
-  get coinsGot() { return coinsGot; }, get gemsGot() { return gemsGot; },
-  buildLevel, startGame,
+  get map() { return map; }, get MW() { return MW; }, MH, TILE, VW, VH, GROUND_Y, C, START, LEVELS,
+  get FLAG_C() { return FLAG_C; }, get FLAG_RECT() { return FLAG_RECT; },
+  moveBody, moveX, physics, solid, tileAt, overlap, coinRect, gemRect, platX, platPeriod,
+  get level() { return level; }, get coins() { return coins; }, get gems() { return gems; },
+  get enemies() { return enemies; }, get snails() { return enemies; }, get sprouts() { return sprouts; },
+  get platDefs() { return platDefs; }, get plats() { return plats; },
+  get P() { return P; }, get state() { return state; }, get selIdx() { return selIdx; },
+  get coinTotal() { return coinTotal; }, get boxTotal() { return boxTotal; }, get sproutTotal() { return sproutTotal; },
+  get coinsGot() { return coinsGot; }, get gemsGot() { return gemsGot; }, get progress() { return progress; },
+  setLevel(n) { buildLevel(n); resetPip(); }, startLevel, goSelect,
 };
 })();
 </script>
