@@ -22,8 +22,8 @@
   #housing {
     background: #17171f;
     border-radius: 16px 16px 52px 16px;
-    padding: 16px 16px 22px;
-    display: grid; gap: 14px;
+    padding: 12px 12px 22px;
+    display: grid; gap: 16px;
     grid-template-areas: "bezel bezel" "label label" "dpad jump";
     grid-template-columns: 1fr 1fr;
     align-items: center;
@@ -32,7 +32,7 @@
   #bezel {
     grid-area: bezel; background: #24242f;
     border-radius: 10px 10px 40px 10px;
-    padding: 10px 20px 22px;
+    padding: 8px 10px 22px;
     display: flex; flex-direction: column; align-items: center;
   }
   #ledrow {
@@ -57,25 +57,25 @@
   #playBtn { inset: 0; width: 100%; height: 100%; }
   #label {
     grid-area: label; text-align: center; color: #9a9ab0;
-    font-size: 12px; letter-spacing: 2px; line-height: 1.4;
+    font-size: 14px; letter-spacing: 2px; line-height: 1.4;
   }
   #controls { display: contents; }
-  #dpad { grid-area: dpad; display: flex; gap: 10px; justify-self: start; }
+  #dpad { grid-area: dpad; display: flex; gap: 14px; justify-self: start; padding-left: 4px; }
   .pad, #btnJ {
     touch-action: none; border: 0; padding: 0; margin: 0; cursor: pointer;
     -webkit-user-select: none; user-select: none; outline: none;
   }
   .pad {
-    width: 68px; height: 68px; border-radius: 14px; background: #2c2c38;
-    box-shadow: 0 5px 0 #0d0d12; display: flex; align-items: center; justify-content: center;
+    width: 92px; height: 92px; border-radius: 18px; background: #2c2c38;
+    box-shadow: 0 6px 0 #0d0d12; display: flex; align-items: center; justify-content: center;
   }
-  .pad svg { width: 26px; height: 26px; pointer-events: none; }
+  .pad svg { width: 34px; height: 34px; pointer-events: none; }
   .pad.on { transform: translateY(4px); box-shadow: 0 1px 0 #0d0d12; background: #383848; }
   #btnJ {
-    grid-area: jump; justify-self: end;
-    width: 92px; height: 92px; border-radius: 50%;
-    background: #d6336c; color: #ffe3ec; font-family: inherit; font-size: 10px;
-    box-shadow: 0 6px 0 #7d1640;
+    grid-area: jump; justify-self: end; margin-right: 4px;
+    width: 128px; height: 128px; border-radius: 50%;
+    background: #d6336c; color: #ffe3ec; font-family: inherit; font-size: 13px;
+    box-shadow: 0 7px 0 #7d1640;
   }
   #btnJ.on { transform: translateY(5px); box-shadow: 0 1px 0 #7d1640; }
   @media (orientation: landscape) and (max-height: 560px) {
@@ -87,8 +87,9 @@
     }
     #bezel { padding: 8px 16px 16px; }
     #label { font-size: 9px; }
-    #dpad { align-self: center; }
-    #btnJ { align-self: center; }
+    #dpad { align-self: center; padding-left: 0; }
+    .pad { width: 80px; height: 80px; }
+    #btnJ { align-self: center; width: 108px; height: 108px; margin-right: 0; }
   }
 </style>
 </head>
@@ -1361,13 +1362,17 @@ function draw() {
 // Layout: integer pixel scaling that fits portrait or landscape housing
 // ---------------------------------------------------------------------------
 const landQ = window.matchMedia ? window.matchMedia('(orientation: landscape) and (max-height: 560px)') : null;
+// The scale is snapped so each game pixel covers a whole number of *device*
+// pixels (e.g. 7/3 CSS px on a 3x phone), which stays crisp while letting the
+// screen fill a phone's width instead of stopping at the last whole CSS step.
 function fit() {
   const land = landQ && landQ.matches;
+  const dpr = window.devicePixelRatio || 1;
   let aw, ah;
-  if (land) { aw = window.innerWidth - 2 * 170 - 60; ah = window.innerHeight - 64; }
-  else { aw = Math.min(window.innerWidth - 56, 800); ah = window.innerHeight - 270; }
+  if (land) { aw = window.innerWidth - 2 * 190 - 70; ah = window.innerHeight - 60; }
+  else { aw = Math.min(window.innerWidth - 46, 900); ah = window.innerHeight - 330; }
   let s = Math.min(aw / VW, ah / VH);
-  s = s >= 1 ? Math.floor(s) : Math.max(0.5, s);
+  s = Math.max(1 / dpr, Math.floor(s * dpr) / dpr);
   cv.style.width = (VW * s) + 'px';
   cv.style.height = (VH * s) + 'px';
 }
