@@ -1,0 +1,1054 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0e">
+<title>Pip's Coin Hop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  html, body {
+    margin: 0; height: 100%; background: #0a0a0e; overflow: hidden;
+    touch-action: none; overscroll-behavior: none;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Press Start 2P', monospace;
+  }
+  #housing {
+    background: #17171f;
+    border-radius: 16px 16px 52px 16px;
+    padding: 16px 16px 22px;
+    display: grid; gap: 14px;
+    grid-template-areas: "bezel bezel" "label label" "dpad jump";
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    box-shadow: 0 12px 40px rgba(0,0,0,.6), inset 0 2px 0 rgba(255,255,255,.04);
+  }
+  #bezel {
+    grid-area: bezel; background: #24242f;
+    border-radius: 10px 10px 40px 10px;
+    padding: 10px 20px 22px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  #ledrow {
+    align-self: flex-start; display: flex; align-items: center; gap: 7px;
+    margin: 0 0 9px 2px; color: #6b6b80; font-size: 6px; letter-spacing: 1px;
+  }
+  #led {
+    width: 7px; height: 7px; border-radius: 50%; background: #ff2a3d;
+    box-shadow: 0 0 6px 2px rgba(255,42,61,.65);
+  }
+  #screen { position: relative; line-height: 0; }
+  #c {
+    display: block; width: 320px; height: 288px; background: #e0f8d0;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+  #playBtn {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    background: transparent; border: 0; padding: 0; margin: 0;
+    opacity: 0; cursor: pointer; display: none;
+  }
+  #playBtn.show { display: block; }
+  #label {
+    grid-area: label; text-align: center; color: #9a9ab0;
+    font-size: 12px; letter-spacing: 2px; line-height: 1.4;
+  }
+  #controls { display: contents; }
+  #dpad { grid-area: dpad; display: flex; gap: 10px; justify-self: start; }
+  .pad, #btnJ {
+    touch-action: none; border: 0; padding: 0; margin: 0; cursor: pointer;
+    -webkit-user-select: none; user-select: none; outline: none;
+  }
+  .pad {
+    width: 68px; height: 68px; border-radius: 14px; background: #2c2c38;
+    box-shadow: 0 5px 0 #0d0d12; display: flex; align-items: center; justify-content: center;
+  }
+  .pad svg { width: 26px; height: 26px; pointer-events: none; }
+  .pad.on { transform: translateY(4px); box-shadow: 0 1px 0 #0d0d12; background: #383848; }
+  #btnJ {
+    grid-area: jump; justify-self: end;
+    width: 92px; height: 92px; border-radius: 50%;
+    background: #d6336c; color: #ffe3ec; font-family: inherit; font-size: 10px;
+    box-shadow: 0 6px 0 #7d1640;
+  }
+  #btnJ.on { transform: translateY(5px); box-shadow: 0 1px 0 #7d1640; }
+  @media (orientation: landscape) and (max-height: 560px) {
+    #housing {
+      grid-template-areas: "dpad bezel jump" "dpad label jump";
+      grid-template-columns: auto auto auto;
+      gap: 8px 22px; padding: 10px 20px 12px;
+      border-radius: 16px 16px 44px 16px;
+    }
+    #bezel { padding: 8px 16px 16px; }
+    #label { font-size: 9px; }
+    #dpad { align-self: center; }
+    #btnJ { align-self: center; }
+  }
+</style>
+</head>
+<body>
+<div id="housing">
+  <div id="bezel">
+    <div id="ledrow"><span id="led"></span><span>POWER</span></div>
+    <div id="screen">
+      <canvas id="c" width="160" height="144"></canvas>
+      <button id="playBtn" type="button" aria-label="Play"></button>
+    </div>
+  </div>
+  <div id="label">PIP'S COIN HOP</div>
+  <div id="controls">
+    <div id="dpad">
+      <button class="pad" id="btnL" type="button" aria-label="Left"><svg viewBox="0 0 10 10"><path d="M7 1 L2 5 L7 9 Z" fill="#9a9ab0"/></svg></button>
+      <button class="pad" id="btnR" type="button" aria-label="Right"><svg viewBox="0 0 10 10"><path d="M3 1 L8 5 L3 9 Z" fill="#9a9ab0"/></svg></button>
+    </div>
+    <button id="btnJ" type="button" aria-label="Jump">JUMP</button>
+  </div>
+</div>
+<script>
+(function () {
+'use strict';
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+const PAL = ['#e0f8d0', '#88c070', '#346856', '#081820']; // lightest .. darkest
+const TILE = 8, MW = 200, MH = 18, VW = 160, VH = 144, HUD_H = 11;
+const GROUND_Y = 120;           // ground surface (top of row 15)
+const FLAG_C = 190;             // flag pole column
+const C = {
+  ACCEL: 0.12, MAXV: 1.3, FRIC_G: 0.75, FRIC_A: 0.92,
+  GRAV: 0.22, TERM: 4, JUMP_V: -4.4, JUMP_CUT: -1.6,
+  COYOTE: 6, JBUF: 7,
+  W: 8, SMALL_H: 11, BIG_H: 15,
+  SNAIL_V: 0.3, SPROUT_V: 0.6, STOMP_TOL: 7,
+  KNOCK: 14, BLINK: 60, GROW_FRAMES: 40,
+};
+
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+// ---------------------------------------------------------------------------
+// Sprites: pixel strings ('0'-'3' = palette index, '.' = clear), compiled to
+// offscreen canvases along with a horizontally flipped copy.
+// ---------------------------------------------------------------------------
+function mkCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function compile(rows) {
+  const h = rows.length, w = rows[0].length;
+  const c = mkCanvas(w, h), f = mkCanvas(w, h);
+  const g = c.getContext('2d'), gf = f.getContext('2d');
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const ch = rows[y][x];
+      if (ch >= '0' && ch <= '3') {
+        g.fillStyle = PAL[+ch]; g.fillRect(x, y, 1, 1);
+        gf.fillStyle = PAL[+ch]; gf.fillRect(w - 1 - x, y, 1, 1);
+      }
+    }
+  }
+  return { c, f, w, h };
+}
+
+const PIP_SMALL_TOP = [
+  '...3333...',
+  '.33000033.',
+  '.30000003.',
+  '3000030303',
+  '3000030303',
+  '3000100013',
+  '3000003003',
+  '.30000003.',
+  '.33000033.',
+  '...3333...',
+];
+const PIP_BIG_TOP = [
+  '.....333..',
+  '....3113..',
+  '...3333...',
+  '.33000033.',
+  '.30000003.',
+  '3000000003',
+  '3000030303',
+  '3000030303',
+  '3000100013',
+  '3000003003',
+  '3000000003',
+  '.30000003.',
+  '.33000033.',
+  '...3333...',
+];
+const FEET = { idle: '..33..33..', w1: '.33...33..', w2: '..33...33.', jump: '33......33' };
+function pipSet(top) {
+  return {
+    idle: compile(top.concat([FEET.idle])),
+    w1: compile(top.concat([FEET.w1])),
+    w2: compile(top.concat([FEET.w2])),
+    jump: compile(top.concat([FEET.jump])),
+  };
+}
+
+const sboxRows = (X) => [
+  '22222222',
+  '2' + 'X3333X'.replace(/X/g, X) + '2',
+  '2' + 'XX33XX'.replace(/X/g, X) + '2',
+  '2' + '3XXXX3'.replace(/X/g, X) + '2',
+  '2' + '33XX33'.replace(/X/g, X) + '2',
+  '2' + '33XX33'.replace(/X/g, X) + '2',
+  '2' + '333333' + '2',
+  '22222222',
+];
+const cboxRows = (X) => [
+  '33333333',
+  '30000013',
+  '30133113',
+  '303' + X + X + '313',
+  '303' + X + X + '313',
+  '30133113',
+  '31111113',
+  '33333333',
+];
+
+const SPR = {
+  small: pipSet(PIP_SMALL_TOP),
+  big: pipSet(PIP_BIG_TOP),
+  tiles: {
+    1: compile([
+      '33333333',
+      '11011101',
+      '11111111',
+      '21211121',
+      '22222222',
+      '23222322',
+      '22222222',
+      '22322232',
+    ]),
+    2: compile([
+      '22222222',
+      '23222322',
+      '22222222',
+      '22232223',
+      '22222222',
+      '32222232',
+      '22222222',
+      '22322222',
+    ]),
+    3: compile([
+      '33333333',
+      '11131111',
+      '22232222',
+      '33333333',
+      '11111131',
+      '22222232',
+      '33333333',
+      '11131111',
+    ]),
+    5: compile([
+      '33333333',
+      '32222223',
+      '32322323',
+      '32222223',
+      '32222223',
+      '32322323',
+      '32222223',
+      '33333333',
+    ]),
+    6: compile([
+      '33333333',
+      '30000013',
+      '30111123',
+      '30111123',
+      '30111123',
+      '30111123',
+      '31222223',
+      '33333333',
+    ]),
+  },
+  cboxA: compile(cboxRows('1')),
+  cboxB: compile(cboxRows('0')),
+  sboxA: compile(sboxRows('0')),
+  sboxB: compile(sboxRows('1')),
+  coin: compile([
+    '..3333..',
+    '.310013.',
+    '31011213',
+    '31011213',
+    '31011213',
+    '31111213',
+    '.311113.',
+    '..3333..',
+  ]),
+  coinTurn: compile([
+    '...33...',
+    '..3103..',
+    '..3123..',
+    '..3123..',
+    '..3123..',
+    '..3123..',
+    '..3113..',
+    '...33...',
+  ]),
+  gem: compile([
+    '...33...',
+    '..3003..',
+    '.300013.',
+    '30001113',
+    '31111223',
+    '.312223.',
+    '..3223..',
+    '...33...',
+  ]),
+  snailA: compile([
+    '..3333....',
+    '.322223..3',
+    '32233223.3',
+    '3232232333',
+    '3233222313',
+    '3222223113',
+    '3111111113',
+    '.33333333.',
+  ]),
+  snailB: compile([
+    '..3333....',
+    '.322223.3.',
+    '32233223.3',
+    '3232232333',
+    '3233222313',
+    '3222223113',
+    '3111111113',
+    '3.333333.3',
+  ]),
+  snailFlat: compile([
+    '..3333....',
+    '3222222333',
+    '3111111113',
+    '.33333333.',
+  ]),
+  sprout: compile([
+    '.33..33.',
+    '31133113',
+    '31133113',
+    '.333333.',
+    '...32...',
+    '...32...',
+    '..3223..',
+    '.333333.',
+  ]),
+  debris: compile(['3333', '3113', '3123', '3333']),
+  hudCoin: compile(['.00.', '0110', '0110', '0110', '0110', '0110', '.00.']),
+  hudSprout: compile(['00.00', '01010', '.000.', '..0..', '..0..', '.000.']),
+  hudGemFull: compile(['..0..', '.010.', '01110', '01110', '.010.', '..0..']),
+  hudGemEmpty: compile(['..2..', '.2.2.', '2...2', '2...2', '.2.2.', '..2..']),
+};
+
+function drawSpr(s, x, y, flip) { ctx.drawImage(flip ? s.f : s.c, Math.floor(x), Math.floor(y)); }
+
+// ---------------------------------------------------------------------------
+// Pixel fonts (drawn as rects so every pixel stays in the palette)
+// ---------------------------------------------------------------------------
+const FONT = {
+  'A': ['.###.', '#...#', '#####', '#...#', '#...#'], 'B': ['####.', '#...#', '####.', '#...#', '####.'],
+  'C': ['.####', '#....', '#....', '#....', '.####'], 'D': ['####.', '#...#', '#...#', '#...#', '####.'],
+  'E': ['#####', '#....', '####.', '#....', '#####'], 'F': ['#####', '#....', '####.', '#....', '#....'],
+  'G': ['.####', '#....', '#..##', '#...#', '.####'], 'H': ['#...#', '#...#', '#####', '#...#', '#...#'],
+  'I': ['###', '.#.', '.#.', '.#.', '###'], 'J': ['..###', '...#.', '...#.', '#..#.', '.##..'],
+  'K': ['#...#', '#..#.', '###..', '#..#.', '#...#'], 'L': ['#....', '#....', '#....', '#....', '#####'],
+  'M': ['#...#', '##.##', '#.#.#', '#...#', '#...#'], 'N': ['#...#', '##..#', '#.#.#', '#..##', '#...#'],
+  'O': ['.###.', '#...#', '#...#', '#...#', '.###.'], 'P': ['####.', '#...#', '####.', '#....', '#....'],
+  'Q': ['.###.', '#...#', '#.#.#', '#..#.', '.##.#'], 'R': ['####.', '#...#', '####.', '#..#.', '#...#'],
+  'S': ['.####', '#....', '.###.', '....#', '####.'], 'T': ['#####', '..#..', '..#..', '..#..', '..#..'],
+  'U': ['#...#', '#...#', '#...#', '#...#', '.###.'], 'V': ['#...#', '#...#', '#...#', '.#.#.', '..#..'],
+  'W': ['#...#', '#...#', '#.#.#', '##.##', '#...#'], 'X': ['#...#', '.#.#.', '..#..', '.#.#.', '#...#'],
+  'Y': ['#...#', '.#.#.', '..#..', '..#..', '..#..'], 'Z': ['#####', '...#.', '..#..', '.#...', '#####'],
+  '0': ['.###.', '#..##', '#.#.#', '##..#', '.###.'], '1': ['.#.', '##.', '.#.', '.#.', '###'],
+  '2': ['####.', '....#', '.###.', '#....', '#####'], '3': ['####.', '....#', '.###.', '....#', '####.'],
+  '4': ['#..#.', '#..#.', '#####', '...#.', '...#.'], '5': ['#####', '#....', '####.', '....#', '####.'],
+  '6': ['.###.', '#....', '####.', '#...#', '.###.'], '7': ['#####', '....#', '...#.', '..#..', '..#..'],
+  '8': ['.###.', '#...#', '.###.', '#...#', '.###.'], '9': ['.###.', '#...#', '.####', '....#', '.###.'],
+  '!': ['#', '#', '#', '.', '#'], "'": ['#', '#', '.', '.', '.'], '.': ['.', '.', '.', '.', '#'],
+  '/': ['....#', '...#.', '..#..', '.#...', '#....'], '-': ['...', '...', '###', '...', '...'],
+  ' ': ['..', '..', '..', '..', '..'],
+};
+function textW(str, s) { s = s || 1; let w = 0; for (const ch of str) w += ((FONT[ch] || FONT[' '])[0].length + 1) * s; return w - s; }
+function drawText(str, x, y, col, s) {
+  s = s || 1; ctx.fillStyle = PAL[col]; let cx = Math.floor(x);
+  for (const ch of str) {
+    const g = FONT[ch] || FONT[' '];
+    for (let r = 0; r < 5; r++) for (let i = 0; i < g[r].length; i++) if (g[r][i] === '#') ctx.fillRect(cx + i * s, y + r * s, s, s);
+    cx += (g[0].length + 1) * s;
+  }
+}
+function drawTextC(str, cy, col, s) { drawText(str, Math.floor((VW - textW(str, s)) / 2), cy, col, s); }
+
+// custom 3x5 HUD digits
+const DIG = {
+  '0': ['###', '#.#', '#.#', '#.#', '###'], '1': ['.#.', '##.', '.#.', '.#.', '###'],
+  '2': ['###', '..#', '###', '#..', '###'], '3': ['###', '..#', '.##', '..#', '###'],
+  '4': ['#.#', '#.#', '###', '..#', '..#'], '5': ['###', '#..', '###', '..#', '###'],
+  '6': ['###', '#..', '###', '#.#', '###'], '7': ['###', '..#', '.#.', '.#.', '.#.'],
+  '8': ['###', '#.#', '###', '#.#', '###'], '9': ['###', '#.#', '###', '..#', '###'],
+  'x': ['...', '#.#', '.#.', '#.#', '...'],
+};
+function draw3x5(str, x, y, col) {
+  ctx.fillStyle = PAL[col];
+  for (const ch of str) {
+    const g = DIG[ch];
+    if (g) for (let r = 0; r < 5; r++) for (let i = 0; i < 3; i++) if (g[r][i] === '#') ctx.fillRect(x + i, y + r, 1, 1);
+    x += 4;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Map + collision
+// ---------------------------------------------------------------------------
+// 0 empty, 1 grass top, 2 dirt, 3 brick, 4 coin box, 5 used box, 6 stone, 7 sprout box
+const map = new Uint8Array(MW * MH);
+function tileAt(c, r) { if (c < 0 || c >= MW) return 6; if (r < 0 || r >= MH) return 0; return map[r * MW + c]; }
+function setTile(c, r, v) { if (c >= 0 && c < MW && r >= 0 && r < MH) map[r * MW + c] = v; }
+function solid(c, r) { if (c < 0 || c >= MW) return true; if (r < 0 || r >= MH) return false; return map[r * MW + c] !== 0; }
+
+// AABB vs tiles: move on X and resolve, then on Y and resolve. When the head
+// hits, pick the bumped tile (center, else left, else right) before snapping.
+function moveBody(b) {
+  const res = { ground: false, head: null, wall: false };
+  b.x += b.vx;
+  let top = Math.floor(b.y / TILE), bot = Math.floor((b.y + b.h - 0.001) / TILE);
+  if (b.vx > 0) {
+    const c = Math.floor((b.x + b.w - 0.001) / TILE);
+    for (let r = top; r <= bot; r++) if (solid(c, r)) { b.x = c * TILE - b.w; b.vx = 0; res.wall = true; break; }
+  } else if (b.vx < 0) {
+    const c = Math.floor(b.x / TILE);
+    for (let r = top; r <= bot; r++) if (solid(c, r)) { b.x = (c + 1) * TILE; b.vx = 0; res.wall = true; break; }
+  }
+  b.y += b.vy;
+  const l = Math.floor(b.x / TILE), rc = Math.floor((b.x + b.w - 0.001) / TILE);
+  if (b.vy > 0) {
+    const r = Math.floor((b.y + b.h - 0.001) / TILE);
+    for (let c = l; c <= rc; c++) if (solid(c, r)) { b.y = r * TILE - b.h; b.vy = 0; res.ground = true; break; }
+  } else if (b.vy < 0) {
+    const r = Math.floor(b.y / TILE);
+    let hit = false;
+    for (let c = l; c <= rc; c++) if (solid(c, r)) { hit = true; break; }
+    if (hit) {
+      const cc = Math.floor((b.x + b.w / 2) / TILE);
+      const hc = solid(cc, r) ? cc : (solid(l, r) ? l : rc);
+      res.head = { c: hc, r };
+      b.y = (r + 1) * TILE; b.vy = 0;
+    }
+  }
+  return res;
+}
+
+// One fixed-timestep tick of Pip's movement. Pure: only touches the body and
+// the map (read-only), so the reachability bot can drive it directly.
+function physics(b, inp) {
+  if (inp.jumpPressed) b.jbuf = C.JBUF; else if (b.jbuf > 0) b.jbuf--;
+  if (b.onGround) b.coyote = C.COYOTE; else if (b.coyote > 0) b.coyote--;
+  if (inp.dir) {
+    b.vx += inp.dir * C.ACCEL;
+    if (b.vx > C.MAXV) b.vx = C.MAXV; else if (b.vx < -C.MAXV) b.vx = -C.MAXV;
+    b.face = inp.dir;
+  } else {
+    b.vx *= b.onGround ? C.FRIC_G : C.FRIC_A;
+    if (Math.abs(b.vx) < 0.01) b.vx = 0;
+  }
+  let jumped = false;
+  if (b.jbuf > 0 && b.coyote > 0) { b.vy = C.JUMP_V; b.jbuf = 0; b.coyote = 0; jumped = true; }
+  if (!inp.jump && b.vy < C.JUMP_CUT) b.vy = C.JUMP_CUT;
+  b.vy += C.GRAV; if (b.vy > C.TERM) b.vy = C.TERM;
+  const r = moveBody(b);
+  b.onGround = r.ground;
+  return { r, jumped };
+}
+
+function overlap(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+function coinRect(k) { return { x: k.x + 1, y: k.y + 1, w: 6, h: 6 }; }
+function gemRect(g) { return { x: g.x + 1, y: g.y + 1, w: 6, h: 6 }; }
+const FLAG_RECT = { x: FLAG_C * TILE + 3, y: 24, w: 2, h: GROUND_Y - 24 };
+
+// ---------------------------------------------------------------------------
+// Level
+// ---------------------------------------------------------------------------
+let coins = [], gems = [], snails = [], sprouts = [], debris = [], pops = [], bumps = [];
+let coinTotal = 0, boxTotal = 0;
+const START = { x: 3 * TILE, feet: GROUND_Y };
+
+function buildLevel() {
+  map.fill(0);
+  coins = []; gems = []; snails = []; sprouts = []; debris = []; pops = []; bumps = [];
+  for (let c = 0; c < MW; c++) { setTile(c, 15, 1); setTile(c, 16, 2); setTile(c, 17, 2); }
+  const GAPS = [[22, 2], [38, 3], [68, 2], [99, 3], [126, 2], [160, 3]];
+  for (const [g, w] of GAPS) for (let c = g; c < g + w; c++) for (let r = 15; r < MH; r++) setTile(c, r, 0);
+
+  const hill = (c0, c1, top) => { for (let c = c0; c <= c1; c++) { setTile(c, top, 1); for (let r = top + 1; r < MH; r++) setTile(c, r, 2); } };
+  const stone = (c0, c1, r) => { for (let c = c0; c <= c1; c++) setTile(c, r, 6); };
+  const pillar = (c, top) => { for (let r = top; r < 15; r++) setTile(c, r, 6); };
+  const blocks = (c0, r, pat) => { const m = { B: 3, C: 4, S: 7 }; [...pat].forEach((ch, i) => { if (m[ch]) setTile(c0 + i, r, m[ch]); }); };
+  const coin = (px, py) => coins.push({ x: px, y: py, got: false, ph: (coins.length * 13) % 64 });
+  const line = (c0, c1, r) => { for (let c = c0; c <= c1; c++) coin(c * TILE, r * TILE); };
+  const arc = (g, w) => { // a hop-shaped arc of coins over a gap
+    const n = w + 2;
+    for (let i = 0; i < n; i++) coin((g - 1 + i) * TILE, 13 * TILE - Math.round(Math.sin(Math.PI * i / (n - 1)) * 16));
+  };
+  const gem = (px, py) => gems.push({ x: px, y: py, got: false });
+
+  // -- start
+  line(6, 9, 13);
+  blocks(11, 11, 'CBSBC');
+  arc(22, 2);
+  hill(28, 33, 13); line(29, 32, 12);
+  arc(38, 3);
+  // -- gem 1: stone step, then a high stone perch
+  stone(46, 48, 11); line(46, 48, 10);
+  stone(51, 52, 8); gem(51 * TILE + 4, 7 * TILE);
+  blocks(60, 11, 'BCBB'); line(64, 65, 13);
+  arc(68, 2);
+  // -- stone staircase up to a plateau
+  pillar(74, 14); pillar(75, 13); pillar(76, 12); pillar(77, 11); pillar(78, 11); pillar(79, 11);
+  line(77, 79, 10);
+  blocks(89, 11, 'CBSBC');
+  arc(99, 3);
+  // -- gem 2: three stone steps going up
+  stone(108, 109, 12); line(108, 109, 11);
+  stone(112, 113, 9); line(112, 113, 8);
+  stone(116, 117, 6); gem(116 * TILE + 4, 5 * TILE);
+  arc(126, 2);
+  hill(133, 140, 12); line(134, 139, 11);
+  blocks(145, 11, 'BSBC');
+  // -- gem 3: stone step and a tall perch
+  stone(151, 152, 11);
+  stone(154, 155, 7); gem(154 * TILE + 4, 6 * TILE);
+  arc(160, 3);
+  line(166, 169, 13);
+  // -- final staircase, then the flag
+  pillar(178, 14); pillar(179, 13); pillar(180, 12); pillar(181, 11); pillar(182, 11);
+  coin(178 * TILE, 13 * TILE); coin(179 * TILE, 12 * TILE); coin(180 * TILE, 11 * TILE);
+  coin(181 * TILE, 10 * TILE); coin(182 * TILE, 10 * TILE);
+
+  for (const c of [31, 56, 85, 120, 137, 170]) {
+    let r = 0; while (r < MH && !solid(c, r)) r++;
+    snails.push({ x: c * TILE, y: r * TILE - 7, w: 8, h: 7, vx: 0, vy: 0, dir: -1, alive: true, squash: 0, anim: 0, onGround: true });
+  }
+
+  let cb = 0, sb = 0;
+  for (let i = 0; i < map.length; i++) { if (map[i] === 4) cb++; if (map[i] === 7) sb++; }
+  coinTotal = coins.length + cb;
+  boxTotal = cb + sb;
+}
+
+// ---------------------------------------------------------------------------
+// Sound (WebAudio square/triangle beeps; started on first input)
+// ---------------------------------------------------------------------------
+let AC = null, master = null;
+function ensureAudio() {
+  try {
+    if (!AC) {
+      const A = window.AudioContext || window.webkitAudioContext;
+      if (!A) return;
+      AC = new A(); master = AC.createGain(); master.gain.value = 0.22; master.connect(AC.destination);
+    }
+    if (AC.state === 'suspended') AC.resume();
+  } catch (e) { AC = null; }
+}
+function tone(f, d, type, v, f2, delay) {
+  if (!AC) return;
+  const t = AC.currentTime + (delay || 0);
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = type || 'square';
+  o.frequency.setValueAtTime(f, t);
+  if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + d);
+  g.gain.setValueAtTime(v || 0.3, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + d);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + d + 0.03);
+}
+const seq = (notes, step, type, v, d) => notes.forEach((f, i) => { if (f > 20) tone(f, d || step * 0.9, type, v, null, i * step); });
+const SFX = {
+  coin() { tone(988, 0.06, 'square', 0.22); tone(1319, 0.16, 'square', 0.22, null, 0.06); },
+  jump() { tone(300, 0.14, 'square', 0.16, 620); },
+  stomp() { tone(260, 0.1, 'square', 0.28, 90); },
+  bonk() { tone(120, 0.09, 'triangle', 0.45); tone(95, 0.06, 'square', 0.12); },
+  brick() { tone(200, 0.12, 'square', 0.25, 60); tone(140, 0.16, 'triangle', 0.35, 40, 0.03); },
+  sprout() { seq([392, 523, 659, 784], 0.06, 'triangle', 0.32); },
+  grow() { seq([262, 330, 392, 523, 330, 392, 523, 659], 0.065, 'square', 0.18); },
+  shrink() { seq([659, 523, 392, 262], 0.07, 'square', 0.18); },
+  gem() { seq([784, 988, 1175, 1568], 0.07, 'square', 0.2, 0.12); },
+  win() { seq([523, 659, 784, 1047, 0.01, 784, 1047], 0.14, 'square', 0.2); seq([262, 330, 392, 523, 0.01, 392, 523], 0.14, 'triangle', 0.3); },
+  whoosh() { tone(900, 0.35, 'triangle', 0.35, 110); },
+};
+
+// ---------------------------------------------------------------------------
+// Input: on-screen pads (multi-touch pointer events) + keyboard
+// ---------------------------------------------------------------------------
+const held = { left: new Set(), right: new Set(), jump: new Set() };
+const keys = { left: false, right: false, jump: false };
+let prevJump = false;
+
+function bindPad(id, k) {
+  const el = document.getElementById(id);
+  const down = (e) => {
+    e.preventDefault(); ensureAudio();
+    held[k].add(e.pointerId);
+    try { el.releasePointerCapture(e.pointerId); } catch (_) { /* not captured */ }
+    el.classList.add('on');
+    if (k === 'jump' && state === 'title') startGame();
+  };
+  const up = (e) => { held[k].delete(e.pointerId); if (!held[k].size) el.classList.remove('on'); };
+  el.addEventListener('pointerdown', down);
+  el.addEventListener('pointerup', up);
+  el.addEventListener('pointercancel', up);
+  el.addEventListener('pointerleave', up);
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+bindPad('btnL', 'left'); bindPad('btnR', 'right'); bindPad('btnJ', 'jump');
+
+const KEYMAP = {
+  ArrowLeft: 'left', a: 'left', A: 'left',
+  ArrowRight: 'right', d: 'right', D: 'right',
+  ' ': 'jump', Spacebar: 'jump', ArrowUp: 'jump', w: 'jump', W: 'jump', z: 'jump', Z: 'jump', x: 'jump', X: 'jump',
+};
+window.addEventListener('keydown', (e) => {
+  ensureAudio();
+  const k = KEYMAP[e.key];
+  if (k || e.key === 'ArrowDown' || e.key === 'Enter') e.preventDefault();
+  if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
+    if (state === 'title' || (state === 'win' && canRestart())) { startGame(); if (k) keys[k] = true; return; }
+  }
+  if (k) keys[k] = true;
+});
+window.addEventListener('keyup', (e) => { const k = KEYMAP[e.key]; if (k) keys[k] = false; });
+window.addEventListener('blur', () => { keys.left = keys.right = keys.jump = false; for (const k in held) held[k].clear(); });
+
+const playBtn = document.getElementById('playBtn');
+playBtn.addEventListener('click', () => { ensureAudio(); if (state === 'title' || (state === 'win' && canRestart())) startGame(); });
+
+// no page scroll / zoom
+document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+document.addEventListener('gesturestart', (e) => e.preventDefault());
+document.addEventListener('dblclick', (e) => e.preventDefault());
+
+function readInput() {
+  const left = keys.left || held.left.size > 0, right = keys.right || held.right.size > 0;
+  const jump = keys.jump || held.jump.size > 0;
+  const inp = { dir: (right ? 1 : 0) - (left ? 1 : 0), jump, jumpPressed: jump && !prevJump };
+  prevJump = jump;
+  return inp;
+}
+
+// ---------------------------------------------------------------------------
+// Game state
+// ---------------------------------------------------------------------------
+let state = 'title';
+let frame = 0, cam = 0, growT = 0, winT = 0;
+let coinsGot = 0, gemsGot = 0;
+const P = { x: 0, y: 0, w: C.W, h: C.SMALL_H, vx: 0, vy: 0, onGround: false, coyote: 0, jbuf: 0, face: 1,
+  big: false, blink: 0, knock: 0, knockDir: 0, anim: 0 };
+const safe = { x: START.x, feet: START.feet };
+
+function resetPip() {
+  Object.assign(P, { x: START.x, w: C.W, h: C.SMALL_H, vx: 0, vy: 0, onGround: true, coyote: 0, jbuf: 0, face: 1,
+    big: false, blink: 0, knock: 0, knockDir: 0, anim: 0 });
+  P.y = START.feet - P.h;
+  safe.x = START.x; safe.feet = START.feet;
+}
+function canRestart() { return state === 'win' && winT >= 150; }
+
+function startGame() {
+  buildLevel(); resetPip();
+  coinsGot = 0; gemsGot = 0; frame = 0; cam = 0; growT = 0; winT = 0;
+  prevJump = true; // the key/tap that started the game must not also jump
+  state = 'play';
+  updatePlayBtn();
+}
+function updatePlayBtn() {
+  playBtn.classList.toggle('show', state === 'title' || canRestart());
+  playBtn.setAttribute('aria-label', state === 'win' ? 'Play again' : 'Play');
+}
+
+// ---------------------------------------------------------------------------
+// Update
+// ---------------------------------------------------------------------------
+function setBig(big) {
+  if (big === P.big) return;
+  P.big = big;
+  const feet = P.y + P.h;
+  P.h = big ? C.BIG_H : C.SMALL_H;
+  P.y = feet - P.h;
+}
+
+function hitTile(c, r) {
+  const t = tileAt(c, r);
+  bumps.push({ c, r, t: 0 });
+  // squash any snail standing on the bumped block
+  for (const s of snails) {
+    if (s.alive && !s.squash && Math.abs(s.y + s.h - r * TILE) < 1.5 && s.x < c * TILE + TILE && s.x + s.w > c * TILE) { s.squash = 30; SFX.stomp(); }
+  }
+  if (t === 4) {
+    setTile(c, r, 5); coinsGot++; SFX.coin();
+    pops.push({ x: c * TILE, y: r * TILE - 8, vy: -3, t: 0 });
+  } else if (t === 7) {
+    setTile(c, r, 5); SFX.sprout();
+    const dir = (P.x + P.w / 2 < c * TILE + 4) ? 1 : -1;
+    sprouts.push({ x: c * TILE, y: r * TILE, w: 8, h: 8, vx: 0, vy: 0, dir, phase: 'rise', t: 0,
+      boxR: r, homeX: c * TILE, homeY: r * TILE - 8, onGround: false });
+  } else if (t === 3) {
+    if (P.big) {
+      setTile(c, r, 0); SFX.brick();
+      const x = c * TILE, y = r * TILE;
+      debris.push({ x, y, vx: -1, vy: -3.2 }, { x: x + 4, y, vx: 1, vy: -3.2 },
+        { x, y: y + 4, vx: -0.8, vy: -2.2 }, { x: x + 4, y: y + 4, vx: 0.8, vy: -2.2 });
+    } else SFX.bonk();
+  } else SFX.bonk();
+}
+
+function groundBelow(c, r) { for (let rr = r; rr < MH; rr++) if (solid(c, rr)) return true; return false; }
+
+function updateSafeSpot() {
+  if (!P.onGround || P.knock) return;
+  const fr = Math.floor((P.y + P.h + 1) / TILE);
+  const lc = Math.floor(P.x / TILE), rc = Math.floor((P.x + P.w - 1) / TILE);
+  const bc = Math.floor((P.face > 0 ? P.x - 6 : P.x + P.w - 1 + 6) / TILE);
+  const ok = (c) => { const t = tileAt(c, fr); return t !== 0 && t !== 3; };
+  if (ok(lc) && ok(rc) && ok(bc)) { safe.x = P.x; safe.feet = P.y + P.h; }
+}
+
+function respawn() {
+  P.x = safe.x; P.y = safe.feet - P.h; P.vx = 0; P.vy = 0; P.knock = 0;
+  P.onGround = true; P.blink = C.BLINK + 30; SFX.whoosh();
+}
+
+function updatePlay() {
+  const inp = readInput();
+  if (P.knock > 0) {
+    P.knock--; inp.dir = 0; inp.jump = false; inp.jumpPressed = false;
+    P.vx = P.knockDir * 1.2;
+    if (P.knock === 0) P.blink = C.BLINK;
+  }
+  const res = physics(P, inp);
+  if (res.jumped) SFX.jump();
+  if (res.r.head) hitTile(res.r.head.c, res.r.head.r);
+  if (P.blink > 0) P.blink--;
+  P.anim += Math.abs(P.vx);
+  updateSafeSpot();
+  if (P.y > MH * TILE + 8) respawn();
+
+  for (const k of coins) if (!k.got && overlap(P, coinRect(k))) { k.got = true; coinsGot++; SFX.coin(); }
+  for (const g of gems) if (!g.got && overlap(P, gemRect(g))) { g.got = true; gemsGot++; SFX.gem(); }
+
+  updateSprouts();
+  if (state !== 'play') return; // a sprout may have started the grow pause
+  updateSnails(inp);
+  updateFx();
+
+  if (overlap(P, FLAG_RECT)) { state = 'win'; winT = 0; P.vx = 0; SFX.win(); }
+}
+
+function updateSprouts() {
+  for (let i = sprouts.length - 1; i >= 0; i--) {
+    const sp = sprouts[i];
+    if (sp.phase === 'rise') {
+      sp.t++; sp.y = sp.boxR * TILE - Math.min(8, Math.floor(sp.t / 2));
+      if (sp.t >= 16) { sp.phase = 'move'; sp.vy = 0; }
+    } else {
+      if (sp.onGround) {
+        const fc = Math.floor((sp.dir > 0 ? sp.x + sp.w + 0.5 : sp.x - 0.5) / TILE);
+        const fr = Math.floor((sp.y + sp.h + 1) / TILE);
+        if (!solid(fc, fr)) {
+          if (groundBelow(fc, fr)) sp.vy = -1.2;   // hop down: there is ground below
+          else sp.dir = -sp.dir;                   // gap edge: turn around
+        }
+      }
+      sp.vx = sp.dir * C.SPROUT_V;
+      sp.vy = Math.min(C.TERM, sp.vy + C.GRAV);
+      const r = moveBody(sp);
+      if (r.wall) sp.dir = -sp.dir;
+      sp.onGround = r.ground;
+      if (sp.y > MH * TILE + 16) { sp.x = sp.homeX; sp.y = sp.homeY; sp.vy = 0; } // never lost
+    }
+    if ((sp.phase === 'move' || sp.t > 6) && overlap(P, sp)) {
+      sprouts.splice(i, 1);
+      if (!P.big) { state = 'grow'; growT = 0; SFX.grow(); return; }
+      SFX.gem();
+    }
+  }
+}
+
+function updateSnails(inp) {
+  for (const s of snails) {
+    if (!s.alive) continue;
+    if (s.squash) { if (--s.squash === 0) s.alive = false; continue; }
+    if (s.x < cam - 40 || s.x > cam + VW + 40) continue; // only simulate near the camera
+    s.vx = s.dir * C.SNAIL_V;
+    s.vy = Math.min(C.TERM, s.vy + C.GRAV);
+    const r = moveBody(s);
+    s.onGround = r.ground;
+    if (r.wall) s.dir = -s.dir;
+    else if (s.onGround) {
+      const fc = Math.floor((s.dir > 0 ? s.x + s.w + 0.5 : s.x - 0.5) / TILE);
+      if (!solid(fc, Math.floor((s.y + s.h + 1) / TILE))) s.dir = -s.dir;
+    }
+    s.anim++;
+    if (s.y > MH * TILE + 16) { s.alive = false; continue; }
+
+    if (overlap(P, s)) {
+      if (P.vy > 0 && (P.y + P.h) - s.y <= C.STOMP_TOL) {
+        s.squash = 30; P.vy = inp.jump ? -4 : -3; SFX.stomp();
+      } else if (P.blink === 0 && P.knock === 0) {
+        if (P.big) { setBig(false); P.blink = C.BLINK; SFX.shrink(); }
+        else { P.knock = C.KNOCK; P.knockDir = (P.x + P.w / 2 < s.x + s.w / 2) ? -1 : 1; P.vy = -2; SFX.bonk(); }
+      }
+    }
+  }
+}
+
+function updateFx() {
+  for (const b of bumps) b.t++;
+  bumps = bumps.filter((b) => b.t < 8);
+  for (const d of debris) { d.vy += 0.25; d.x += d.vx; d.y += d.vy; }
+  debris = debris.filter((d) => d.y < VH + 16);
+  for (const p of pops) { p.t++; p.vy += 0.25; p.y += p.vy; }
+  pops = pops.filter((p) => p.t < 22);
+}
+
+function update() {
+  frame++;
+  if (state === 'play') updatePlay();
+  else if (state === 'grow') {
+    growT++;
+    if (growT >= C.GROW_FRAMES) { setBig(true); state = 'play'; }
+  } else if (state === 'win') {
+    winT++;
+    if (P.onGround && winT > 6 && winT < 100) P.vy = -2.4; // happy hops
+    physics(P, { dir: 0, jump: true, jumpPressed: false });
+    updateFx();
+    if (winT === 150) updatePlayBtn();
+  } else if (state === 'title') {
+    readInput();
+  }
+  if (state === 'play' || state === 'win') {
+    const target = Math.round(P.x + P.w / 2 - 72);
+    cam = Math.max(0, Math.min(MW * TILE - VW, target));
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Draw
+// ---------------------------------------------------------------------------
+function disc(cx, cy, r, col, topOnly) { // a filled circle from 1px rect rows
+  ctx.fillStyle = PAL[col];
+  for (let dy = -r; dy <= (topOnly ? 0 : r); dy++) {
+    const hw = Math.floor(Math.sqrt(r * r - dy * dy) + 0.5);
+    ctx.fillRect(cx - hw, cy + dy, hw * 2 + 1, 1);
+  }
+}
+const CLOUDS = [{ x: 14, y: 22 }, { x: 96, y: 36 }, { x: 170, y: 18 }, { x: 236, y: 42 }];
+const HILLS = [{ x: 30, r: 26 }, { x: 104, r: 40 }, { x: 178, r: 20 }, { x: 222, r: 30 }];
+function drawBackground() {
+  ctx.fillStyle = PAL[0]; ctx.fillRect(0, 0, VW, VH);
+  const cw = 300, co = Math.floor(cam * 0.12) % cw;
+  for (let k = -1; k <= 1; k++) {
+    for (const cl of CLOUDS) {
+      const x = cl.x - co + k * cw;
+      if (x < -40 || x > VW + 40) continue;
+      const puffs = [[0, 3, 5], [7, 0, 7], [15, 3, 5]];
+      for (const p of puffs) disc(x + p[0], cl.y + p[1], p[2] + 1, 1, false);
+      for (const p of puffs) disc(x + p[0], cl.y + p[1], p[2], 0, false);
+      ctx.fillStyle = PAL[0]; ctx.fillRect(x - 6, cl.y + 6, 28, 3);
+      ctx.fillStyle = PAL[1]; ctx.fillRect(x - 5, cl.y + 9, 26, 1);
+    }
+  }
+  const hw = 260, ho = Math.floor(cam * 0.3) % hw;
+  for (let k = -1; k <= 1; k++) {
+    for (const h of HILLS) {
+      const x = h.x - ho + k * hw;
+      if (x < -h.r - 4 || x > VW + h.r + 4) continue;
+      disc(x, GROUND_Y, h.r + 1, 2, true);
+      disc(x, GROUND_Y, h.r, 1, true);
+      ctx.fillStyle = PAL[2];
+      ctx.fillRect(x - Math.floor(h.r / 3), GROUND_Y - Math.floor(h.r / 2), 2, 1);
+      ctx.fillRect(x + Math.floor(h.r / 4), GROUND_Y - Math.floor(h.r / 3), 2, 1);
+    }
+  }
+}
+
+function bumpOffset(c, r) {
+  for (const b of bumps) if (b.c === c && b.r === r) return [0, -1, -2, -2, -2, -1, -1, 0][b.t] || 0;
+  return 0;
+}
+function drawTiles() {
+  const c0 = Math.floor(cam / TILE), c1 = Math.min(MW - 1, c0 + Math.ceil(VW / TILE));
+  const blink = Math.floor(frame / 24) % 2 === 0;
+  for (let r = 0; r < MH; r++) {
+    for (let c = c0; c <= c1; c++) {
+      const t = map[r * MW + c];
+      if (!t) continue;
+      let s;
+      if (t === 4) s = blink ? SPR.cboxA : SPR.cboxB;
+      else if (t === 7) s = blink ? SPR.sboxA : SPR.sboxB;
+      else s = SPR.tiles[t];
+      drawSpr(s, c * TILE - cam, r * TILE + bumpOffset(c, r));
+    }
+  }
+}
+
+function drawFlag() {
+  const x = FLAG_C * TILE + 3 - cam;
+  if (x < -20 || x > VW + 4) return;
+  ctx.fillStyle = PAL[3]; ctx.fillRect(x, 26, 2, GROUND_Y - 26);
+  disc(x + 1, 24, 2, 3, false); ctx.fillStyle = PAL[0]; ctx.fillRect(x, 23, 1, 1);
+  const wave = state === 'win' ? (Math.floor(frame / 8) % 2) : 0;
+  for (let i = 0; i < 9; i++) { ctx.fillStyle = PAL[3]; ctx.fillRect(x + 2, 28 + i + wave, 11 - i, 1); }
+  for (let i = 1; i < 8; i++) { ctx.fillStyle = PAL[1]; ctx.fillRect(x + 2, 28 + i + wave, 9 - i, 1); }
+  ctx.fillStyle = PAL[3]; ctx.fillRect(x - 2, GROUND_Y - 2, 6, 2);
+}
+
+function drawEntities() {
+  for (const k of coins) {
+    if (k.got) continue;
+    const x = k.x - cam; if (x < -8 || x > VW) continue;
+    const bob = Math.round(Math.sin((frame + k.ph) / 16));
+    const turn = ((frame + k.ph) % 64) < 6;
+    drawSpr(turn ? SPR.coinTurn : SPR.coin, x, k.y + bob);
+  }
+  for (const g of gems) {
+    if (g.got) continue;
+    const x = g.x - cam; if (x < -8 || x > VW) continue;
+    drawSpr(SPR.gem, x, g.y + Math.round(Math.sin(frame / 20)));
+  }
+  for (const sp of sprouts) {
+    const x = sp.x - cam;
+    if (sp.phase === 'rise') {
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, VW, sp.boxR * TILE); ctx.clip();
+      drawSpr(SPR.sprout, x, sp.y); ctx.restore();
+    } else drawSpr(SPR.sprout, x, sp.y);
+  }
+  for (const s of snails) {
+    if (!s.alive) continue;
+    const x = s.x - cam; if (x < -12 || x > VW + 4) continue;
+    if (s.squash) drawSpr(SPR.snailFlat, x - 1, s.y + s.h - 4, s.dir < 0);
+    else drawSpr(Math.floor(s.anim / 16) % 2 ? SPR.snailB : SPR.snailA, x - 1, s.y + s.h - 8, s.dir < 0);
+  }
+  for (const p of pops) drawSpr(SPR.coin, p.x - cam, p.y);
+  for (const d of debris) drawSpr(SPR.debris, d.x - cam, d.y);
+}
+
+function drawPip() {
+  if (P.blink > 0 && Math.floor(P.blink / 4) % 2 === 0 && state === 'play') return;
+  let big = P.big, yOff = 0;
+  if (state === 'grow') { big = Math.floor(growT / 4) % 2 === 1; yOff = big ? -4 : 0; }
+  const set = big ? SPR.big : SPR.small;
+  let s = set.idle;
+  if (!P.onGround) s = set.jump;
+  else if (Math.abs(P.vx) > 0.2) s = Math.floor(P.anim / 6) % 2 ? set.w1 : set.w2;
+  drawSpr(s, P.x - 1 - cam, P.y + yOff, P.face < 0);
+}
+
+function drawHUD() {
+  ctx.fillStyle = PAL[3]; ctx.fillRect(0, 0, VW, HUD_H);
+  drawSpr(SPR.hudCoin, 3, 2);
+  draw3x5('x', 9, 3, 1);
+  const n = Math.min(99, coinsGot);
+  draw3x5((n < 10 ? '0' : '') + n, 14, 3, 0);
+  if (P.big) drawSpr(SPR.hudSprout, 28, 2);
+  for (let i = 0; i < 3; i++) drawSpr(i < gemsGot ? SPR.hudGemFull : SPR.hudGemEmpty, VW - 26 + i * 8, 2);
+}
+
+function panel(x, y, w, h) {
+  ctx.fillStyle = PAL[3]; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = PAL[0]; ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
+  ctx.fillStyle = PAL[2]; ctx.fillRect(x + 3, y + 3, w - 6, 1); ctx.fillRect(x + 3, y + h - 4, w - 6, 1);
+  ctx.fillRect(x + 3, y + 3, 1, h - 6); ctx.fillRect(x + w - 4, y + 3, 1, h - 6);
+}
+function button(label, y, on) {
+  const w = textW(label) + 16, x = Math.floor((VW - w) / 2);
+  ctx.fillStyle = PAL[3]; ctx.fillRect(x, y, w, 15);
+  ctx.fillStyle = on ? PAL[2] : PAL[3]; ctx.fillRect(x + 1, y + 1, w - 2, 13);
+  drawText(label, x + 8, y + 5, 0);
+}
+
+function drawTitle() {
+  panel(18, 20, 124, 82);
+  drawTextC("PIP'S", 28, 3, 2);
+  drawTextC('COIN HOP', 44, 3, 2);
+  drawTextC('GRAB COINS. FIND GEMS.', 62, 2);
+  button('PLAY', 78, Math.floor(frame / 30) % 2 === 0);
+  ctx.fillStyle = PAL[3]; ctx.fillRect(0, VH - 10, VW, 10);
+  drawTextC('TAP PLAY OR PRESS ENTER', VH - 8, 0);
+}
+
+function drawWin() {
+  if (winT < 110) return;
+  panel(14, 22, 132, 102);
+  drawTextC('YOU DID IT!', 32, 3);
+  drawTextC('COINS ' + coinsGot + '/' + coinTotal, 50, 3);
+  drawTextC('GEMS ' + gemsGot + '/3', 62, 3);
+  if (coinsGot === coinTotal && gemsGot === 3) {
+    if (Math.floor(frame / 12) % 4 !== 3) drawTextC('PERFECT!', 77, 2, 1);
+  }
+  if (winT >= 150) button('PLAY AGAIN', 98, Math.floor(frame / 30) % 2 === 0);
+}
+
+function draw() {
+  drawBackground();
+  drawTiles();
+  drawFlag();
+  drawEntities();
+  if (state !== 'title') drawPip();
+  else { P.onGround = true; P.vx = 0; drawSpr(SPR.small.idle, START.x - 1, START.feet - C.SMALL_H - (Math.floor(frame / 20) % 2)); }
+  if (state === 'title') drawTitle();
+  else { drawHUD(); if (state === 'win') drawWin(); }
+}
+
+// ---------------------------------------------------------------------------
+// Layout: integer pixel scaling that fits portrait or landscape housing
+// ---------------------------------------------------------------------------
+const landQ = window.matchMedia ? window.matchMedia('(orientation: landscape) and (max-height: 560px)') : null;
+function fit() {
+  const land = landQ && landQ.matches;
+  let aw, ah;
+  if (land) { aw = window.innerWidth - 2 * 170 - 60; ah = window.innerHeight - 64; }
+  else { aw = Math.min(window.innerWidth - 56, 800); ah = window.innerHeight - 270; }
+  let s = Math.min(aw / VW, ah / VH);
+  s = s >= 1 ? Math.floor(s) : Math.max(0.5, s);
+  cv.style.width = (VW * s) + 'px';
+  cv.style.height = (VH * s) + 'px';
+}
+window.addEventListener('resize', fit);
+window.addEventListener('orientationchange', fit);
+fit();
+
+// ---------------------------------------------------------------------------
+// Main loop: fixed 60 Hz timestep
+// ---------------------------------------------------------------------------
+const STEP = 1000 / 60;
+let acc = 0, last = 0;
+function loop(t) {
+  if (!last) last = t;
+  acc += Math.min(250, t - last); last = t;
+  let n = 0;
+  while (acc >= STEP && n < 6) { update(); acc -= STEP; n++; }
+  if (n === 6) acc = 0;
+  draw();
+  requestAnimationFrame(loop);
+}
+
+buildLevel(); resetPip(); updatePlayBtn();
+requestAnimationFrame(loop);
+
+// Debug hook for tests and the reachability bot.
+window.__g = {
+  get map() { return map; }, MW, MH, TILE, VW, VH, GROUND_Y, FLAG_C, C, START,
+  moveBody, physics, solid, tileAt, overlap, coinRect, gemRect, FLAG_RECT,
+  get coins() { return coins; }, get gems() { return gems; }, get snails() { return snails; },
+  get sprouts() { return sprouts; }, get P() { return P; }, get state() { return state; },
+  get coinTotal() { return coinTotal; }, get boxTotal() { return boxTotal; },
+  get coinsGot() { return coinsGot; }, get gemsGot() { return gemsGot; },
+  buildLevel, startGame,
+};
+})();
+</script>
+</body>
+</html>
