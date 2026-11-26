@@ -17,6 +17,7 @@
   }
   body {
     display: flex; align-items: center; justify-content: center;
+    box-sizing: border-box; padding-top: calc(env(safe-area-inset-top, 0px) + 64px); padding-bottom: 8px;
     font-family: 'Press Start 2P', monospace;
   }
   #housing {
@@ -59,6 +60,18 @@
     grid-area: label; text-align: center; color: #9a9ab0;
     font-size: 14px; letter-spacing: 2px; line-height: 1.4;
   }
+  #backBtn {
+    position: fixed; z-index: 5;
+    top: calc(env(safe-area-inset-top, 0px) + 12px); left: calc(env(safe-area-inset-left, 0px) + 12px);
+    display: flex; align-items: center; gap: 8px;
+    min-height: 44px; padding: 0 14px 0 10px; box-sizing: border-box;
+    background: #24242f; color: #b4b4c8; border-radius: 12px;
+    font: 9px/1 'Press Start 2P', monospace; letter-spacing: 1px; text-decoration: none;
+    box-shadow: 0 3px 0 #0d0d12; -webkit-tap-highlight-color: transparent;
+  }
+  #backBtn svg { width: 14px; height: 14px; }
+  #backBtn:active { transform: translateY(2px); box-shadow: 0 1px 0 #0d0d12; }
+  #backBtn .short { display: none; }
   #controls { display: contents; }
   #dpad { grid-area: dpad; display: flex; gap: 14px; justify-self: start; padding-left: 4px; }
   .pad, #btnJ {
@@ -79,6 +92,10 @@
   }
   #btnJ.on { transform: translateY(5px); box-shadow: 0 1px 0 #7d1640; }
   @media (orientation: landscape) and (max-height: 560px) {
+    body { padding-top: 0; padding-bottom: 0; }
+    #backBtn { padding: 0 10px 0 8px; font-size: 8px; }
+    #backBtn .long { display: none; }
+    #backBtn .short { display: inline; }
     #housing {
       grid-template-areas: "dpad bezel jump" "dpad label jump";
       grid-template-columns: auto auto auto;
@@ -94,6 +111,10 @@
 </style>
 </head>
 <body>
+<a id="backBtn" href="index.html" aria-label="Back to Arcade">
+  <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M6.5 1.5 L3 5 L6.5 8.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+  <span class="long">BACK TO ARCADE</span><span class="short">ARCADE</span>
+</a>
 <div id="housing">
   <div id="bezel">
     <div id="ledrow"><span id="led"></span><span>POWER</span></div>
@@ -1370,13 +1391,24 @@ function fit() {
   const dpr = window.devicePixelRatio || 1;
   let aw, ah;
   if (land) { aw = window.innerWidth - 2 * 190 - 70; ah = window.innerHeight - 60; }
-  else { aw = Math.min(window.innerWidth - 46, 900); ah = window.innerHeight - 330; }
+  else { aw = Math.min(window.innerWidth - 46, 900); ah = window.innerHeight - 280 - 64; } // 64: strip for the Back button
   let s = Math.min(aw / VW, ah / VH);
   s = Math.max(1 / dpr, Math.floor(s * dpr) / dpr);
-  cv.style.width = (VW * s) + 'px';
-  cv.style.height = (VH * s) + 'px';
+  // step down until the Back to Arcade button clears the screen and controls
+  const back = document.getElementById('backBtn');
+  const parts = ['bezel', 'label', 'dpad', 'btnJ'].map((id) => document.getElementById(id));
+  for (let i = 0; i < 24; i++) {
+    cv.style.width = (VW * s) + 'px';
+    cv.style.height = (VH * s) + 'px';
+    if (!back || !back.getBoundingClientRect || s <= 1 / dpr) break;
+    const a = back.getBoundingClientRect();
+    const clear = parts.every((el) => { const h = el.getBoundingClientRect(); return a.right + 6 <= h.left || a.bottom + 6 <= h.top || a.left >= h.right || a.top >= h.bottom; });
+    if (clear) break;
+    s -= 1 / dpr;
+  }
 }
 window.addEventListener('resize', fit);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
 window.addEventListener('orientationchange', fit);
 fit();
 
