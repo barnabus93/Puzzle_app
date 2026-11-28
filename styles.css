@@ -82,9 +82,7 @@ body {
 .title-screen {
   background: #0a0a0e;
   align-items: center;
-  /* Top-aligned and scrollable: the game list keeps growing, so it scrolls
-     instead of shrinking to fit. (.title-content's auto margins keep it
-     vertically centered whenever everything happens to fit.) */
+  /* Top-aligned and scrollable: the header is pinned, the game list scrolls. */
   justify-content: flex-start;
   position: relative;
   overflow-x: hidden;
@@ -100,12 +98,43 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 18px;
-  padding: 20px 20px 48px;
+  padding: 0 20px 48px;
   width: 100%;
   max-width: 400px;
-  margin: auto 0;
+  margin: 0;           /* top-aligned: the header never moves between tabs */
   flex: 0 0 auto;
 }
+
+/* Logo, subtitle and tabs stay pinned at the top while the tiles scroll
+   underneath, and sit in the same place on every tab. */
+.title-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: calc(100% + 40px);
+  margin: 0 -20px;
+  padding: calc(env(safe-area-inset-top, 0px) + 20px) 20px 12px;
+  box-sizing: border-box;
+  background: #0a0a0e;
+}
+.title-header::after { /* soft edge where tiles slide under the header */
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -14px;
+  height: 14px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, #0a0a0e, rgba(10, 10, 14, 0));
+}
+
+/* Tiles slide in from the side a swipe (or tab tap) came from. */
+.game-tiles.slide-from-right { animation: tiles-in-right 220ms ease-out; }
+.game-tiles.slide-from-left { animation: tiles-in-left 220ms ease-out; }
+@keyframes tiles-in-right { from { opacity: 0.2; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+@keyframes tiles-in-left { from { opacity: 0.2; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
 
 .arcade-title {
   margin: 0;

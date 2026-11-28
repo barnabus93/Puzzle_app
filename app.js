@@ -135,8 +135,18 @@
       const tabs = document.querySelectorAll("#screen-title .game-tab");
       const allTiles = document.querySelectorAll("#screen-title .game-tile");
       const valid = { puzzle: 1, action: 1, versus: 1 };
+      const ORDER = ["puzzle", "action", "versus"];
+      const grid = document.querySelector("#screen-title .game-tiles");
+      let current = null;
       const showTab = (cat) => {
         if (!valid[cat]) cat = "puzzle";
+        if (current && cat !== current) { // slide the tiles in from the side we're moving toward
+          const fwd = ORDER.indexOf(cat) > ORDER.indexOf(current);
+          grid.classList.remove("slide-from-right", "slide-from-left");
+          void grid.offsetWidth; // restart the animation
+          grid.classList.add(fwd ? "slide-from-right" : "slide-from-left");
+        }
+        current = cat;
         tabs.forEach((t) => t.classList.toggle("active", t.dataset.tab === cat));
         allTiles.forEach((t) => {
           const c = t.dataset.category;
@@ -148,6 +158,29 @@
       this._tabHandler = (e) => { const cat = e.currentTarget.dataset.tab; titleStore.setString("tab", cat); showTab(cat); };
       tabs.forEach((t) => t.addEventListener("click", this._tabHandler));
       showTab(titleStore.getString("tab", "puzzle", valid));
+
+      // Swipe left/right anywhere on the menu to move between tabs.
+      let sx = 0, sy = 0, st = 0, tracking = false, swipedAt = 0;
+      this._touchStart = (e) => {
+        if (e.touches.length !== 1) { tracking = false; return; }
+        sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now(); tracking = true;
+      };
+      this._touchEnd = (e) => {
+        if (!tracking) return;
+        tracking = false;
+        const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+        if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5 || Date.now() - st > 800) return;
+        const i = ORDER.indexOf(current) + (dx < 0 ? 1 : -1);
+        if (i < 0 || i >= ORDER.length) return;
+        swipedAt = Date.now();
+        titleStore.setString("tab", ORDER[i]);
+        showTab(ORDER[i]);
+      };
+      // a swipe that ends on a tile must not also open that game
+      this._swallowClick = (e) => { if (Date.now() - swipedAt < 400) { e.preventDefault(); e.stopPropagation(); } };
+      screen.addEventListener("touchstart", this._touchStart, { passive: true });
+      screen.addEventListener("touchend", this._touchEnd, { passive: true });
+      screen.addEventListener("click", this._swallowClick, true);
     },
     onLeave() {
       const tiles = document.querySelectorAll("#screen-title .game-tile[data-game]");
@@ -156,6 +189,11 @@
       if (this._screen && this._updateMore) {
         this._screen.removeEventListener("scroll", this._updateMore);
         window.removeEventListener("resize", this._updateMore);
+      }
+      if (this._screen && this._touchStart) {
+        this._screen.removeEventListener("touchstart", this._touchStart);
+        this._screen.removeEventListener("touchend", this._touchEnd);
+        this._screen.removeEventListener("click", this._swallowClick, true);
       }
     },
   };
